@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding utf-8 -*-
+
 import random
 import pylab
 import datetime
@@ -124,4 +127,5 @@ if __name__ == '__main__':
     em = EnergyModule()
     #print em.generatePrimaryEnergyAvaialbilityLifetime()
     em.outputPrimaryEnergy(start_date, end_date)
+    #print (end_date - start_date).days
 
