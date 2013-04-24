@@ -20,7 +20,7 @@ import os
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet
+from annex import Annuitet, last_day_month
 
 class EconomicModule:
 
@@ -33,7 +33,7 @@ class EconomicModule:
 
     def loadMainConfig(self, filename='main_config.ini'):
         """Reads main config file """
-        config = ConfigParser.SafeConfigParser({'lifetime': 30, 'start_date': '2000/1/1', 'resolution': 10})
+        config = ConfigParser.ConfigParser()
         filepath = os.path.join(os.getcwd(), 'configs', filename)
         config.read(filepath)
         self.lifetime = config.getint('Main', 'lifetime')
@@ -92,14 +92,6 @@ class EconomicModule:
         a = Annuitet(self.debt, self.debt_rate, self.debt_years)
         self.debt_percents = a.percents
 
-    def getPercentDebtMonthly(date):
-        """Return monthly debt percents we need to pay"""
-        cur_month = self.getMonthNumber(date)
-        if cur_month <= len(self.debt_percents):
-            return self.debt_percents[cur_month]
-        else:
-            return 0
-
     def getYearNumber(date):
         return date.year - self.start_date.year + 1
 
@@ -132,9 +124,18 @@ class EconomicModule:
             cur_date += datetime.timedelta(days=1)
         return revenue
 
-    def calculateMonthlyTaxes(self, year_revenue):
+    def calculateMonthlyTaxes(self, date, year_revenue):
+        """EBT in the year * 20% enetered only in december"""
+        if date.month == 12:
+            return year_revenue * self.tax_rate
+        else:
+            return 0
+
+    def calculateMonthlyTaxRate(self, year_revenue):
         """EBT in the year * 20% enetered only in december"""
         return year_revenue * self.tax_rate
+
+
 
     def getDebtPayment(self, date_start, date_end):
         """calculate the payment of the debt principal based on constant annuity repayment  - http://en.wikipedia.org/wiki/Fixed_rate_mortgage
@@ -143,11 +144,30 @@ class EconomicModule:
         payment = self.debt_rate * self.debt * number_of_days / 365.25
         return payment
 
-    def calculateInterests(self):
-        """((debt in previous period + debt in current period) /2) * interest rate * num of days/365"""
+    def calculateInterests(self, date):
+        """Return monthly debt percents we need to pay"""
+        cur_month = self.getMonthNumber(date)
+        if cur_month <= len(self.debt_percents):
+            return self.debt_percents[cur_month]
+        else:
+            return 0
+
+    def getMonthlyInterests(self, date_start, date_end):
         pass
 
-    def calculateFCF(self): pass
+    def calculateFCF(self):
+        """  net earnings (revenue - costs) + amortisation – investments in long term assests"""
+        """
+        operational_results = Revenue + Amortization - Debt_percents - Taxes
+        investments_results = Investments (only in 1 period)
+        financial_results = returns_of_debts
+        FCF = operational_results-
+
+        """
+
+
+
+
 
     def generateISandBS(self): pass
 

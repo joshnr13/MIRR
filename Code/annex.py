@@ -3,6 +3,8 @@
 
 import datetime as dt
 from math import floor
+from calendar import monthrange
+
 
 def months_between(date1,date2):
     """return full month number since date2 till date1"""
@@ -23,6 +25,25 @@ def months_between(date1,date2):
 def years_between(date1,date2):
     """return full year number since date2 till date1"""
     return floor(months_between(date1, date2) / 12)
+
+
+def last_day_month(date):
+    """return last day (int) in month"""
+    return monthrange(date.year, date.month)[1]
+
+
+def first_day_month(date):
+    return datetime.date(date.start_date.year, date.start_date.month, 1)
+
+def next_month(date):
+    cur_month = date.start_date.month
+    cur_year = date.start_date.year
+    if cur_month == 12:
+        cur_month = 1
+        cur_year += 1
+
+    return datetime.date(cur_year,cur_month , date.day)
+
 
 
 class Annuitet():
