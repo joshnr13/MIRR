@@ -20,15 +20,16 @@ import os
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
+from annex import Annuitet
 
 class EconomicModule:
 
     def __init__(self, technology_module, subside_module):
-        self.loadConfig()
-        self.loadMainConfig()
         self.technology_module = technology_module
         self.subside_module = subside_module
-
+        self.loadConfig()
+        self.loadMainConfig()
+        self.calcDebtPercents()
 
     def loadMainConfig(self, filename='main_config.ini'):
         """Reads main config file """
@@ -57,8 +58,10 @@ class EconomicModule:
 
         self.debt = config.getfloat('Debt', 'debt_value') * self.investments
         self.debt_rate = config.getfloat('Debt', 'interest_rate')
+        self.debt_years = config.getfloat('Debt', 'period')
 
         self.amortization_duration = config.getfloat('Amortization', 'duration')
+
 
     def getRevenue(self, date_start, date_end):
         """return revenue from selling electricity + subsides for given period of time"""
@@ -82,6 +85,18 @@ class EconomicModule:
 
         if cur_month <= amortization_duration_months:
             return self.investments / amortization_duration_months
+        else:
+            return 0
+
+    def calcDebtPercents(self):
+        a = Annuitet(self.debt, self.debt_rate, self.debt_years)
+        self.debt_percents = a.percents
+
+    def getPercentDebtMonthly(date):
+        """Return monthly debt percents we need to pay"""
+        cur_month = self.getMonthNumber(date)
+        if cur_month <= len(self.debt_percents):
+            return self.debt_percents[cur_month]
         else:
             return 0
 
