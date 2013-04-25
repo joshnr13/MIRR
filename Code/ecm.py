@@ -49,16 +49,16 @@ class EconomicModule:
 
         self.tax_rate = config.getfloat('Taxes', 'tax_rate')
         self.month_costs = config.getfloat('Costs', 'costs')
-        self.costs_groth_rate = config.getfloat('Costs', 'growth_rate')
+        self.costs_groth_rate = config.getfloat('Costs', 'growth_rate') / 100
 
         self.market_price = config.getfloat('Electricity', 'market_price')
-        self.price_groth_rate = config.getfloat('Electricity', 'growth_rate')
+        self.price_groth_rate = config.getfloat('Electricity', 'growth_rate') / 100
 
-        self.investments = config.getfloat('Investments', 'investment_value')
+        self.investments = config.getfloat('Investments', 'investment_value') * 1000000
 
         self.debt = config.getfloat('Debt', 'debt_value') * self.investments
         self.debt_rate = config.getfloat('Debt', 'interest_rate')
-        self.debt_years = config.getfloat('Debt', 'period')
+        self.debt_years = config.getint('Debt', 'periods')
 
         self.amortization_duration = config.getfloat('Amortization', 'duration')
 
@@ -66,11 +66,12 @@ class EconomicModule:
     def getRevenue(self, date_start, date_end):
         """return revenue from selling electricity + subsides for given period of time"""
         revenue = 0
+        electricity_production = 0
         cur_date = date_start
 
         while cur_date <= date_end:
-            electricity_production += self.technology_module.generateElectiricityProduction(cur_date)
-            day_revenue = electricity_production * self.getPriceKwh(cur_date)
+            electricity_production = self.technology_module.generateElectiricityProduction(cur_date)
+            day_revenue = self.getDayRevenue(electricity_production,cur_date)
             subside_kwh = self.subside_module.subsidyProduction(cur_date)
             day_subside = electricity_production * subside_kwh
             revenue += (day_revenue + day_subside)
@@ -78,24 +79,29 @@ class EconomicModule:
 
         return revenue
 
-    def calcAmortizationMonthly(date):
+
+    def getDayRevenue(self, electricity_production, cur_date):
+        return electricity_production * self.getPriceKwh(cur_date)
+
+    def calcDepricationMonthly(self, date):
         """Calcultation of amortization in current month"""
         cur_month = self.getMonthNumber(date)
-        amortization_duration_months = self.amortization_duration * 12
+        deprication_duration_months = self.amortization_duration * 12
 
-        if cur_month <= amortization_duration_months:
-            return self.investments / amortization_duration_months
+        if cur_month <= deprication_duration_months:
+            return self.investments / deprication_duration_months
         else:
             return 0
 
     def calcDebtPercents(self):
         a = Annuitet(self.debt, self.debt_rate, self.debt_years)
+        a.calculate()
         self.debt_percents = a.percents
 
-    def getYearNumber(date):
-        return date.year - self.start_date.year + 1
+    def getYearNumber(self, date):
+        return date.year - self.start_date.year
 
-    def getMonthNumber(date):
+    def getMonthNumber(self, date):
         """return current month number since start_date"""
         days_diff = (date - self.start_date).days
         month_diff = (days_diff / 30.4)
@@ -105,14 +111,14 @@ class EconomicModule:
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
         yearNumber = self.getYearNumber(date)
-        return self.market_price * (self.price_groth_rate ** yearNumber)
+        return self.market_price * ((1 + self.price_groth_rate)  ** yearNumber)
 
     def getdailyCosts(self, date):
         """return costs per given day
         30.4 - average number of days per month
         """
         yearNumber = self.getYearNumber(date)
-        return self.costs * (self.costs_groth_rate ** yearNumber) / 30.4
+        return self.month_costs * ((1 + self.costs_groth_rate) ** yearNumber) / 30.4
 
     def getCosts(self, date_start, date_end):
         """sum of costs for all days in period """
@@ -122,7 +128,7 @@ class EconomicModule:
         while cur_date <= date_end:
             costs += self.getdailyCosts(cur_date)
             cur_date += datetime.timedelta(days=1)
-        return revenue
+        return costs
 
     def calculateMonthlyTaxes(self, date, year_revenue):
         """EBT in the year * 20% enetered only in december"""
@@ -156,7 +162,7 @@ class EconomicModule:
         pass
 
     def calculateFCF(self):
-        """  net earnings (revenue - costs) + amortisation – investments in long term assests"""
+        """  net earnings (revenue - costs) + amortisation - investments in long term assests"""
         """
         operational_results = Revenue + Amortization - Debt_percents - Taxes
         investments_results = Investments (only in 1 period)
@@ -184,6 +190,7 @@ if __name__ == '__main__':
     technology_module = TechnologyModule(em)
     subside_module = SubsidyModule()
     ecm = EconomicModule(technology_module, subside_module)
+    print ecm.getRevenue(start_date, start_date+datetime.timedelta(days=30))
 
 
 

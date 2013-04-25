@@ -52,7 +52,8 @@ class EnergyModule():
         based on monthly averages creates daily data
         """
         """for each day of month:   .insulation = average monthly insolation for respective month * (random factor according to normal distribution)"""
-        return self.getAvMonthInsolation(date)* self.getRandomFactor()
+        result = self.getAvMonthInsolation(date) * self.getRandomFactor()
+        return result
 
     def generatePrimaryEnergyAvaialbilityLifetime(self):
         """return energy availability per each day in whole lifetime"""

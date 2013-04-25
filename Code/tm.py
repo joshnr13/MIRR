@@ -39,7 +39,7 @@ class TechnologyModule():
     def getElectricityProduction(self, date_start, date_end):
         """return sum of electricity in kWh for each day for the selected period"""
         duration_days = (date_end - date_start).days
-        return sum([self.generateElectiricityProduction(self.start_date+datetime.timedelta(days=i)) for i in range(duration_days) ])
+        return sum([self.generateElectiricityProduction(date_start+datetime.timedelta(days=i)) for i in range(duration_days) ])
 
     def get_xy_values_for_plot(self, start_date, end_date, resolution):
         """return x,y values for plotting step chart"""

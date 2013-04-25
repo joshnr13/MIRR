@@ -5,6 +5,14 @@ import datetime as dt
 from math import floor
 from calendar import monthrange
 
+class cached_property(object):
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, cls=None):
+        instance.__dict__[self.func.__name__] = self.func(instance)
+        result = self.func(instance)
+        return result
 
 def months_between(date1,date2):
     """return full month number since date2 till date1"""
@@ -15,11 +23,12 @@ def months_between(date1,date2):
     months=m2-m1
     if date1.day>date2.day:
         months-=1
-    elif date1.day==date2.day:
-        seconds1=date1.hour*3600+date1.minute+date1.second
-        seconds2=date2.hour*3600+date2.minute+date2.second
-        if seconds1>seconds2:
-            months-=1
+    #elif date1.day==date2.day:
+
+        #seconds1=date1.hour*3600+date1.minute+date1.second
+        #seconds2=date2.hour*3600+date2.minute+date2.second
+        #if seconds1>seconds2:
+            #months-=1
     return months
 
 def years_between(date1,date2):
@@ -28,21 +37,25 @@ def years_between(date1,date2):
 
 
 def last_day_month(date):
-    """return last day (int) in month"""
-    return monthrange(date.year, date.month)[1]
+    """return date - last day date in month with input date"""
+    day = monthrange(date.year, date.month)[1]
+    return dt.date( date.year, date.month, day)
 
 
 def first_day_month(date):
-    return datetime.date(date.start_date.year, date.start_date.month, 1)
+    """return date - first day date in month with input date"""
+    return dt.date( date.year, date.month, 1)
 
 def next_month(date):
-    cur_month = date.start_date.month
-    cur_year = date.start_date.year
+    cur_month = date.month
+    cur_year = date.year
     if cur_month == 12:
         cur_month = 1
         cur_year += 1
+    else:
+        cur_month += 1
 
-    return datetime.date(cur_year,cur_month , date.day)
+    return dt.date(cur_year,cur_month , date.day)
 
 
 
@@ -56,9 +69,10 @@ class Annuitet():
         self.summa = summa
         self.yrate = yrate
         self.mperiods = yperiods * 12
-        self.mpayment = self.calcMonthlyPayment()
+        self.mpayment = self.__calcMonthlyPayment()
 
-    def calcMonthlyPayment(self):
+
+    def __calcMonthlyPayment(self):
         P = self.yrate / 12
         N = self.mperiods
         S = self.summa
