@@ -4,4 +4,4 @@
 ;tax relief/subsidy
 ; duration - duration of subsidy in years since start of the project
 duration = 12
-kWh_subsidy = 0.15
+kWh_subsidy = 0.01

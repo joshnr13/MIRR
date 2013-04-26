@@ -1,12 +1,12 @@
 [Electricity]
 ; market_price EUR per 1Kwh
-; growth_rate - percent growth rate of market price 1 Jan of new Year
+; growth_rate - percent groth rate of market price 1 Jan of new Year
 market_price = 0.1
-growth_rate = 2
+growth_rate = 5
 
 [Investments]
-; investment_value in  EUR
-investment_value = 2000000
+; investment_value in mln EUR
+investment_value = 2
 
 [Costs]
 ; costs - sum of allcosts per month, EUR
@@ -16,15 +16,15 @@ growth_rate = 3
 
 [Taxes]
 ;tax_rate - total tax rate in percent per year earnings before taxes (EBT)
-tax_rate = 17
+tax_rate = 20
 
 [Debt]
 ;debt value - in percent of Investments.investment_value, ie 50 #%
 ;debt interest rate - yearly interest rate of annuity repayment  in percents, ie 3 #% 
 ;periods - number of years for dept return
 debt_value = 50
-interest_rate = 6
-periods = 12
+interest_rate = 3
+periods = 10
 
 [Amortization]
 ;duration of amortization of investments in years
