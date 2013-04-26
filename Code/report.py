@@ -63,10 +63,10 @@ class Report():
     def net_earning(self):
         return self.calc_report_monthly_values1(self._calc_net_earning)
 
+    @cached_property
+    def fixed_asset(self):
+        return self.calc_report_monthly_values1(self.economic_module.getMonthlyInvestments)
 
-    def report_get_all_investments(self):
-        """saves all investments since start project"""
-        pass
 
     def _calc_ebitda(self, date):
         """calculation of ebitda = revenues - costs"""
@@ -162,7 +162,7 @@ class Report():
         pylab.axvline()
         pylab.show()
 
-        #print deprication
+        print deprication
         print sum(deprication)
 
 
@@ -174,6 +174,7 @@ if __name__ == '__main__':
     subside_module = SubsidyModule()
     ecm = EconomicModule(technology_module, subside_module)
     r = Report(ecm)
-    r.plot_charts()
+    #r.plot_charts()
+    print r.fixed_asset.values()
 
     #print r.revenue[datetime.date(2000, 1, 31)]

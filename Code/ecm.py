@@ -54,9 +54,9 @@ class EconomicModule:
         self.market_price = config.getfloat('Electricity', 'market_price')
         self.price_groth_rate = config.getfloat('Electricity', 'growth_rate') / 100
 
-        self.investments = config.getfloat('Investments', 'investment_value') * 1000000
+        self.investments = config.getfloat('Investments', 'investment_value')
 
-        self.debt = config.getfloat('Debt', 'debt_value') * self.investments
+        self.debt = config.getfloat('Debt', 'debt_value') * self.investments / 100
         self.debt_rate = config.getfloat('Debt', 'interest_rate')
         self.debt_years = config.getint('Debt', 'periods')
 
@@ -141,6 +141,11 @@ class EconomicModule:
         """EBT in the year * 20% enetered only in december"""
         return year_revenue * self.tax_rate
 
+    def getMonthlyInvestments(self, date):
+        if date.month  ==  self.start_date.month and date.year == self.start_date.year:
+            return self.investments - self.debt
+        else:
+            return 0
 
 
     def getDebtPayment(self, date_start, date_end):
