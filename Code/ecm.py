@@ -20,7 +20,7 @@ import os
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, last_day_month
+from annex import Annuitet, last_day_month, add_x_years
 
 class EconomicModule:
 
@@ -39,7 +39,7 @@ class EconomicModule:
         self.lifetime = config.getint('Main', 'lifetime')
         self.resolution = config.getint('Main', 'resolution')
         self.start_date = datetime.datetime.strptime(config.get('Main', 'start_date'), '%Y/%m/%d').date()
-        self.end_date = datetime.date(self.start_date.year + self.lifetime, self.start_date.month, self.start_date.day)
+        self.end_date = add_x_years(self.start_date, self.lifetime)
 
     def loadConfig(self, filename='ecm_config.ini'):
         """Reads module config file"""
@@ -77,6 +77,7 @@ class EconomicModule:
             revenue += (day_revenue + day_subside)
             cur_date += datetime.timedelta(days=1)
 
+        #print "%s---%s : %s, price %s, subs %s" % (date_start, date_end, revenue, self.getPriceKwh(date_end), subside_kwh)
         return revenue
 
 
@@ -130,16 +131,10 @@ class EconomicModule:
             cur_date += datetime.timedelta(days=1)
         return costs
 
-    def calculateMonthlyTaxes(self, date, year_revenue):
-        """EBT in the year * 20% enetered only in december"""
-        if date.month == 12:
-            return year_revenue * self.tax_rate
-        else:
-            return 0
 
-    def calculateMonthlyTaxRate(self, year_revenue):
-        """EBT in the year * 20% enetered only in december"""
-        return year_revenue * self.tax_rate
+    def getTaxRate(self):
+        return self.tax_rate
+
 
     def getMonthlyInvestments(self, date):
         if date.month  ==  self.start_date.month and date.year == self.start_date.year:

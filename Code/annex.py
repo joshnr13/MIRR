@@ -4,6 +4,7 @@
 import datetime as dt
 from math import floor
 from calendar import monthrange
+from dateutil.relativedelta import relativedelta
 
 class cached_property(object):
     def __init__(self, func):
@@ -57,7 +58,9 @@ def next_month(date):
 
     return dt.date(cur_year,cur_month , date.day)
 
-
+def add_x_years(date, years):
+    """return date X years later - 1 day"""
+    return  date + relativedelta(years=years) - relativedelta(days=1)
 
 class Annuitet():
     def __init__(self,summa,yrate,yperiods):
