@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding utf-8 -*-
 
+import os
+import itertools
+import tempfile
+import csv
 import datetime as dt
 from math import floor
 from calendar import monthrange
@@ -79,7 +83,9 @@ class Annuitet():
         P = self.yrate / 12
         N = self.mperiods
         S = self.summa
+
         return  S * P * (1+P) ** N / ((1+P) ** N-1)
+
 
     def calculate(self):
         percent = (self.summa * self.yrate / 12)
@@ -101,6 +107,46 @@ class Annuitet():
         self.percents = percents
         self.depts = debts
         self.ostatki = ostatki
+
+
+def uniquify_filename(path, sep = ''):
+    """Return free filename, if file name is Busy adds suffix _number
+    Input: filename we want
+    Output: filename we can
+    """
+    def name_sequence():
+        count = itertools.count()
+        yield ''
+        while True:
+            yield '{s}_v{n:d}'.format(s = sep, n = next(count))
+
+    orig = tempfile._name_sequence
+    with tempfile._once_lock:
+        tempfile._name_sequence = name_sequence()
+        path = os.path.normpath(path)
+        dirname, basename = os.path.split(path)
+        filename, ext = os.path.splitext(basename)
+        fd, filename = tempfile.mkstemp(dir = dirname, prefix = filename, suffix = ext)
+        tempfile._name_sequence = orig
+    return filename
+
+
+def transponse_csv(csv_filename):
+    """Transposing csv file"""
+    new_filenmame = csv_filename
+    with  open(csv_filename) as csv_file:
+        a = itertools.izip(*csv.reader(csv_file, delimiter=';'))
+        with open(new_filenmame, "wb") as f:
+            csv.writer(f, delimiter=';').writerows(a)
+
+
+def add_header_csv(csv_filename, header):
+    """Adds first row header to csv file"""
+    line = ";".join(header)
+    with open(csv_filename,'r+') as f:
+        content = f.read()
+        f.seek(0,0)
+        f.write(line.rstrip('\r\n') + '\n' + content)
 
 
 if __name__ == '__main__':

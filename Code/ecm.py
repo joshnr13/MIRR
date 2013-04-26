@@ -57,7 +57,7 @@ class EconomicModule:
         self.investments = config.getfloat('Investments', 'investment_value')
 
         self.debt = config.getfloat('Debt', 'debt_value') * self.investments / 100
-        self.debt_rate = config.getfloat('Debt', 'interest_rate')
+        self.debt_rate = config.getfloat('Debt', 'interest_rate') / 100
         self.debt_years = config.getint('Debt', 'periods')
 
         self.amortization_duration = config.getfloat('Amortization', 'duration')
@@ -107,7 +107,7 @@ class EconomicModule:
         days_diff = (date - self.start_date).days
         month_diff = (days_diff / 30.4)
         cur_month = int(math.ceil(month_diff)) - 1
-        return date, cur_month
+        return cur_month
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
@@ -153,7 +153,7 @@ class EconomicModule:
     def calculateInterests(self, date):
         """Return monthly debt percents we need to pay"""
         cur_month = self.getMonthNumber(date)
-        if cur_month <= len(self.debt_percents):
+        if cur_month < len(self.debt_percents):
             return self.debt_percents[cur_month]
         else:
             return 0
