@@ -1,10 +1,10 @@
 import datetime
 import pylab
 import numpy
+import csv
 
 from collections import defaultdict, OrderedDict
-
-from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property
+from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
@@ -140,10 +140,11 @@ class Report():
         results = OrderedDict()
         year_ebt = self.ebt_yearly
         for start_day, end_day in self.report_dates.items():
+            result = self._calc_month_taxes(end_day, year_ebt[end_day.year])
             if results.has_key(end_day):
-                results[end_day] += self.calculateMonthlyTaxes(end_day, year_ebt[end_day.year])
+                results[end_day] += result
             else:
-                results[end_day] = self.calculateMonthlyTaxes(end_day, year_ebt[end_day.year])
+                results[end_day] = result
 
         return  results
 
@@ -161,11 +162,9 @@ class Report():
 
     def _calc_net_earning(self, date):
         """calculation of net_earning = ebt - taxes"""
-        print("self.ebt[date] = %s" %(self.ebt[date],))  #debug-info-
-        print("self.tax[date] = %s" %(self.tax[date],))  #debug-info-
         return self.ebt[date] - self.tax[date]
 
-    def calculateMonthlyTaxes(self, date, year_ebt):
+    def _calc_month_taxes(self, date, year_ebt):
         """EBT in the year * 20% enetered only in december"""
         if date.month == 12:
             return year_ebt * self.economic_module.getTaxRate()
@@ -227,6 +226,28 @@ class Report():
     def report_get_firstdays(self):
         return self.report_dates.keys()
 
+    def prepare_monthly_report_IS(self):
+        """Prepares and saves monthly IS report in csv file"""
+        cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        report_name = "%s_IS_monthly.csv" % (cur_date, )
+        output_filename = uniquify_filename(report_name)
+
+        IS_ROWS = [self.revenue, self.cost, self.ebitda, self.deprication, self.ebit,
+                self.iterest_paid, self.ebt, self.tax, self.net_earning ]
+
+        NAMES = ['Dates', 'Revenue', 'Costs', 'EBITDA', 'Deprication', 'EBIT',
+                 'Interest paid', 'EBT', 'Taxes', 'Net earnings']
+
+        with open(output_filename,'wb') as f:
+            w = csv.DictWriter(f, IS_ROWS[0].keys(), delimiter=';')
+            w.writeheader()
+            w.writerows(IS_ROWS)
+
+        transponse_csv(output_filename)
+        add_header_csv(output_filename, NAMES)
+        transponse_csv(output_filename)
+
+        print "Report outputed to file %s" % output_filename
 
     def plot_charts_monthly(self):
         x = self.revenue.keys()
@@ -234,13 +255,13 @@ class Report():
         cost = numpy.array(self.cost.values())
         ebitda = numpy.array(self.ebitda.values())
         deprication = self.deprication.values()
-        net_earning = self.net_earning.values()
+        #net_earning = self.net_earning.values()
 
         pylab.plot(revenue, label='REVENUE')
         pylab.plot(cost, label='COST')
         pylab.plot(ebitda, label='EBITDA')
         pylab.plot(deprication, label='deprication')
-        pylab.plot(net_earning, label='net_earning')
+        #pylab.plot(net_earning, label='net_earning')
 
         pylab.xlabel("months")
         pylab.ylabel("EUROs")
@@ -261,13 +282,13 @@ class Report():
         cost = self.cost_yearly.values()
         ebitda = self.ebitda_yearly.values()
         deprication = self.deprication_yearly.values()
-        net_earning = self.net_earning_yearly.values()
+        #net_earning = self.net_earning_yearly.values()
 
         pylab.plot(revenue, label='REVENUE')
         pylab.plot(cost, label='COST')
         pylab.plot(ebitda, label='EBITDA')
         pylab.plot(deprication, label='deprication')
-        pylab.plot(net_earning, label='net_earning')
+        #pylab.plot(net_earning, label='net_earning')
 
         pylab.xlabel("years")
         pylab.ylabel("EUROs")
@@ -296,7 +317,10 @@ if __name__ == '__main__':
 
     r.plot_charts_yearly()
     r.plot_charts_monthly()
+    r.prepare_monthly_report_IS()
+    #print r.deprication
 
+    #print r.fixed_asset
     #r.plot_price()
     #print r.fixed_asset.values()
     #print r.revenue.values()
