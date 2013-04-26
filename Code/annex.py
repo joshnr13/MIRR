@@ -5,10 +5,13 @@ import os
 import itertools
 import tempfile
 import csv
+import operator
 import datetime as dt
+
 from math import floor
 from calendar import monthrange
 from dateutil.relativedelta import relativedelta
+from collections import OrderedDict
 
 class cached_property(object):
     def __init__(self, func):
@@ -18,6 +21,15 @@ class cached_property(object):
         instance.__dict__[self.func.__name__] = self.func(instance)
         result = self.func(instance)
         return result
+
+def accumulate(data, f=operator.add):
+    xs = data.values()
+    keys = data.keys()
+    new_values = reduce(lambda a, x: a + [f(a[-1], x)], xs[1:], [xs[0]])
+    items = zip(keys, new_values)
+    new_dict = dict(items)
+    result = OrderedDict(sorted(new_dict.items(), key=lambda t: t[0]))
+    return result
 
 def months_between(date1,date2):
     """return full month number since date2 till date1"""

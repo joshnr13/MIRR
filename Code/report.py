@@ -5,6 +5,8 @@ import csv
 
 from collections import defaultdict, OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
+from annex import accumulate
+
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
@@ -161,10 +163,22 @@ class Report():
         """return current_asset MONTHLY """
         return self.calc_report_monthly_values1(self._calc_current_assets)
 
+    #######################################################################
+
     @cached_property
     def paid_in_capital(self):
         """return paid_in_capital MONTHLY - NOT IMPLEMENTED"""
         return self.calc_report_monthly_values1(self.return_zero)
+
+    @cached_property
+    def retained_earnings(self):
+        """return retained_earnings MONTHLY"""
+        return self.net_earning
+
+    @cached_property
+    def unallocated_earnings(self):
+        """return unallocated_earnings - sum of all previous retained_earnings MONTHLY"""
+        return accumulate(self.net_earning)
 
     def return_zero(self, date):
         """methon for non implemented calculations"""
@@ -322,11 +336,13 @@ class Report():
 
         BS_ROWS = [self.fixed_assets, self.current_assets, self.inventory,
                    self.operating_receivable, self.short_term_investment,
-                self.assets_bank_account, self.assets ]
+                   self.assets_bank_account, self.assets,
+                   self.paid_in_capital, self.retained_earnings, self.unallocated_earnings]
 
         NAMES = ['Dates', 'Fixed Assests', 'Current Assets', 'Inventories',
                  'Operating Receivables', 'Short-Term Investments',
-                 'Assets On Bank Accounts', 'Assets']
+                 'Assets On Bank Accounts', 'Assets',
+                 'Paid-In Capital', 'Retained Earnings', 'Unallocated Earnings']
 
         with open(output_filename,'wb') as f:
             w = csv.DictWriter(f, BS_ROWS[0].keys(), delimiter=';')
