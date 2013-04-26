@@ -138,7 +138,7 @@ class EconomicModule:
 
     def getMonthlyInvestments(self, date):
         if date.month  ==  self.start_date.month and date.year == self.start_date.year:
-            return self.investments - self.debt
+            return self.investments
         else:
             return 0
 

@@ -4,7 +4,7 @@ import numpy
 import csv
 
 from collections import defaultdict, OrderedDict
-from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv
+from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
@@ -106,24 +106,69 @@ class Report():
         return self.aggregate_yearly(self.net_earning)
 
     @cached_property
-    def fixed_asset(self):
-        """MONTHLY"""
+    def investments(self):
+        """return investments MONTHLY"""
         return self.calc_report_monthly_values1(self.economic_module.getMonthlyInvestments)
+
+    @cached_property
+    def fixed_assets(self):
+        """return current_asset MONTHLY"""
+        return self.calc_report_monthly_values1(self._calc_fixed_assets)
+
+    @cached_property
+    def assets(self):
+        """return current_asset MONTHLY"""
+        return self.calc_report_monthly_values1(self._calc_assets)
 
     @cached_property
     def fixed_asset_yearly(self):
         """YEARLY"""
-        return self.aggregate_yearly(self.fixed_asset)
+        return self.aggregate_yearly(self.fixed_assets)
 
     @cached_property
     def price(self):
-        """return kwh price for electricity at given day"""
+        """return kwh price for electricity MONTHLY"""
         return self.calc_report_monthly_values1(self.economic_module.getPriceKwh)
+
 
     @cached_property
     def electricity(self):
-        """return kwh price for electricity at given day"""
+        """return volume of for electricity MONTHLY"""
         return self.calc_report_monthly_values2(self.economic_module.technology_module.getElectricityProduction)
+
+    @cached_property
+    def inventory(self):
+        """return inventories MONTHLY - NOT IMPLEMENTED"""
+        return self.calc_report_monthly_values1(self.return_zero)
+
+    @cached_property
+    def operating_receivable(self):
+        """return operating_receivable MONTHLY - NOT IMPLEMENTED"""
+        return self.calc_report_monthly_values1(self.return_zero)
+
+    @cached_property
+    def short_term_investment(self):
+        """return short_term_investment MONTHLY - NOT IMPLEMENTED"""
+        return self.calc_report_monthly_values1(self.return_zero)
+
+    @cached_property
+    def assets_bank_account(self):
+        """return assets_bank_account MONTHLY - NOT IMPLEMENTED"""
+        return self.calc_report_monthly_values1(self.return_zero)
+
+    @cached_property
+    def current_assets(self):
+        """return current_asset MONTHLY """
+        return self.calc_report_monthly_values1(self._calc_current_assets)
+
+    @cached_property
+    def paid_in_capital(self):
+        """return paid_in_capital MONTHLY - NOT IMPLEMENTED"""
+        return self.calc_report_monthly_values1(self.return_zero)
+
+    def return_zero(self, date):
+        """methon for non implemented calculations"""
+        return 0
 
     def aggregate_yearly(self, data):
         """Aggregate monthly values to yearly"""
@@ -170,6 +215,26 @@ class Report():
             return year_ebt * self.economic_module.getTaxRate()
         else:
             return 0
+
+    def _calc_current_assets(self, date):
+        """calculating current assests as sum"""
+        return (
+        self.inventory[date] +
+        self.operating_receivable[date] +
+        self.short_term_investment[date] +
+        self.assets_bank_account[date] )
+
+    def _calc_assets(self, date):
+        """calculating assests as sum fixed + current"""
+        return ( self.current_assets[date] + self.fixed_assets[date] )
+
+    def _calc_fixed_assets(self, date):
+        """calculating fixed assests as diff between investment and deprication"""
+        prev_month_last_day = last_day_previous_month(date)
+        if self.investments.has_key(prev_month_last_day):
+            return (self._calc_fixed_assets(prev_month_last_day) - self.deprication[date])
+        else:
+            return (self.investments[date])
 
     def calc_yearly_values2(self, func):
         """Calculates monthly values using 2 dates -first_day and last_day in month
@@ -247,7 +312,32 @@ class Report():
         add_header_csv(output_filename, NAMES)
         transponse_csv(output_filename)
 
-        print "Report outputed to file %s" % output_filename
+        print "IS Report outputed to file %s" % output_filename
+
+    def prepare_monthly_report_BS(self):
+        """Prepares and saves monthly BS report in csv file"""
+        cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        report_name = "%s_BS_monthly.csv" % (cur_date, )
+        output_filename = uniquify_filename(report_name)
+
+        BS_ROWS = [self.fixed_assets, self.current_assets, self.inventory,
+                   self.operating_receivable, self.short_term_investment,
+                self.assets_bank_account, self.assets ]
+
+        NAMES = ['Dates', 'Fixed Assests', 'Current Assets', 'Inventories',
+                 'Operating Receivables', 'Short-Term Investments',
+                 'Assets On Bank Accounts', 'Assets']
+
+        with open(output_filename,'wb') as f:
+            w = csv.DictWriter(f, BS_ROWS[0].keys(), delimiter=';')
+            w.writeheader()
+            w.writerows(BS_ROWS)
+
+        transponse_csv(output_filename)
+        add_header_csv(output_filename, NAMES)
+        transponse_csv(output_filename)
+
+        print "BS Report outputed to file %s" % output_filename
 
     def plot_charts_monthly(self):
         x = self.revenue.keys()
@@ -318,7 +408,10 @@ if __name__ == '__main__':
     r.plot_charts_yearly()
     r.plot_charts_monthly()
     r.prepare_monthly_report_IS()
-    #print r.deprication
+    r.prepare_monthly_report_BS()
+
+    #print r.fixed_assets.values()
+    #print r.assets.values()
 
     #print r.fixed_asset
     #r.plot_price()

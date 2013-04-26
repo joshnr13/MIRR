@@ -40,12 +40,16 @@ def years_between(date1,date2):
     """return full year number since date2 till date1"""
     return floor(months_between(date1, date2) / 12)
 
-
 def last_day_month(date):
     """return date - last day date in month with input date"""
     day = monthrange(date.year, date.month)[1]
     return dt.date( date.year, date.month, day)
 
+def last_day_previous_month(date):
+    """return date - last day of previous month"""
+    prev_month_date =  date - relativedelta(months=1)
+    last_day_prev_month = last_day_month(prev_month_date)
+    return last_day_prev_month
 
 def first_day_month(date):
     """return date - first day date in month with input date"""
