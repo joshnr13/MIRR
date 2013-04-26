@@ -140,7 +140,11 @@ class Report():
         results = OrderedDict()
         year_ebt = self.ebt_yearly
         for start_day, end_day in self.report_dates.items():
-            result[end_day] += self.calculateMonthlyTaxes(end_day, year_ebt[end_day.year])
+            if results.has_key(end_day):
+                results[end_day] += self.calculateMonthlyTaxes(end_day, year_ebt[end_day.year])
+            else:
+                results[end_day] = self.calculateMonthlyTaxes(end_day, year_ebt[end_day.year])
+
         return  results
 
     def _calc_ebitda(self, date):
@@ -157,6 +161,8 @@ class Report():
 
     def _calc_net_earning(self, date):
         """calculation of net_earning = ebt - taxes"""
+        print("self.ebt[date] = %s" %(self.ebt[date],))  #debug-info-
+        print("self.tax[date] = %s" %(self.tax[date],))  #debug-info-
         return self.ebt[date] - self.tax[date]
 
     def calculateMonthlyTaxes(self, date, year_ebt):
@@ -165,12 +171,6 @@ class Report():
             return year_ebt * self.economic_module.getTaxRate()
         else:
             return 0
-
-
-    def calculateYearlyTaxes(self, date, year_revenue):
-        """EBT in the year * 20% enetered only in december"""
-        return year_revenue * self.tax_rate
-
 
     def calc_yearly_values2(self, func):
         """Calculates monthly values using 2 dates -first_day and last_day in month
@@ -232,13 +232,15 @@ class Report():
         x = self.revenue.keys()
         revenue = numpy.array(self.revenue.values())
         cost = numpy.array(self.cost.values())
-
         ebitda = numpy.array(self.ebitda.values())
         deprication = self.deprication.values()
+        net_earning = self.net_earning.values()
+
         pylab.plot(revenue, label='REVENUE')
         pylab.plot(cost, label='COST')
         pylab.plot(ebitda, label='EBITDA')
         pylab.plot(deprication, label='deprication')
+        pylab.plot(net_earning, label='net_earning')
 
         pylab.xlabel("months")
         pylab.ylabel("EUROs")
@@ -259,11 +261,13 @@ class Report():
         cost = self.cost_yearly.values()
         ebitda = self.ebitda_yearly.values()
         deprication = self.deprication_yearly.values()
+        net_earning = self.net_earning_yearly.values()
 
         pylab.plot(revenue, label='REVENUE')
         pylab.plot(cost, label='COST')
         pylab.plot(ebitda, label='EBITDA')
         pylab.plot(deprication, label='deprication')
+        pylab.plot(net_earning, label='net_earning')
 
         pylab.xlabel("years")
         pylab.ylabel("EUROs")
@@ -298,3 +302,7 @@ if __name__ == '__main__':
     #print r.revenue.values()
     #print r.revenue_yearly
     #print r.revenue[datetime.date(2000, 1, 31)]
+
+    #print r.ebt.values()[:12]
+    #print sum(r.ebt.values()[:12])
+    #print r.tax.values()[:12]

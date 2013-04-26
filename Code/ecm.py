@@ -47,7 +47,7 @@ class EconomicModule:
         filepath = os.path.join(os.getcwd(), 'configs', filename)
         config.read(filepath)
 
-        self.tax_rate = config.getfloat('Taxes', 'tax_rate')
+        self.tax_rate = config.getfloat('Taxes', 'tax_rate') / 100
         self.month_costs = config.getfloat('Costs', 'costs')
         self.costs_groth_rate = config.getfloat('Costs', 'growth_rate') / 100
 
@@ -106,8 +106,8 @@ class EconomicModule:
         """return current month number since start_date"""
         days_diff = (date - self.start_date).days
         month_diff = (days_diff / 30.4)
-        cur_month = math.ceil(month_diff)
-        return cur_month
+        cur_month = int(math.ceil(month_diff)) - 1
+        return date, cur_month
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
