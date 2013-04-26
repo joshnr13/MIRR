@@ -174,7 +174,7 @@ if __name__ == '__main__':
     subside_module = SubsidyModule()
     ecm = EconomicModule(technology_module, subside_module)
     r = Report(ecm)
-    #r.plot_charts()
+    r.plot_charts()
     print r.fixed_asset.values()
 
     #print r.revenue[datetime.date(2000, 1, 31)]
