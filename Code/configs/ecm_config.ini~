@@ -12,7 +12,7 @@ investment_value = 2000000
 ; costs - sum of allcosts per month, EUR
 ; growth_rate - percent groth rate of costs applied at 1 Jan of new Year
 costs = 5000
-growth_rate = 1
+growth_rate = 3
 
 [Taxes]
 ;tax_rate - total tax rate in percent per year earnings before taxes (EBT)
@@ -28,4 +28,4 @@ periods = 12
 
 [Amortization]
 ;duration of amortization of investments in years
-duration = 12 
+duration = 12
