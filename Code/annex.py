@@ -7,6 +7,7 @@ import tempfile
 import csv
 import operator
 import datetime as dt
+import errno
 
 from math import floor
 from calendar import monthrange
@@ -57,6 +58,10 @@ def years_between(date1,date2):
     """return full year number since date2 till date1"""
     return floor(months_between(date1, date2) / 12)
 
+def years_between_1Jan(date1,date2):
+    """return year difference between 2 datas """
+    return date2.year - date1.year
+
 def last_day_month(date):
     """return date - last day date in month with input date"""
     day = getDaysNoInMonth(date)
@@ -85,7 +90,7 @@ def next_month(date):
 
 def add_x_years(date, years):
     """return date X years later - 1 day"""
-    return  date + relativedelta(years=years) - relativedelta(days=1)
+    return  date + relativedelta(years=int(years)) - relativedelta(days=1)
 
 class Annuitet():
     def __init__(self,summa,yrate,yperiods):
@@ -168,6 +173,17 @@ def add_header_csv(csv_filename, header):
         content = f.read()
         f.seek(0,0)
         f.write(line.rstrip('\r\n') + '\n' + content)
+
+
+def mkdir_p(path):
+    """ Mkdir if not exists """
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST:
+            pass
+        else: raise
+
 
 
 if __name__ == '__main__':

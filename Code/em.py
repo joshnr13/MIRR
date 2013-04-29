@@ -60,7 +60,6 @@ class EnergyModule():
         lifetime_days = (self.end_date - self.start_date).days
         return [self.generatePrimaryEnergyAvaialbility(self.start_date+datetime.timedelta(days=i)) for i in range(lifetime_days) ]
 
-
     def getAccumulatedEnergy(self, start_date, end_date):
         """
         parameters: start date,end_date

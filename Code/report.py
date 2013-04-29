@@ -2,6 +2,8 @@ import datetime
 import pylab
 import numpy
 import csv
+import os.path
+from constants import report_directory
 
 from collections import defaultdict, OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
@@ -309,6 +311,7 @@ class Report():
         """Prepares and saves monthly IS report in csv file"""
         cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
         report_name = "%s_IS_monthly.csv" % (cur_date, )
+        report_name = os.path.join(report_directory, report_name)
         output_filename = uniquify_filename(report_name)
 
         IS_ROWS = [self.revenue, self.cost, self.ebitda, self.deprication, self.ebit,
@@ -332,6 +335,7 @@ class Report():
         """Prepares and saves monthly BS report in csv file"""
         cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
         report_name = "%s_BS_monthly.csv" % (cur_date, )
+        report_name = os.path.join(report_directory, report_name)
         output_filename = uniquify_filename(report_name)
 
         BS_ROWS = [self.fixed_assets, self.current_assets, self.inventory,

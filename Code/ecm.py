@@ -20,15 +20,15 @@ import os
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, last_day_month, add_x_years, getDaysNoInMonth
+from annex import Annuitet, last_day_month, add_x_years, getDaysNoInMonth, years_between_1Jan, months_between
 
 class EconomicModule:
 
     def __init__(self, technology_module, subside_module):
         self.technology_module = technology_module
         self.subside_module = subside_module
-        self.loadConfig()
         self.loadMainConfig()
+        self.loadConfig()
         self.calcDebtPercents()
 
     def isProductionElectricityStarted(self, date):
@@ -72,12 +72,13 @@ class EconomicModule:
         self.price_groth_rate = config.getfloat('Electricity', 'growth_rate') / 100
 
         self.investments = config.getfloat('Investments', 'investment_value')
+        self.investmentEquipment = config.getfloat('Investments', 'investmentEquipment')
 
         self.debt = config.getfloat('Debt', 'debt_value') * self.investments / 100
         self.debt_rate = config.getfloat('Debt', 'interest_rate') / 100
         self.debt_years = config.getint('Debt', 'periods')
 
-        self.amortization_duration = config.getfloat('Amortization', 'duration')
+        self.deprication_duration = config.getfloat('Amortization', 'duration')
 
 
     def getRevenue(self, date_start, date_end):
@@ -103,8 +104,8 @@ class EconomicModule:
 
     def calcDepricationMonthly(self, date):
         """Calcultation of amortization in current month"""
-        cur_month = self.getMonthNumber(date)
-        deprication_duration_months = self.amortization_duration * 12
+        cur_month = months_between(self.start_date, date)
+        deprication_duration_months = self.deprication_duration * 12
 
         if cur_month <= deprication_duration_months:
             return self.investments / deprication_duration_months
@@ -116,19 +117,9 @@ class EconomicModule:
         a.calculate()
         self.debt_percents = a.percents
 
-    def getYearNumber(self, date):
-        return date.year - self.start_date.year
-
-    def getMonthNumber(self, date):
-        """return current month number since start_date"""
-        days_diff = (date - self.start_date).days
-        month_diff = (days_diff / 30.4)
-        cur_month = int(math.ceil(month_diff)) - 1
-        return cur_month
-
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
-        yearNumber = self.getYearNumber(date)
+        yearNumber = years_between_1Jan(self.start_date, date)
         return self.market_price * ((1 + self.price_groth_rate)  ** yearNumber)
 
     def _getDevelopmentCosts(self, date):
@@ -151,12 +142,13 @@ class EconomicModule:
     def _getOperationalCosts(self, date):
         """Operational costs at given date (1day)"""
         if self.isProductionElectricityStarted(date):
-            return self.getInsuranceCosts(date) + self.getAdministrativeCosts(date)
-        else 0
+            return self._getInsuranceCosts(date) + self._getAdministrativeCosts(date)
+        else:
+            return  0
 
     def _getAdministrativeCosts(self, date):
         """return administrative costs at given date (1day)"""
-        yearNumber = self.getYearNumber(date)
+        yearNumber = years_between_1Jan(self.start_date, date)
         return self.administrativeCosts * ((1 + self.administrativeCostsGrowth_rate) ** yearNumber) / getDaysNoInMonth(date)
 
     def _getInsuranceCosts(self, date):
@@ -165,17 +157,7 @@ class EconomicModule:
 
     def getCosts(self, date_start, date_end):
         """sum of costs for all days in RANGE period """
-        costs = 0
-        cur_date = date_start
-
-        while cur_date <= date_end:
-            costs += self.getDailyCosts(cur_date)
-            cur_date += datetime.timedelta(days=1)
-        return costs
-
-    def getDailyCosts(self, date):
-        """return costs per given day (1day)"""
-        return self._getDevelopmentCosts(date) + self.getOperationalCosts(date)
+        return self.getDevelopmentCosts(date_start, date_end) + self.getOperationalCosts(date_start, date_end)
 
     def getInsuranceCosts(self, date_start, date_end):
         """sum of Insurance Costs for all days in RANGE period """
@@ -211,14 +193,6 @@ class EconomicModule:
             cur_date += datetime.timedelta(days=1)
         return costs
 
-
-
-
-
-
-
-
-
     def getTaxRate(self):
         return self.tax_rate
 
@@ -239,7 +213,7 @@ class EconomicModule:
 
     def calculateInterests(self, date):
         """Return monthly debt percents we need to pay"""
-        cur_month = self.getMonthNumber(date)
+        cur_month = months_between(self.start_date, date)
         if cur_month < len(self.debt_percents):
             return self.debt_percents[cur_month]
         else:
@@ -257,12 +231,6 @@ class EconomicModule:
         FCF = operational_results-
 
         """
-
-
-
-
-
-    def generateISandBS(self): pass
 
     def calculateReturn(self):
         """calculates IRR and writes it to the database
