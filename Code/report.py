@@ -7,7 +7,7 @@ from constants import report_directory
 
 from collections import defaultdict, OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
-from annex import accumulate
+from annex import accumulate, memoize
 
 from tm import TechnologyModule
 from em import EnergyModule
@@ -182,6 +182,15 @@ class Report():
         """return unallocated_earnings - sum of all previous retained_earnings MONTHLY"""
         return accumulate(self.net_earning)
 
+    #@memoize
+    def accumulated_earnings_to(self, to_date):
+        """return accumulated eanings from start project to @to_date -1 day"""
+        eanings = 0
+        for date in self.report_dates.values():
+            if date < to_date:  #!!! NOT EQUAL
+                eanings += self._calc_net_earning(date)
+        return eanings
+
     def return_zero(self, date):
         """methon for non implemented calculations"""
         return 0
@@ -199,9 +208,9 @@ class Report():
     def _calc_tax(self):
         """dict with all taxes since start project"""
         results = OrderedDict()
-        year_ebt = self.ebt_yearly
+
         for start_day, end_day in self.report_dates.items():
-            result = self._calc_month_taxes(end_day, year_ebt[end_day.year])
+            result = self._calc_month_taxes(end_day)
             if results.has_key(end_day):
                 results[end_day] += result
             else:
@@ -209,29 +218,52 @@ class Report():
 
         return  results
 
+    #@memoize
     def _calc_ebitda(self, date):
         """calculation of ebitda = revenues - costs"""
         return self.revenue[date] - self.cost[date]
 
+    #@memoize
     def _calc_ebit(self, date):
         """calculation of ebit = ebitda - deprication"""
         return self.ebitda[date] - self.deprication[date]
 
+    #@memoize
     def _calc_ebt(self, date):
         """calculation of ebt = ebit - interests paid"""
         return self.ebit[date] - self.iterest_paid[date]
 
+    #@memoize
     def _calc_net_earning(self, date):
         """calculation of net_earning = ebt - taxes"""
         return self.ebt[date] - self.tax[date]
 
-    def _calc_month_taxes(self, date, year_ebt):
-        """EBT in the year * 20% enetered only in december"""
+    def _calc_something(self, date_from, date_to): pass
+
+
+
+    ##@memoize
+    def _calc_month_taxes(self, date):
+        """
+        tax = EBT in the year * taxrate
+        tax = taxrate * max(EBT*50%; EBT - accumulated loss)
+        entered only in december
+        """
+        print date
+        accumulated_earnings = self.accumulated_earnings_to(date)
         if date.month == 12:
-            return year_ebt * self.economic_module.getTaxRate()
+            year_ebt = [f]
+            if year_ebt <= 0:
+                return 0
+            elif year_ebt + accumulated_earnings <= 0:
+                return 0
+            else:
+                tax_rate = self.economic_module.getTaxRate()
+                return taxrate * max(year_ebt/2.0, year_ebt + accumulated_earnings)
         else:
             return 0
 
+    #@memoize
     def _calc_current_assets(self, date):
         """calculating current assests as sum"""
         return (
@@ -240,6 +272,7 @@ class Report():
         self.short_term_investment[date] +
         self.assets_bank_account[date] )
 
+    #@memoize
     def _calc_assets(self, date):
         """calculating assests as sum fixed + current"""
         return ( self.current_assets[date] + self.fixed_assets[date] )

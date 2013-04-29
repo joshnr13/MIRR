@@ -194,8 +194,8 @@ class EconomicModule:
         return costs
 
     def getTaxRate(self):
+        """return taxrate in float"""
         return self.tax_rate
-
 
     def getMonthlyInvestments(self, date):
         if date.month  ==  self.start_date.month and date.year == self.start_date.year:

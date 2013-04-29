@@ -4,6 +4,7 @@ import datetime
 import pylab
 import numpy
 import csv
+import traceback
 
 from collections import defaultdict, OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
@@ -43,7 +44,7 @@ class Interface():
     def no_such_method(self):
         print "So such function. Try again from allowed %s" % commands.values()
     def help(self):
-        print "Alowed commands\nShort name = full name "
+        print "Alowed commands (Short name = full name) "
         for k, v in sorted(commands.items()):
             print "%s = %s" % (k, v)
 
@@ -65,10 +66,15 @@ def run_method(obj, line):
 
 try:
     i = Interface()
+    i.help()
     while True:
-        line = raw_input('Prompt command ("stop" or ctrl+c to quit): ').strip()
+        line = raw_input('Prompt command ("For exit: 0 or stop or press ctrl+c): ').strip()
         print_entered(line)
         run_method(i, line)
-except:
+except KeyboardInterrupt:
     print sys.exc_info()[1]
+except:
+    #print sys.exc_info()
+    var = traceback.format_exc()
+    print var
 
