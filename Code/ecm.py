@@ -20,7 +20,7 @@ import os
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, last_day_month, add_x_years
+from annex import Annuitet, last_day_month, add_x_years, getDaysNoInMonth
 
 class EconomicModule:
 
@@ -30,6 +30,14 @@ class EconomicModule:
         self.loadConfig()
         self.loadMainConfig()
         self.calcDebtPercents()
+
+    def isProductionElectricityStarted(self, date):
+        """return True if production of electricity started"""
+        return True
+
+    def isConstructionStarted(self, date):
+        """return True if costruction of equipment started"""
+        return True
 
     def loadMainConfig(self, filename='main_config.ini'):
         """Reads main config file """
@@ -42,14 +50,23 @@ class EconomicModule:
         self.end_date = add_x_years(self.start_date, self.lifetime)
 
     def loadConfig(self, filename='ecm_config.ini'):
-        """Reads module config file"""
+        """Reads module config file
+        @self.insuranceLastDayEquipment - last day when we need to pay for insurance
+        """
         config = ConfigParser.ConfigParser()
         filepath = os.path.join(os.getcwd(), 'configs', filename)
         config.read(filepath)
 
         self.tax_rate = config.getfloat('Taxes', 'tax_rate') / 100
-        self.month_costs = config.getfloat('Costs', 'costs')
-        self.costs_groth_rate = config.getfloat('Costs', 'growth_rate') / 100
+
+        self.administrativeCosts = config.getfloat('Costs', 'administrativeCosts')
+        self.administrativeCostsGrowth_rate = config.getfloat('Costs', 'administrativeCostsGrowth_rate') / 100
+        self.insuranceFeeEquipment = config.getfloat('Costs', 'insuranceFeeEquipment') / 100
+        self.insuranceDurationEquipment = config.getfloat('Costs', 'insuranceDurationEquipment')
+        self.insuranceLastDayEquipment = add_x_years(self.start_date, self.insuranceDurationEquipment)
+
+        self.getDevelopmentCostDuringPermitProcurement = config.getfloat('Costs', 'developmentCostDuringPermitProcurement')
+        self.developmentCostDuringConstruction = config.getfloat('Costs', 'developmentCostDuringConstruction')
 
         self.market_price = config.getfloat('Electricity', 'market_price')
         self.price_groth_rate = config.getfloat('Electricity', 'growth_rate') / 100
@@ -114,22 +131,92 @@ class EconomicModule:
         yearNumber = self.getYearNumber(date)
         return self.market_price * ((1 + self.price_groth_rate)  ** yearNumber)
 
-    def getdailyCosts(self, date):
-        """return costs per given day
-        30.4 - average number of days per month
-        """
+    def _getDevelopmentCosts(self, date):
+        """costs for developing phase of project at given date (1day)"""
+        if self.isProductionElectricityStarted(date):
+            return 0  #we have finished with development costs
+        elif self.isConstructionStarted(date):
+            return self._getDevelopmentCostDuringConstruction(date)
+        else:
+            return self._getDevelopmentCostDuringPermitProcurement(date)
+
+    def _getDevelopmentCostDuringPermitProcurement(self, date):
+        """costs for developing phase of project at given date (1day) - part permit procurement"""
+        return 0
+
+    def _getDevelopmentCostDuringConstruction(self, date):
+        """costs for developing phase of project at given date (1day) - part construction"""
+        return self.developmentCostDuringConstruction / 30.4
+
+    def _getOperationalCosts(self, date):
+        """Operational costs at given date (1day)"""
+        if self.isProductionElectricityStarted(date):
+            return self.getInsuranceCosts(date) + self.getAdministrativeCosts(date)
+        else 0
+
+    def _getAdministrativeCosts(self, date):
+        """return administrative costs at given date (1day)"""
         yearNumber = self.getYearNumber(date)
-        return self.month_costs * ((1 + self.costs_groth_rate) ** yearNumber) / 30.4
+        return self.administrativeCosts * ((1 + self.administrativeCostsGrowth_rate) ** yearNumber) / getDaysNoInMonth(date)
+
+    def _getInsuranceCosts(self, date):
+        """return insurance costs at give date (1day)"""
+        return  self.insuranceFeeEquipment * self.investmentEquipment / (getDaysNoInMonth(date) * 12)
 
     def getCosts(self, date_start, date_end):
-        """sum of costs for all days in period """
+        """sum of costs for all days in RANGE period """
         costs = 0
         cur_date = date_start
 
         while cur_date <= date_end:
-            costs += self.getdailyCosts(cur_date)
+            costs += self.getDailyCosts(cur_date)
             cur_date += datetime.timedelta(days=1)
         return costs
+
+    def getDailyCosts(self, date):
+        """return costs per given day (1day)"""
+        return self._getDevelopmentCosts(date) + self.getOperationalCosts(date)
+
+    def getInsuranceCosts(self, date_start, date_end):
+        """sum of Insurance Costs for all days in RANGE period """
+        return self.getSomeCostsRange(self._getInsuranceCosts, date_start, date_end)
+
+    def getDevelopmentCosts(self, date_start, date_end):
+        """sum of Development Costs for all days in RANGE period """
+        return self.getSomeCostsRange(self._getDevelopmentCosts, date_start, date_end)
+
+    def getDevelopmentCostDuringPermitProcurement(self, date_start, date_end):
+        """sum of Development Cost DuringPermitProcurement for all days in RANGE period """
+        return self.getSomeCostsRange(self._getDevelopmentCostDuringPermitProcurement, date_start, date_end)
+
+    def getDevelopmentCostDuringConstruction(self, date_start, date_end):
+        """sum of Development Cost DuringConstruction for all days in RANGE period """
+        return self.getSomeCostsRange(self._getDevelopmentCostDuringConstruction, date_start, date_end)
+
+    def getOperationalCosts(self, date_start, date_end):
+        """sum of Operational Costs for all days in RANGE period """
+        return self.getSomeCostsRange(self._getOperationalCosts, date_start, date_end)
+
+    def getAdministrativeCosts(self, date_start, date_end):
+        """sum of Administrative Costs for all days in RANGE period """
+        return self.getSomeCostsRange(self._getAdministrativeCosts, date_start, date_end)
+
+    def getSomeCostsRange(self, cost_function, date_start, date_end):
+        """basic function to calculate range costs"""
+        costs = 0
+        cur_date = date_start
+
+        while cur_date <= date_end:
+            costs += cost_function(cur_date)
+            cur_date += datetime.timedelta(days=1)
+        return costs
+
+
+
+
+
+
+
 
 
     def getTaxRate(self):

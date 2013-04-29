@@ -31,6 +31,11 @@ def accumulate(data, f=operator.add):
     result = OrderedDict(sorted(new_dict.items(), key=lambda t: t[0]))
     return result
 
+def getDaysNoInMonth(date):
+    """return number of days in given month"""
+    days = monthrange(date.year, date.month)[1]
+    return days
+
 def months_between(date1,date2):
     """return full month number since date2 till date1"""
     if date1>date2:
@@ -54,7 +59,7 @@ def years_between(date1,date2):
 
 def last_day_month(date):
     """return date - last day date in month with input date"""
-    day = monthrange(date.year, date.month)[1]
+    day = getDaysNoInMonth(date)
     return dt.date( date.year, date.month, day)
 
 def last_day_previous_month(date):
