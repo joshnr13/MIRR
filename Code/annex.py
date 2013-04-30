@@ -24,6 +24,27 @@ class cached_property(object):
         result = self.func(instance)
         return result
 
+class OrderedDefaultdict(OrderedDict):
+    def __init__(self, *args, **kwargs):
+        newdefault = None
+        newargs = ()
+        if args:
+            newdefault = args[0]
+            if not (newdefault is None or callable(newdefault)):
+                raise TypeError('first argument must be callable or None')
+            newargs = args[1:]
+        self.default_factory = newdefault
+        super(self.__class__, self).__init__(*newargs, **kwargs)
+
+    def __missing__ (self, key):
+        if self.default_factory is None:
+            raise KeyError(key)
+        self[key] = value = self.default_factory()
+        return value
+
+    def __reduce__(self):  # optional, for pickle support
+        args = self.default_factory if self.default_factory else tuple()
+        return type(self), args, None, None, self.items()
 
 class memoize(object):
     """cache the return value of a method
@@ -92,6 +113,23 @@ def months_between(date1,date2):
         #if seconds1>seconds2:
             #months-=1
     return months
+
+def is_last_day_year(date):
+    """return True is date is last day of year"""
+    new_date = date + dt.timedelta(days=1)
+    if new_date.year != date.year:
+        return True
+    else:
+        return False
+
+
+def get_months_range(year):
+    result = []
+    for i in range(1, 13):
+        start_date_m = dt.date(year, i, 1)
+        end_date_m = last_day_month(start_date_m)
+        result.append((start_date_m, end_date_m))
+    return result
 
 def years_between(date1,date2):
     """return full year number since date2 till date1"""
