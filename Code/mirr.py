@@ -23,6 +23,8 @@ commands['1'] = 'charts_monthly'
 commands['2'] = 'charts_yearly'
 commands['3'] = 'report_is'
 commands['4'] = 'report_bs'
+commands['5'] = 'report_isbs'
+
 
 class Interface():
     def __init__(self):
@@ -31,6 +33,7 @@ class Interface():
         self.subside_module = SubsidyModule()
         self.economic_module = EconomicModule(self.technology_module, self.subside_module)
         self.r = Report(self.economic_module)
+        self.r.calc_values()
     def charts_monthly(self):
         self.r.plot_charts_monthly()
     def charts_yearly(self):
@@ -39,6 +42,8 @@ class Interface():
         self.r.prepare_monthly_report_IS()
     def report_bs(self):
         self.r.prepare_monthly_report_BS()
+    def report_isbs(self):
+        self.r.prepare_monthly_report_IS_BS()
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")
     def no_such_method(self):
@@ -68,7 +73,7 @@ try:
     i = Interface()
     i.help()
     while True:
-        line = raw_input('Prompt command ("For exit: 0 or stop or press ctrl+c): ').strip()
+        line = raw_input('Prompt command (For exit: 0 or stop; For help: help): ').strip()
         print_entered(line)
         run_method(i, line)
 except KeyboardInterrupt:

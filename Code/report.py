@@ -3,7 +3,7 @@ import pylab
 import numpy
 import csv
 import os.path
-from constants import report_directory
+from constants import report_directory, REPORT_ROUNDING
 
 from collections import defaultdict, OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
@@ -25,9 +25,12 @@ class Report():
 
         self.init_attrs()
         for start_day, end_day in self.report_dates.items():
-            self.calc_monthly_values(start_day, end_day)
+            self.calc_monthly_values_part1(start_day, end_day)
             if is_last_day_year(end_day):
-                self.calc_yearly_values(end_day)
+                self.calc_yearly_values_part1(end_day)
+            self.calc_monthly_values_part2(start_day, end_day)
+            if is_last_day_year(end_day):
+                self.calc_yearly_values_part2(end_day)
 
     def init_attrs(self):
         """Creating attrs for monthly and yearly values"""
@@ -40,8 +43,8 @@ class Report():
             setattr(self, attr, OrderedDict())
             setattr(self, attr+"_y", OrderedDefaultdict(int))
 
-    def calc_monthly_values(self, start_day, end_day):
-        """Main function to calc montly value for reports"""
+    def calc_monthly_values_part1(self, start_day, end_day):
+        """Main function to calc montly value for reports P1"""
         M = end_day
 
         self.revenue[M] = self.economic_module.getRevenue(start_day, end_day)
@@ -51,6 +54,11 @@ class Report():
         self.ebitda[M] = self._calc_ebitda(end_day)
         self.ebit[M] = self._calc_ebit(end_day)
         self.ebt[M] = self._calc_ebt(end_day)
+
+    def calc_monthly_values_part2(self, start_day, end_day):
+        """Main function to calc montly value for reports P2"""
+        M = end_day
+
         self.tax[M] = self._calc_tax(end_day)
         self.net_earning[M] = self._calc_net_earning(end_day)
 
@@ -69,8 +77,8 @@ class Report():
 
         self.asset[M] = self._calc_assets(end_day)
 
-    def calc_yearly_values(self, end_day_y):
-        """Main function to calc yearly value for reports"""
+    def calc_yearly_values_part1(self, end_day_y):
+        """Main function to calc yearly value for reports P1"""
 
         for start_day_m, end_day_m in self.report_dates_y[end_day_y]:
             Y = end_day_y
@@ -82,6 +90,13 @@ class Report():
             self.ebitda_y[Y] += self.ebitda[M]
             self.ebit_y[Y] += self.ebit[M]
             self.ebt_y[Y] += self.ebt[M]
+
+    def calc_yearly_values_part2(self, end_day_y):
+        """Main function to calc yearly value for reports P2"""
+
+        for start_day_m, end_day_m in self.report_dates_y[end_day_y]:
+            Y = end_day_y
+            M = end_day_m
             self.tax_y[Y] += self.tax[M]
             self.net_earning_y[Y] += self.net_earning[M]
 
@@ -140,13 +155,15 @@ class Report():
         if is_last_day_year(date):
             accumulated_earnings = self.accumulated_earnings_to(date)
             year_ebt = self.ebt_y[date]
+
+
             if year_ebt <= 0:
                 return 0
             elif year_ebt + accumulated_earnings <= 0:
                 return 0
             else:
                 tax_rate = self.economic_module.getTaxRate()
-                return taxrate * max(year_ebt/2.0, year_ebt + accumulated_earnings)
+                return tax_rate * max(year_ebt/2.0, year_ebt + accumulated_earnings)
         else:
             return 0
 
@@ -215,12 +232,26 @@ class Report():
         self.report_dates = report_dates
         self.report_dates_y = report_dates_y
 
-    def prepare_rows():pass
+    def prepare_rows(self, rows_str):
+        """Prepares rows for outputing to report
+        Rounding
+        """
+        rows = [getattr(self, attr) for attr in rows_str]
+
+        new_rows = []
+        for row in rows:
+            result = OrderedDict()
+            for k, v in row.items():
+                result[k] = round(v, REPORT_ROUNDING)
+            new_rows.append(result)
+
+        return new_rows
+
 
     def write_report(self, output_filename, header, rows):
         """write report to file staying @free_lines in the head"""
 
-        rows = [getattr(self, attr) for attr in rows]
+        rows = self.prepare_rows(rows)
         with open(output_filename,'ab') as f:
             w = csv.DictWriter(f, rows[0].keys(), delimiter=';')
             w.writeheader()

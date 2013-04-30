@@ -106,8 +106,9 @@ class EconomicModule:
         """Calcultation of amortization in current month"""
         cur_month = months_between(self.start_date, date)
         deprication_duration_months = self.deprication_duration * 12
-
-        if cur_month <= deprication_duration_months:
+        if cur_month == 0:
+            return 0
+        elif cur_month <= deprication_duration_months:
             return self.investments / deprication_duration_months
         else:
             return 0
