@@ -38,7 +38,8 @@ class Report(BaseClassConfig):
 
     def init_attrs(self):
         """Creating attrs for monthly and yearly values"""
-        attrs = ['revenue', 'cost', 'operational_cost', 'development_cost',
+        attrs = ['revenue', 'revenue_electricity', 'revenue_subsides',
+                 'cost', 'operational_cost', 'development_cost',
                  'ebitda', 'ebit', 'ebt', 'iterest_paid', 'deprication',
                  'tax', 'net_earning', 'investment', 'fixed_asset', 'asset' ,
                  'inventory', 'operating_receivable', 'short_term_investment',
@@ -56,13 +57,16 @@ class Report(BaseClassConfig):
         """Main function to calc montly value for reports P1"""
         M = end_day
 
+        self.revenue_electricity[M] = self.economic_module.getRevenue_elecricity(start_day, end_day)
+        self.revenue_subsides[M] = self.economic_module.getRevenue_subside(start_day, end_day)
         self.revenue[M] = self.economic_module.getRevenue(start_day, end_day)
+
         self.deprication[M] = self.economic_module.calcDepricationMonthly(end_day)
         self.iterest_paid[M] = self.economic_module.calculateInterests(end_day)
 
         self.development_cost[M] = self.economic_module.getDevelopmentCosts(start_day, end_day)
         self.operational_cost[M] = self.economic_module.getOperationalCosts(start_day, end_day)
-        self.cost[M] = self._cacl_total_costs(end_day)
+        self.cost[M] = self.economic_module.getCosts(start_day, end_day)
 
         self.ebitda[M] = self._calc_ebitda(end_day)
         self.ebit[M] = self._calc_ebit(end_day)
@@ -104,10 +108,16 @@ class Report(BaseClassConfig):
         for start_day_m, end_day_m in self.report_dates_y[end_day_y]:
             Y = end_day_y
             M = end_day_m
+            self.revenue_electricity_y[Y] += self.revenue_electricity[M]
+            self.revenue_subsides_y[Y] += self.revenue_subsides[M]
             self.revenue_y[Y] += self.revenue[M]
+
             self.deprication_y[Y] += self.deprication[M]
             self.iterest_paid_y[Y] += self.iterest_paid[M]
             self.cost_y[Y] += self.cost[M]
+            self.development_cost_y[Y] += self.development_cost[M]
+            self.operational_cost_y[Y] += self.operational_cost[M]
+
             self.ebitda_y[Y] += self.ebitda[M]
             self.ebit_y[Y] += self.ebit[M]
             self.ebt_y[Y] += self.ebt[M]

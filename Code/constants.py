@@ -10,6 +10,8 @@ mkdir_p(report_directory)
 IS = OrderedDict()  #INCOME STATEMENT , format dic[field_name]=attr_name or blank
 IS["Dates"] = ""
 IS["Revenue"] = "revenue"
+IS["Revenues electricity sales"] = "revenue_electricity"
+IS["Revenues subsidy"] = "revenue_subsides"
 IS["Costs"] = "cost"
 IS["Operational costs"] = "operational_cost"
 IS["Development costs"] = "development_cost"

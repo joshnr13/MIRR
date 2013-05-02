@@ -87,33 +87,68 @@ class EconomicModule(BaseClassConfig):
 
         self.deprication_duration = config.getfloat('Amortization', 'duration')
 
-
-
-
     def getRevenue(self, date_start, date_end):
         """return revenue from selling electricity + subsides for given period of time"""
         revenue = 0
-        electricity_production = 0
         cur_date = date_start
 
         while cur_date <= date_end:
-            electricity_production = self.technology_module.generateElectiricityProduction(cur_date)
-            day_revenue = self.getDayRevenue(electricity_production,cur_date)
-            if day_revenue >= 0:
-                subside_kwh = self.subside_module.subsidyProduction(cur_date)
-                day_subside = electricity_production * subside_kwh
-                revenue += (day_revenue + day_subside)
+            electricity_production = self.getElectricityProduction(cur_date)
+            day_revenue_electricity = self._getDayRevenue_electricity(cur_date, electricity_production)
+            day_revenue_subsidy = self._getDayRevenue_subsidy(cur_date, electricity_production)
             cur_date += datetime.timedelta(days=1)
-
-        #print "%s---%s : %s, price %s, subs %s" % (date_start, date_end, revenue, self.getPriceKwh(date_end), subside_kwh)
+            revenue += day_revenue_electricity + day_revenue_subsidy
         return revenue
 
+    def getRevenue_elecricity(self, date_start, date_end):
+        """return revenue from selling electricity for given period of time"""
+        revenue = 0
+        cur_date = date_start
 
-    def getDayRevenue(self, electricity_production, cur_date):
+        while cur_date <= date_end:
+            electricity_production = self.getElectricityProduction(cur_date)
+            day_revenue_electricity = self._getDayRevenue_electricity(cur_date, electricity_production)
+            cur_date += datetime.timedelta(days=1)
+            revenue += day_revenue_electricity
+        return revenue
+
+    def getRevenue_subside(self, date_start, date_end):
+        """return revenue from subsides for given period of time"""
+        revenue = 0
+        cur_date = date_start
+
+        while cur_date <= date_end:
+            electricity_production = self.getElectricityProduction(cur_date)
+            day_revenue_subsidy = self._getDayRevenue_subsidy(cur_date, electricity_production)
+            cur_date += datetime.timedelta(days=1)
+            revenue += day_revenue_subsidy
+        return revenue
+
+    def getElectricityProduction(self,  date):
+        """return  production of electricity at given date"""
+        return self.technology_module.generateElectiricityProduction(date)
+
+    def _getDayRevenue_electricity(self, cur_date, electricity_production=None):
+        """Calc revenue per date part: electricity"""
+        if electricity_production is  None:
+            electricity_production = self.getElectricityProduction(cur_date)
+
         if self.isProductionElectricityStarted(cur_date):
             return electricity_production * self.getPriceKwh(cur_date)
         else:
             return 0
+
+    def _getDayRevenue_subsidy(self, cur_date, electricity_production=None):
+        """Calc revenue per date part: subsidy"""
+        if electricity_production is  None:
+            electricity_production = self.getElectricityProduction(cur_date)
+
+        if self.isProductionElectricityStarted(cur_date):
+            subside_kwh = self.subside_module.subsidyProduction(cur_date)
+            return   electricity_production * subside_kwh
+        else:
+            return 0
+
 
     def calcDepricationMonthly(self, date):
         """Calcultation of amortization in current month"""
