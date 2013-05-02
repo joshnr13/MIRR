@@ -167,7 +167,7 @@ class Report(BaseClassConfig):
         self.long_term_loan[M] = self._calc_lt_loans(end_day)
         self.long_term_operating_liability[M] = self._calc_lt_operliab(end_day)
         self.short_term_loan[M] = self._calc_st_loans(end_day)
-        self.short_term_debt_suppliers[M] = self._calc_st_dept_supliers(end_day)
+        self.short_term_debt_suppliers[M] = self._calc_short_term_debt_suppliers(end_day)
 
         self.financial_operating_obligation[M] = self._calc_foo(end_day)
         self.equity[M] = self._calc_equity(end_day)
@@ -271,10 +271,6 @@ class Report(BaseClassConfig):
             self.short_term_debt_suppliers[end_day],
             ])
 
-    def _calc_st_dept_supliers(self,  end_day):
-        """Monthly calculation of Short-Term Debt to Suppliers  - NOT IMPLEMENTED"""
-        return 0
-
     def _calc_foo(self, date):
         """calculation Financial And Operating Obligations Monthly"""
         return sum([
@@ -370,6 +366,26 @@ class Report(BaseClassConfig):
             prev2_value = self.revenue[prev2_date]
 
         return  prev1_value + prev2_value
+
+    def _calc_short_term_debt_suppliers(self,  date):
+        """Calculation Monthly Short-Term Debt to Suppliers using same rule as for operating_receivable
+        """
+        prev1_date = last_day_previous_month(date)
+        prev2_date = last_day_previous_month(prev1_date)
+
+        if prev1_date < self.start_date_project:
+            prev1_value = 0
+            prev2_value = 0
+        elif prev2_date < self.start_date_project:
+            prev1_value = self.cost[prev1_date]
+            prev2_value = 0
+        else :
+            prev1_value = self.cost[prev1_date]
+            prev2_value = self.cost[prev2_date]
+
+        return  prev1_value + prev2_value
+
+
 
 
     def calc_report_monthly_values2(self, func):
