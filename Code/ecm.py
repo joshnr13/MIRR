@@ -83,7 +83,7 @@ class EconomicModule(BaseClassConfig):
         self.debt_rate = config.getfloat('Debt', 'interest_rate') / 100
         self.debt_years = config.getint('Debt', 'periods')
 
-        self.capital = self.investments - self.debt
+        self.capital = self.investments - self.investmentEquipment
 
         ######################### DEPRICATION #################################
 

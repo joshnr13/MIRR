@@ -153,8 +153,8 @@ class Report(BaseClassConfig):
         self.investment[M] = self.economic_module.getMonthlyInvestments(end_day)
         self.fixed_asset[M] = self._calc_fixed_assets(end_day)
 
+        self.operating_receivable[M] = self._calc_operating_receivable(end_day)
         self.inventory[M] = 0 #NOT IMPLEMENTED
-        self.operating_receivable[M] = 0 #NOT IMPLEMENTED
         self.short_term_investment[M] = 0 #NOT IMPLEMENTED
         self.asset_bank_account[M] = 0 #NOT IMPLEMENTED
         self.paid_in_capital[M] = self.paid_in_capital[PROJECT_START]
@@ -351,6 +351,26 @@ class Report(BaseClassConfig):
         cur_deprication = self.deprication[date]
 
         return (cur_investments + prev_fixed_asset - cur_deprication)
+
+    def _calc_operating_receivable(self,  date):
+        """Calculation Monthly operating_receivable using following rule
+        Revenue is paid in 60 days - so at the end of the month you have for two months of recievables
+        """
+        prev1_date = last_day_previous_month(date)
+        prev2_date = last_day_previous_month(prev1_date)
+
+        if prev1_date < self.start_date_project:
+            prev1_value = 0
+            prev2_value = 0
+        elif prev2_date < self.start_date_project:
+            prev1_value = self.revenue[prev1_date]
+            prev2_value = 0
+        else :
+            prev1_value = self.revenue[prev1_date]
+            prev2_value = self.revenue[prev2_date]
+
+        return  prev1_value + prev2_value
+
 
     def calc_report_monthly_values2(self, func):
         """Calculates monthly values using 2 dates -first_day and last_day in month
