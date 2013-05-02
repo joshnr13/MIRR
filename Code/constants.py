@@ -1,4 +1,5 @@
 import os
+import sys
 from annex import mkdir_p
 from collections import OrderedDict
 

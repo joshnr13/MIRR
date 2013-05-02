@@ -8,6 +8,7 @@ from constants import report_directory, REPORT_ROUNDING
 from collections import defaultdict, OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
 from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, get_months_range, csv2xlsx, month_number_days
+from annex import add_start_project_values
 from constants import BS, IS
 
 from tm import TechnologyModule
@@ -36,22 +37,89 @@ class Report(BaseClassConfig):
                 self.calc_yearly_values_part2(end_day)
         self.check_balance_sheet()
 
+    def start_project_OrderedDict(self, name="", value=""):
+        return OrderedDict({name: value,})
+
+    def start_project_OrderedDefaultDict(self, name="", value=""):
+        return  OrderedDefaultdict(int, {name: value,})
+
     def init_attrs(self):
         """Creating attrs for monthly and yearly values"""
-        attrs = ['revenue', 'revenue_electricity', 'revenue_subsides',
-                 'cost', 'operational_cost', 'development_cost',
-                 'ebitda', 'ebit', 'ebt', 'iterest_paid', 'deprication',
-                 'tax', 'net_earning', 'investment', 'fixed_asset', 'asset' ,
-                 'inventory', 'operating_receivable', 'short_term_investment',
-                 'asset_bank_account', 'paid_in_capital', 'current_asset',
-                 'retained_earning', 'unallocated_earning', 'retained_earning',
-                 'financial_operating_obligation', 'long_term_loan', 'short_term_loan',
-                 'long_term_operating_liability', 'short_term_debt_suppliers',
-                 'liability', 'equity']
+        start = "Project Start"
+        capital = self.economic_module.capital
 
-        for attr in attrs:
-            setattr(self, attr, OrderedDict())
-            setattr(self, attr+"_y", OrderedDefaultdict(int))
+        ################### IS ########################################
+        self.revenue = self.start_project_OrderedDict(name="",value="")
+        self.revenue_electricity = self.start_project_OrderedDict(name="",value="")
+        self.revenue_subsides = self.start_project_OrderedDict(name="",value="")
+        self.cost = self.start_project_OrderedDict(name="",value="")
+        self.operational_cost = self.start_project_OrderedDict(name="",value="")
+        self.development_cost = self.start_project_OrderedDict(name="",value="")
+        self.ebitda = self.start_project_OrderedDict(name="",value="")
+        self.ebit = self.start_project_OrderedDict(name="",value="")
+        self.ebt = self.start_project_OrderedDict(name="",value="")
+        self.iterest_paid = self.start_project_OrderedDict(name="",value="")
+        self.deprication = self.start_project_OrderedDict(name="",value="")
+        self.tax = self.start_project_OrderedDict(name="",value="")
+        self.net_earning = self.start_project_OrderedDict(name="",value="")
+
+        ################### BS ########################################
+        self.investment = self.start_project_OrderedDict(name=start,value=0)
+        self.fixed_asset = self.start_project_OrderedDict(name=start,value=0)
+        self.asset = self.start_project_OrderedDict(name=start,value=capital)
+        self.inventory = self.start_project_OrderedDict(name=start,value=0)
+        self.operating_receivable = self.start_project_OrderedDict(name=start,value=0)
+        self.short_term_investment = self.start_project_OrderedDict(name=start,value=0)
+        self.asset_bank_account = self.start_project_OrderedDict(name=start,value=capital)
+        self.paid_in_capital = self.start_project_OrderedDict(name=start,value=capital)
+        self.current_asset = self.start_project_OrderedDict(name=start,value=capital)
+        self.retained_earning = self.start_project_OrderedDict(name=start,value=0)
+        self.unallocated_earning = self.start_project_OrderedDict(name=start,value=0)
+        self.retained_earning = self.start_project_OrderedDict(name=start,value=0)
+        self.financial_operating_obligation = self.start_project_OrderedDict(name=start,value=0)
+        self.long_term_loan = self.start_project_OrderedDict(name=start,value=0)
+        self.short_term_loan = self.start_project_OrderedDict(name=start,value=0)
+        self.long_term_operating_liability = self.start_project_OrderedDict(name=start,value=0)
+        self.short_term_debt_suppliers = self.start_project_OrderedDict(name=start,value=0)
+        self.liability = self.start_project_OrderedDict(name=start,value=capital)
+        self.equity = self.start_project_OrderedDict(name=start,value=capital)
+
+        ################### IS-Y #######################################
+        self.revenue_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.revenue_electricity_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.revenue_subsides_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.cost_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.operational_cost_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.development_cost_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.ebitda_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.ebit_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.ebt_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.iterest_paid_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.deprication_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.tax_y = self.start_project_OrderedDefaultDict(name="",value="")
+        self.net_earning_y = self.start_project_OrderedDefaultDict(name="",value="")
+
+        ################### BS-Y #######################################
+        self.investment_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.fixed_asset_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.asset_y = self.start_project_OrderedDefaultDict(name=start,value=capital)
+        self.inventory_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.operating_receivable_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.short_term_investment_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.asset_bank_account_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.paid_in_capital_y = self.start_project_OrderedDefaultDict(name=start,value=capital)
+        self.current_asset_y = self.start_project_OrderedDefaultDict(name=start,value=capital)
+        self.retained_earning_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.unallocated_earning_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.retained_earning_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.financial_operating_obligation_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.long_term_loan_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.short_term_loan_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.long_term_operating_liability_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.short_term_debt_suppliers_y = self.start_project_OrderedDefaultDict(name=start,value=0)
+        self.liability_y = self.start_project_OrderedDefaultDict(name=start,value=capital)
+        self.equity_y = self.start_project_OrderedDefaultDict(name=start,value=capital)
+
 
     def calc_monthly_values_part1(self, start_day, end_day):
         """Main function to calc montly value for reports P1"""
@@ -71,6 +139,7 @@ class Report(BaseClassConfig):
         self.ebitda[M] = self._calc_ebitda(end_day)
         self.ebit[M] = self._calc_ebit(end_day)
         self.ebt[M] = self._calc_ebt(end_day)
+
 
     def calc_monthly_values_part2(self, start_day, end_day):
         """Main function to calc montly value for reports P2"""
@@ -143,6 +212,8 @@ class Report(BaseClassConfig):
             self.short_term_debt_suppliers_y[Y] +=self.short_term_debt_suppliers[M]
             self.financial_operating_obligation_y[Y] +=self.financial_operating_obligation[M]
             self.liability_y[Y] += self.liability[M]
+
+
 
     def _calc_unallocated_earnings(self, date):
         """Calculating accumulated earnings """
@@ -326,14 +397,19 @@ class Report(BaseClassConfig):
         for row in rows:
             result = OrderedDict()
             for k, v in row.items():
-                result[k] = round(v, REPORT_ROUNDING)
+                if isinstance(v, (float, int)):
+                    result[k] = round(v, REPORT_ROUNDING)
+                else:
+                    result[k] = v
             new_rows.append(result)
 
         return new_rows
 
 
     def write_report(self, output_filename, report_dic):
-        """write report to file staying @free_lines in the head"""
+        """write report to file
+        @report_dic - dict with all values incl header
+        """
         header = report_dic.keys()
         rows = self.prepare_rows(report_dic.values())
         with open(output_filename,'ab') as f:

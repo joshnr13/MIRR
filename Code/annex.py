@@ -250,6 +250,14 @@ def uniquify_filename(path, sep = ''):
     return filename
 
 
+def add_start_project_values(csv_filename, header, values=None):
+    if values is not None:
+        pass
+    else :
+        blank_header = ["" for h in header]
+        add_header_csv(csv_filename, blank_header)
+
+
 def transponse_csv(csv_filename):
     """Transposing csv file"""
     new_filenmame = csv_filename
@@ -262,6 +270,7 @@ def transponse_csv(csv_filename):
 def add_header_csv(csv_filename, header):
     """Adds first row header to csv file"""
     line = ";".join(header)
+
     with open(csv_filename,'r+') as f:
         content = f.read()
         f.seek(0,0)
