@@ -15,39 +15,42 @@ parameters: dateStart; dateEnd
 
 import datetime
 import math
+import random
 import ConfigParser
 import os
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, last_day_month, add_x_years, getDaysNoInMonth, years_between_1Jan, months_between
+from annex import Annuitet, last_day_month,  getDaysNoInMonth, years_between_1Jan, months_between
+from annex import add_x_months, add_x_years, month_number_days
+from main_config_reader import MainConfig
+from base_class import BaseClassConfig
 
-class EconomicModule:
+class EconomicModule(BaseClassConfig):
 
-    def __init__(self, technology_module, subside_module):
+    def __init__(self, config_module, technology_module, subside_module):
+        BaseClassConfig.__init__(self, config_module)
         self.technology_module = technology_module
         self.subside_module = subside_module
-        self.loadMainConfig()
         self.loadConfig()
         self.calcDebtPercents()
 
-    def isProductionElectricityStarted(self, date):
-        """return True if production of electricity started"""
-        return True
-
     def isConstructionStarted(self, date):
-        """return True if costruction of equipment started"""
-        return True
+        """return  True if we recieved all permits and started but not finished
+        construction of equipment"""
+        if date > self.last_day_permit_procurement and date <= self.last_day_construction:
+            return  True
+        else:
+            return  False
 
-    def loadMainConfig(self, filename='main_config.ini'):
-        """Reads main config file """
-        config = ConfigParser.ConfigParser()
-        filepath = os.path.join(os.getcwd(), 'configs', filename)
-        config.read(filepath)
-        self.lifetime = config.getint('Main', 'lifetime')
-        self.resolution = config.getint('Main', 'resolution')
-        self.start_date = datetime.datetime.strptime(config.get('Main', 'start_date'), '%Y/%m/%d').date()
-        self.end_date = add_x_years(self.start_date, self.lifetime)
+    def isProductionElectricityStarted(self, date):
+        """return  True if we recieved all permits, finished construction and can
+        sell electricity"""
+        if date > self.last_day_construction :
+            return  True
+        else:
+            return  False
+
 
     def loadConfig(self, filename='ecm_config.ini'):
         """Reads module config file
@@ -63,7 +66,7 @@ class EconomicModule:
         self.administrativeCostsGrowth_rate = config.getfloat('Costs', 'administrativeCostsGrowth_rate') / 100
         self.insuranceFeeEquipment = config.getfloat('Costs', 'insuranceFeeEquipment') / 100
         self.insuranceDurationEquipment = config.getfloat('Costs', 'insuranceDurationEquipment')
-        self.insuranceLastDayEquipment = add_x_years(self.start_date, self.insuranceDurationEquipment)
+        self.insuranceLastDayEquipment = add_x_years(self.start_date_project, self.insuranceDurationEquipment)
 
         self.getDevelopmentCostDuringPermitProcurement = config.getfloat('Costs', 'developmentCostDuringPermitProcurement')
         self.developmentCostDuringConstruction = config.getfloat('Costs', 'developmentCostDuringConstruction')
@@ -74,11 +77,17 @@ class EconomicModule:
         self.investments = config.getfloat('Investments', 'investment_value')
         self.investmentEquipment = config.getfloat('Investments', 'investmentEquipment')
 
+        ######################### DEBT ########################################
+
         self.debt = config.getfloat('Debt', 'debt_value') * self.investments / 100
         self.debt_rate = config.getfloat('Debt', 'interest_rate') / 100
         self.debt_years = config.getint('Debt', 'periods')
 
+        ######################### DEPRICATION #################################
+
         self.deprication_duration = config.getfloat('Amortization', 'duration')
+
+
 
 
     def getRevenue(self, date_start, date_end):
@@ -90,9 +99,10 @@ class EconomicModule:
         while cur_date <= date_end:
             electricity_production = self.technology_module.generateElectiricityProduction(cur_date)
             day_revenue = self.getDayRevenue(electricity_production,cur_date)
-            subside_kwh = self.subside_module.subsidyProduction(cur_date)
-            day_subside = electricity_production * subside_kwh
-            revenue += (day_revenue + day_subside)
+            if day_revenue >= 0:
+                subside_kwh = self.subside_module.subsidyProduction(cur_date)
+                day_subside = electricity_production * subside_kwh
+                revenue += (day_revenue + day_subside)
             cur_date += datetime.timedelta(days=1)
 
         #print "%s---%s : %s, price %s, subs %s" % (date_start, date_end, revenue, self.getPriceKwh(date_end), subside_kwh)
@@ -100,13 +110,18 @@ class EconomicModule:
 
 
     def getDayRevenue(self, electricity_production, cur_date):
-        return electricity_production * self.getPriceKwh(cur_date)
+        if self.isProductionElectricityStarted(cur_date):
+            return electricity_production * self.getPriceKwh(cur_date)
+        else:
+            return 0
 
     def calcDepricationMonthly(self, date):
         """Calcultation of amortization in current month"""
-        cur_month = months_between(self.start_date, date)
+        cur_month = months_between(self.start_date_project, date)
         deprication_duration_months = self.deprication_duration * 12
-        if cur_month == 0:
+
+        cur_month = months_between(self.last_day_construction+datetime.timedelta(days=1), date)
+        if cur_month <= 0:
             return 0
         elif cur_month <= deprication_duration_months:
             return self.investments / deprication_duration_months
@@ -120,7 +135,7 @@ class EconomicModule:
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
-        yearNumber = years_between_1Jan(self.start_date, date)
+        yearNumber = years_between_1Jan(self.start_date_project, date)
         return self.market_price * ((1 + self.price_groth_rate)  ** yearNumber)
 
     def _getDevelopmentCosts(self, date):
@@ -134,11 +149,11 @@ class EconomicModule:
 
     def _getDevelopmentCostDuringPermitProcurement(self, date):
         """costs for developing phase of project at given date (1day) - part permit procurement"""
-        return 0
+        return self.getDevelopmentCostDuringPermitProcurement / month_number_days(date)
 
     def _getDevelopmentCostDuringConstruction(self, date):
         """costs for developing phase of project at given date (1day) - part construction"""
-        return self.developmentCostDuringConstruction / 30.4
+        return self.developmentCostDuringConstruction / month_number_days(date)
 
     def _getOperationalCosts(self, date):
         """Operational costs at given date (1day)"""
@@ -149,7 +164,7 @@ class EconomicModule:
 
     def _getAdministrativeCosts(self, date):
         """return administrative costs at given date (1day)"""
-        yearNumber = years_between_1Jan(self.start_date, date)
+        yearNumber = years_between_1Jan(self.start_date_project, date)
         return self.administrativeCosts * ((1 + self.administrativeCostsGrowth_rate) ** yearNumber) / getDaysNoInMonth(date)
 
     def _getInsuranceCosts(self, date):
@@ -199,7 +214,7 @@ class EconomicModule:
         return self.tax_rate
 
     def getMonthlyInvestments(self, date):
-        if date.month  ==  self.start_date.month and date.year == self.start_date.year:
+        if date.month  ==  self.start_date_project.month and date.year == self.start_date_project.year:
             return self.investments
         else:
             return 0
@@ -214,7 +229,7 @@ class EconomicModule:
 
     def calculateInterests(self, date):
         """Return monthly debt percents we need to pay"""
-        cur_month = months_between(self.start_date, date)
+        cur_month = months_between(self.start_date_project, date)
         if cur_month < len(self.debt_percents):
             return self.debt_percents[cur_month]
         else:
@@ -239,13 +254,13 @@ class EconomicModule:
         """
 
 if __name__ == '__main__':
-    start_date = datetime.date(2000, 1, 1)
-    end_date = datetime.date(2001, 12, 31)
-    em = EnergyModule()
-    #print em.generatePrimaryEnergyAvaialbilityLifetime()
+    mainconfig = MainConfig()
+    em = EnergyModule(mainconfig)
     technology_module = TechnologyModule(em)
     subside_module = SubsidyModule()
-    ecm = EconomicModule(technology_module, subside_module)
+    ecm = EconomicModule(mainconfig, technology_module, subside_module)
+
+    start_date = datetime.date(2000, 1, 1)
     print ecm.getRevenue(start_date, start_date+datetime.timedelta(days=30))
 
 

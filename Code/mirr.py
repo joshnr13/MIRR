@@ -15,6 +15,7 @@ from em import EnergyModule
 from sm import SubsidyModule
 from ecm import EconomicModule
 from report import Report
+from main_config_reader import MainConfig
 
 commands = {}
 
@@ -24,15 +25,17 @@ commands['2'] = 'charts_yearly'
 commands['3'] = 'report_is'
 commands['4'] = 'report_bs'
 commands['5'] = 'report_isbs'
+commands['6'] = 'report_isbs_xl'
 
 
 class Interface():
     def __init__(self):
-        self.energy_module = EnergyModule()
-        self.technology_module = TechnologyModule(self.energy_module)
-        self.subside_module = SubsidyModule()
-        self.economic_module = EconomicModule(self.technology_module, self.subside_module)
-        self.r = Report(self.economic_module)
+        main_config = MainConfig()
+        self.energy_module = EnergyModule(main_config)
+        self.technology_module = TechnologyModule(main_config, self.energy_module)
+        self.subside_module = SubsidyModule(main_config)
+        self.economic_module = EconomicModule(main_config, self.technology_module, self.subside_module)
+        self.r = Report(main_config, self.economic_module)
         self.r.calc_values()
     def charts_monthly(self):
         self.r.plot_charts_monthly()
@@ -44,6 +47,14 @@ class Interface():
         self.r.prepare_monthly_report_BS()
     def report_isbs(self):
         self.r.prepare_monthly_report_IS_BS()
+    def report_isbs_xl(self):
+        try:
+            import openpyxl
+            self.r.prepare_monthly_report_IS_BS(excel=True)
+        except ImportError:
+            print "Cannot import python module openpyxl. No excel support for reports!"
+            self.report_isbs()
+
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")
     def no_such_method(self):

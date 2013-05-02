@@ -7,16 +7,19 @@ from constants import report_directory, REPORT_ROUNDING
 
 from collections import defaultdict, OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
-from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, get_months_range
-from constants import BS_NAMES, BS_ROWS, IS_NAMES, IS_ROWS
+from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, get_months_range, csv2xlsx, month_number_days
+from constants import BS, IS
 
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
 from ecm import EconomicModule
+from base_class import BaseClassConfig
+from main_config_reader import MainConfig
 
-class Report():
-    def __init__(self, economic_module):
+class Report(BaseClassConfig):
+    def __init__(self, config_module, economic_module):
+        BaseClassConfig.__init__(self, config_module)
         self.economic_module = economic_module
         self.report_get_dates()
 
@@ -31,14 +34,20 @@ class Report():
             self.calc_monthly_values_part2(start_day, end_day)
             if is_last_day_year(end_day):
                 self.calc_yearly_values_part2(end_day)
+        self.check_balance_sheet()
 
     def init_attrs(self):
         """Creating attrs for monthly and yearly values"""
-        attrs = ['revenue', 'cost', 'deprication', 'iterest_paid', 'ebitda', 'ebit', 'ebt',
+        attrs = ['revenue', 'cost', 'operational_cost', 'development_cost',
+                 'ebitda', 'ebit', 'ebt', 'iterest_paid', 'deprication',
                  'tax', 'net_earning', 'investment', 'fixed_asset', 'asset' ,
                  'inventory', 'operating_receivable', 'short_term_investment',
                  'asset_bank_account', 'paid_in_capital', 'current_asset',
-                 'retained_earning', 'unallocated_earning', 'retained_earning']
+                 'retained_earning', 'unallocated_earning', 'retained_earning',
+                 'financial_operating_obligation', 'long_term_loan', 'short_term_loan',
+                 'long_term_operating_liability', 'short_term_debt_suppliers',
+                 'liability', 'equity']
+
         for attr in attrs:
             setattr(self, attr, OrderedDict())
             setattr(self, attr+"_y", OrderedDefaultdict(int))
@@ -50,7 +59,11 @@ class Report():
         self.revenue[M] = self.economic_module.getRevenue(start_day, end_day)
         self.deprication[M] = self.economic_module.calcDepricationMonthly(end_day)
         self.iterest_paid[M] = self.economic_module.calculateInterests(end_day)
-        self.cost[M] = self.economic_module.getCosts(start_day, end_day)
+
+        self.development_cost[M] = self.economic_module.getDevelopmentCosts(start_day, end_day)
+        self.operational_cost[M] = self.economic_module.getOperationalCosts(start_day, end_day)
+        self.cost[M] = self._cacl_total_costs(end_day)
+
         self.ebitda[M] = self._calc_ebitda(end_day)
         self.ebit[M] = self._calc_ebit(end_day)
         self.ebt[M] = self._calc_ebt(end_day)
@@ -74,10 +87,18 @@ class Report():
         self.current_asset[M] = self._calc_current_assets(end_day)
         self.retained_earning[M] = self.net_earning[M]
         self.unallocated_earning[M] = self._calc_unallocated_earnings(M)
-
         self.asset[M] = self._calc_assets(end_day)
 
-    def calc_yearly_values_part1(self, end_day_y):
+        self.long_term_loan[M] = self._calc_lt_loans(end_day)
+        self.long_term_operating_liability[M] = self._calc_lt_operliab(end_day)
+        self.short_term_loan[M] = self._calc_st_loans(end_day)
+        self.short_term_debt_suppliers[M] = self._calc_st_dept_supliers(end_day)
+
+        self.financial_operating_obligation[M] = self._calc_foo(end_day)
+        self.equity[M] = self._calc_equity(end_day)
+        self.liability[M] = self._calc_liabilities(end_day)
+
+    def calc_yearly_values_part1(self,  end_day_y):
         """Main function to calc yearly value for reports P1"""
 
         for start_day_m, end_day_m in self.report_dates_y[end_day_y]:
@@ -106,6 +127,13 @@ class Report():
 
             self.inventory_y[Y] += self.inventory[M]
 
+            self.long_term_loan_y[Y] +=self.long_term_loan[M]
+            self.long_term_operating_liability_y[Y] +=self.long_term_operating_liability[M]
+            self.short_term_loan_y[Y] +=self.short_term_loan[M]
+            self.short_term_debt_suppliers_y[Y] +=self.short_term_debt_suppliers[M]
+            self.financial_operating_obligation_y[Y] +=self.financial_operating_obligation[M]
+            self.liability_y[Y] += self.liability[M]
+
     def _calc_unallocated_earnings(self, date):
         """Calculating accumulated earnings """
         prev_month_date = last_day_previous_month(date)
@@ -129,6 +157,52 @@ class Report():
     def electricity(self):
         """return volume of for electricity MONTHLY"""
         return self.calc_report_monthly_values2(self.economic_module.technology_module.getElectricityProduction)
+
+    def _calc_lt_loans(self, end_day):
+        """Monthly calculation of  Long-Term Loans"""
+        return self.asset[end_day] - self.paid_in_capital[end_day]
+
+    def _calc_lt_operliab(self, end_day):
+        """Monthly calculation of Long-Term Operating Liabilities - NOT IMPLEMENTED"""
+        return 0
+
+    def _calc_equity(self,  end_day):
+        """Monthly calculation of equity"""
+        return  self.paid_in_capital[end_day] + self.retained_earning[end_day] + self.unallocated_earning[end_day]
+
+    def _calc_liabilities(self, end_day):
+        """Monthly calculation of Liabilities"""
+        return self.equity[end_day] + self.financial_operating_obligation[end_day]
+
+    def _calc_st_loans(self, end_day):
+        """Monthly calculation of Short-Term Loans """
+        return 0
+        return self.assets[end_day] - sum([
+            self.equity[end_day],
+            self.long_term_loan[end_day],
+            self.long_term_operating_liability[end_day],
+            self.short_term_loan[end_day],
+            self.short_term_debt_suppliers[end_day],
+            ])
+
+    def _calc_st_dept_supliers(self,  end_day):
+        """Monthly calculation of Short-Term Debt to Suppliers  - NOT IMPLEMENTED"""
+        return 0
+
+    def _calc_foo(self, date):
+        """calculation Financial And Operating Obligations Monthly"""
+        return sum([
+        self.long_term_loan[date],
+        self.long_term_operating_liability[date],
+        self.short_term_loan[date],
+        self.short_term_debt_suppliers[date],
+        ])
+
+
+    def _cacl_total_costs(self, end_day):
+        """calculation of total costs Monthly = operational_cost + development_cost"""
+        return  self.operational_cost[end_day] + self.development_cost[end_day]
+
 
     def _calc_ebitda(self, date):
         """calculation of ebitda = revenues - costs"""
@@ -216,8 +290,8 @@ class Report():
         report_dates = OrderedDict()
         report_dates_y = OrderedDict()
 
-        date = first_day_month(self.economic_module.start_date)
-        date_to = self.economic_module.end_date
+        date = first_day_month(self.start_date_project)
+        date_to = self.end_date_project
 
         while True:
             report_date = last_day_month(date)
@@ -236,7 +310,7 @@ class Report():
         """Prepares rows for outputing to report
         Rounding
         """
-        rows = [getattr(self, attr) for attr in rows_str]
+        rows = [getattr(self, attr) for attr in rows_str if attr]
 
         new_rows = []
         for row in rows:
@@ -248,10 +322,10 @@ class Report():
         return new_rows
 
 
-    def write_report(self, output_filename, header, rows):
+    def write_report(self, output_filename, report_dic):
         """write report to file staying @free_lines in the head"""
-
-        rows = self.prepare_rows(rows)
+        header = report_dic.keys()
+        rows = self.prepare_rows(report_dic.values())
         with open(output_filename,'ab') as f:
             w = csv.DictWriter(f, rows[0].keys(), delimiter=';')
             w.writeheader()
@@ -261,25 +335,39 @@ class Report():
         add_header_csv(output_filename, header)
         transponse_csv(output_filename)
 
+
+    def check_balance_sheet(self):
+        """Checks balance sheet Assets - Liabilities should be 0
+        return  Nothing if all it OK,
+        return  ValueError if check failed
+        """
+        self.control = OrderedDict()
+        for end_date_m in self.report_dates.values():
+            if self.asset[end_date_m] - self.liability[end_date_m] == 0:
+                self.control[end_date_m] = 0
+            else:
+                self.control[end_date_m] = self.asset[end_date_m] - self.liability[end_date_m]
+                #print "Error in balance sheet on date %s : assets = %s, liabilities = %s" % (end_date_m,self.asset[end_date_m] , self.liability[end_date_m])
+
+
     def prepare_monthly_report_BS(self):
         """Prepares and saves monthly BS report in csv file"""
         output_filename = self.get_report_filename('BS')
-        self.write_report(output_filename, BS_NAMES, BS_ROWS)
+        self.write_report(output_filename, BS)
         print "BS Report outputed to file %s" % output_filename
-
 
     def prepare_monthly_report_IS(self):
         """Prepares and saves monthly IS report in csv file"""
         output_filename = self.get_report_filename('IS')
-        self.write_report(output_filename, IS_NAMES, IS_ROWS)
+        self.write_report(output_filename, IS)
         print "IS Report outputed to file %s" % output_filename
 
-    def prepare_monthly_report_IS_BS(self):
+    def prepare_monthly_report_IS_BS(self, excel=False):
         output_filename = self.get_report_filename('IS-BS')
         bs_filename = output_filename + "_BS"
         is_filename = output_filename + "_IS"
-        self.write_report(bs_filename, BS_NAMES, BS_ROWS)
-        self.write_report(is_filename, IS_NAMES, IS_ROWS)
+        self.write_report(bs_filename, BS)
+        self.write_report(is_filename, IS)
 
         content = "\n"
         for f in [is_filename, bs_filename]:
@@ -289,11 +377,17 @@ class Report():
         with open(output_filename,'wb') as output:
             output.write(content)
 
+        if excel:
+            xls_output_filename = self.get_report_filename('IS-BS', 'xlsx')
+            csv2xlsx(output_filename, xls_output_filename)
+            os.remove(output_filename)
+            output_filename =  xls_output_filename
+
         print "IS-BS Report outputed to file %s" % output_filename
 
-    def get_report_filename(self, name):
+    def get_report_filename(self, name, extension='csv'):
         cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
-        report_name = "%s_%s_monthly.csv" % (cur_date, name)
+        report_name = "%s_%s_monthly.%s" % (cur_date, name, extension)
         report_name = os.path.join(report_directory, report_name)
 
         output_filename = uniquify_filename(report_name)
@@ -358,12 +452,13 @@ class Report():
         pylab.show()
 
 if __name__ == '__main__':
+    mainconfig = MainConfig()
+    energy_module = EnergyModule(mainconfig)
+    technology_module = TechnologyModule(mainconfig, energy_module)
+    subside_module = SubsidyModule(mainconfig)
+    economic_module = EconomicModule(mainconfig, technology_module, subside_module)
 
-    energy_module = EnergyModule()
-    technology_module = TechnologyModule(energy_module)
-    subside_module = SubsidyModule()
-    economic_module = EconomicModule(technology_module, subside_module)
-    r = Report(economic_module)
+    r = Report(mainconfig, economic_module)
     r.calc_values()
 
     #r.plot_charts_yearly()

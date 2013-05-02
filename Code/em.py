@@ -8,23 +8,15 @@ import numpy
 import ConfigParser
 import csv
 import os
+from base_class import BaseClassConfig
+from main_config_reader import MainConfig
 
-class EnergyModule():
+class EnergyModule(BaseClassConfig):
 
-    def __init__(self):
+    def __init__(self, config_module):
+        BaseClassConfig.__init__(self, config_module)
         self.loadConfig()
         self.loadInputs()
-        self.loadMainConfig()
-
-    def loadMainConfig(self, filename='main_config.ini'):
-        """Reads main config file """
-        config = ConfigParser.SafeConfigParser({'lifetime': 30, 'start_date': '2000/1/1', 'resolution': 10})
-        filepath = os.path.join(os.getcwd(), 'configs', filename)
-        config.read(filepath)
-        self.lifetime = config.getint('Main', 'lifetime')
-        self.resolution = config.getint('Main', 'resolution')
-        self.start_date = datetime.datetime.strptime(config.get('Main', 'start_date'), '%Y/%m/%d').date()
-        self.end_date = datetime.date(self.start_date.year + self.lifetime, self.start_date.month, self.start_date.day)
 
     def loadConfig(self, filename='em_config.ini'):
         """Reads module config file"""
@@ -57,8 +49,8 @@ class EnergyModule():
 
     def generatePrimaryEnergyAvaialbilityLifetime(self):
         """return energy availability per each day in whole lifetime"""
-        lifetime_days = (self.end_date - self.start_date).days
-        return [self.generatePrimaryEnergyAvaialbility(self.start_date+datetime.timedelta(days=i)) for i in range(lifetime_days) ]
+        lifetime_days = (self.end_date_project - self.start_date_project).days
+        return [self.generatePrimaryEnergyAvaialbility(self.start_date_project+datetime.timedelta(days=i)) for i in range(lifetime_days) ]
 
     def getAccumulatedEnergy(self, start_date, end_date):
         """
@@ -110,9 +102,9 @@ class EnergyModule():
            Values on the y-axis are sum of the energy in the time interval.
         """
         if start_date is  None:
-            start_date = self.start_date
+            start_date = self.start_date_project
         if end_date is  None:
-            end_date = self.end_date
+            end_date = self.end_date_project
         if resolution is  None:
             resolution = self.resolution
 
@@ -122,10 +114,12 @@ class EnergyModule():
 
 
 if __name__ == '__main__':
+    mainconfig = MainConfig()
+    em = EnergyModule(mainconfig)
+
+    #print em.generatePrimaryEnergyAvaialbilityLifetime()
     start_date = datetime.date(2000, 1, 1)
     end_date = datetime.date(2001, 12, 31)
-    em = EnergyModule()
-    #print em.generatePrimaryEnergyAvaialbilityLifetime()
     em.outputPrimaryEnergy(start_date, end_date)
     #print (end_date - start_date).days
 

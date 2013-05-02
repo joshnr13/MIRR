@@ -7,34 +7,27 @@ import os
 from tm import TechnologyModule
 from em import EnergyModule
 from annex import years_between
+from main_config_reader import MainConfig
+from base_class import BaseClassConfig
+from annex import add_x_years
 
-
-class SubsidyModule():
-    def __init__(self):
+class SubsidyModule(BaseClassConfig):
+    def __init__(self, config_module):
+            BaseClassConfig.__init__(self, config_module)
             self.loadConfig()
-            self.loadMainConfig()
-
-    def loadMainConfig(self, filename='main_config.ini'):
-        """Reads main config file """
-        config = ConfigParser.ConfigParser()
-        filepath = os.path.join(os.getcwd(), 'configs', filename)
-        config.read(filepath)
-        self.lifetime = config.getint('Main', 'lifetime')
-        self.resolution = config.getint('Main', 'resolution')
-        self.start_date = datetime.datetime.strptime(config.get('Main', 'start_date'), '%Y/%m/%d').date()
-        self.end_date = datetime.date(self.start_date.year + self.lifetime, self.start_date.month, self.start_date.day)
 
     def loadConfig(self, filename='sm_config.ini'):
         """Reads module config file"""
         config = ConfigParser.ConfigParser()
         filepath = os.path.join(os.getcwd(), 'configs', filename)
         config.read(filepath)
-        self.duration = config.getfloat('Subsidy', 'duration')
         self.kWh_subsidy = config.getfloat('Subsidy', 'kWh_subsidy')
+        self.duration = config.getfloat('Subsidy', 'duration')
+        self.last_day_subside = add_x_years(self.last_day_construction, self.duration)
 
     def subsidyProduction(self, date):
         """return subsidy for production 1Kwh on given date"""
-        if years_between(self.start_date, date) <= self.duration:
+        if date > self.last_day_construction and date <= self.last_day_subside:
             return self.kWh_subsidy
         else:
             return 0

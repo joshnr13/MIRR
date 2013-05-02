@@ -15,6 +15,13 @@ from calendar import monthrange
 from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
 
+try:
+    from openpyxl import Workbook
+    from openpyxl.cell import get_column_letter
+except ImportError:
+    print "No Excel support for reports"
+
+
 class cached_property(object):
     def __init__(self, func):
         self.func = func
@@ -100,7 +107,7 @@ def getDaysNoInMonth(date):
 def months_between(date1,date2):
     """return full month number since date2 till date1"""
     if date1>date2:
-        date1,date2=date2,date1
+        return (-months_between(date2, date1))
     m1=date1.year*12+date1.month
     m2=date2.year*12+date2.month
     months=m2-m1
@@ -122,7 +129,6 @@ def is_last_day_year(date):
     else:
         return False
 
-
 def get_months_range(year):
     result = []
     for i in range(1, 13):
@@ -143,6 +149,11 @@ def last_day_month(date):
     """return date - last day date in month with input date"""
     day = getDaysNoInMonth(date)
     return dt.date( date.year, date.month, day)
+
+def month_number_days(date):
+    last_day = last_day_month(date)
+    return last_day.day
+
 
 def last_day_previous_month(date):
     """return date - last day of previous month"""
@@ -168,6 +179,10 @@ def next_month(date):
 def add_x_years(date, years):
     """return date X years later - 1 day"""
     return  date + relativedelta(years=int(years)) - relativedelta(days=1)
+
+def add_x_months(date, months):
+    """return date X months later - 1 day"""
+    return  date + relativedelta(months=int(months)) - relativedelta(days=1)
 
 class Annuitet():
     def __init__(self,summa,yrate,yperiods):
@@ -231,6 +246,7 @@ def uniquify_filename(path, sep = ''):
         filename, ext = os.path.splitext(basename)
         fd, filename = tempfile.mkstemp(dir = dirname, prefix = filename, suffix = ext)
         tempfile._name_sequence = orig
+        os.close(fd)
     return filename
 
 
@@ -262,6 +278,42 @@ def mkdir_p(path):
         else: raise
 
 
+def setColumnWidths(sheet, widths):
+    idx = 1
+    for w in widths:
+        colLetter = openpyxl.cell.get_column_letter(idx)
+        sheet.column_dimensions[colLetter].width = w
+        idx += 1
+
+def csv2xlsx(inputfilename, outputfilename, listname='report'):
+    """Converts csv 2 excel"""
+
+    with open(inputfilename) as fin:
+        reader = csv.reader(fin, delimiter=';')
+        wb = Workbook()
+
+        open(outputfilename, 'wb').close()
+
+        ws = wb.worksheets[0]
+        ws.title = listname
+        columns = []
+        for row_index, row in enumerate(reader):
+            for column_index, cell in enumerate(row):
+                column_letter = get_column_letter((column_index + 1))
+                if column_letter not in columns:
+                    columns.append(column_letter)
+                _ceil = ws.cell('%s%s'%(column_letter, (row_index + 1)))
+                _ceil.value = cell
+
+                #_ceil.style.font.bold = True
+
+        first_column = columns[0]
+        ws.column_dimensions[first_column].width = 40
+
+        for column in columns[1:]:
+            ws.column_dimensions[column].width = 12
+
+        wb.save(filename = outputfilename)
 
 if __name__ == '__main__':
     a = Annuitet(1000, 0.16, 12)

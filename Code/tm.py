@@ -6,22 +6,14 @@ import datetime
 import ConfigParser
 import os
 from em import EnergyModule
+from main_config_reader import MainConfig
+from base_class import BaseClassConfig
 
-class TechnologyModule():
-    def __init__(self, energy_module):
+class TechnologyModule(BaseClassConfig):
+    def __init__(self, config_module, energy_module):
+        BaseClassConfig.__init__(self, config_module)
         self.energy_module = energy_module
         self.loadConfig()
-        self.loadMainConfig()
-
-    def loadMainConfig(self, filename='main_config.ini'):
-        """Reads main config file """
-        config = ConfigParser.SafeConfigParser({'lifetime': 30, 'start_date': '2000/1/1', 'resolution': 10})
-        filepath = os.path.join(os.getcwd(), 'configs', filename)
-        config.read(filepath)
-        self.lifetime = config.getint('Main', 'lifetime')
-        self.resolution = config.getint('Main', 'resolution')
-        self.start_date = datetime.datetime.strptime(config.get('Main', 'start_date'), '%Y/%m/%d').date()
-        self.end_date = datetime.date(self.start_date.year + self.lifetime, self.start_date.month, self.start_date.day)
 
     def loadConfig(self, filename='tm_config.ini'):
         """Reads module config file"""
@@ -65,9 +57,9 @@ class TechnologyModule():
         Values on the y-axis are sum of the electricity produced in the time interval.
         """
         if start_date is  None:
-            start_date = self.start_date
+            start_date = self.start_date_project
         if end_date is  None:
-            end_date = self.end_date
+            end_date = self.end_date_project
         if resolution is  None:
             resolution = self.resolution
 
@@ -79,9 +71,11 @@ class TechnologyModule():
 
 
 if __name__ == '__main__':
+    mainconfig = MainConfig()
+    em = EnergyModule(mainconfig)
+    tm = TechnologyModule(mainconfig, em)
+
+    #print em.generatePrimaryEnergyAvaialbilityLifetime()
     start_date = datetime.date(2000, 1, 1)
     end_date = datetime.date(2001, 12, 31)
-    em = EnergyModule()
-    #print em.generatePrimaryEnergyAvaialbilityLifetime()
-    tm = TechnologyModule(em)
     tm.outputElectricityProduction(start_date, end_date)
