@@ -144,6 +144,7 @@ class Report(BaseClassConfig):
     def calc_monthly_values_part2(self, start_day, end_day):
         """Main function to calc montly value for reports P2"""
         M = end_day
+        start =  "Project Start"
 
         self.tax[M] = self._calc_tax(end_day)
         self.net_earning[M] = self._calc_net_earning(end_day)
@@ -155,7 +156,7 @@ class Report(BaseClassConfig):
         self.operating_receivable[M] = 0 #NOT IMPLEMENTED
         self.short_term_investment[M] = 0 #NOT IMPLEMENTED
         self.asset_bank_account[M] = 0 #NOT IMPLEMENTED
-        self.paid_in_capital[M] = 0 #NOT IMPLEMENTED
+        self.paid_in_capital[M] = self.paid_in_capital[start]
 
         self.current_asset[M] = self._calc_current_assets(end_day)
         self.retained_earning[M] = self.net_earning[M]
