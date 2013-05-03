@@ -53,4 +53,9 @@ PROJECT_START = "Project Start"
 
 
 
+CF = OrderedDict()  #BALANCE SHEET , format dic[field_name]=attr_name or blank
+CF["Dates"] = ""
+CF["FCF project"] = "fcf_project"
+CF["FCF owners"] = "fcf_owners"
+
 

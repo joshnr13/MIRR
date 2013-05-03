@@ -37,7 +37,8 @@ class Interface():
         self.subside_module = SubsidyModule(main_config)
         self.economic_module = EconomicModule(main_config, self.technology_module, self.subside_module)
         self.r = Report(main_config, self.economic_module)
-        self.r.calc_values()
+        self.r.calc_report_values()
+
     def charts_monthly(self):
         self.r.plot_charts_monthly()
     def charts_yearly(self):
@@ -47,11 +48,11 @@ class Interface():
     def report_bs(self):
         self.r.prepare_monthly_report_BS()
     def report_isbs(self):
-        self.r.prepare_monthly_report_IS_BS()
+        self.r.prepare_monthly_report_IS_BS_CF()
     def report_isbs_xl(self):
         try:
             import openpyxl
-            self.r.prepare_monthly_report_IS_BS(excel=True)
+            self.r.prepare_monthly_report_IS_BS_CF(excel=True)
         except ImportError:
             print "Cannot import python module openpyxl. No excel support for reports!"
             self.report_isbs()

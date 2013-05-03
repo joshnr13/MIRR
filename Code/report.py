@@ -7,9 +7,10 @@ from constants import report_directory, REPORT_ROUNDING
 
 from collections import defaultdict, OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
-from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, get_months_range, csv2xlsx, month_number_days
-from annex import add_start_project_values
-from constants import BS, IS, PROJECT_START
+from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year
+from annex import add_start_project_values, get_months_range, csv2xlsx, month_number_days
+from annex import OrderedDefaultdict
+from constants import BS, IS, CF, PROJECT_START
 
 from tm import TechnologyModule
 from em import EnergyModule
@@ -26,23 +27,32 @@ class Report(BaseClassConfig):
         self.economic_module = economic_module
         self.report_get_dates()
 
-    def calc_values(self):
+    def calc_report_values(self):
         """Main function to cacl all values for reports"""
 
         self.init_attrs()
+        self.init_helper_attrs()
+        self.init_fcf_args()
+
         for start_day, end_day in self.report_dates.items():
             self.calc_monthly_values_part1(start_day, end_day)
             if is_last_day_year(end_day):
                 self.calc_yearly_values_part1(end_day)
             self.calc_monthly_values_part2(start_day, end_day)
+            self.calc_helper_values_monthly(end_day)
+            self.calc_fcf_monthly(end_day)
+
             if is_last_day_year(end_day):
                 self.calc_yearly_values_part2(end_day)
+                self.calc_helper_values_yearly(end_day)
+                self.calc_fcf_yearly(end_day)
+
         self.check_balance_sheet()
 
     def start_project_OrderedDict(self, name=PROJECT_START, value=""):
         return OrderedDict({name: value,})
 
-    def start_project_OrderedDefaultDict(self, name=PROJECT_START, value=""):
+    def start_project_OrderedDefaultdict(self, name=PROJECT_START, value=""):
         return  OrderedDefaultdict(int, {name: value,})
 
     def init_attrs(self):
@@ -86,45 +96,57 @@ class Report(BaseClassConfig):
         self.equity = self.start_project_OrderedDict(name=PROJECT_START,value=capital)
 
         ################### IS-Y #######################################
-        self.revenue_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.revenue_electricity_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.revenue_subsides_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.cost_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.operational_cost_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.development_cost_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.ebitda_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.ebit_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.ebt_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.iterest_paid_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.deprication_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.tax_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value="")
-        self.net_earning_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
+        self.revenue_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.revenue_electricity_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.revenue_subsides_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.cost_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.operational_cost_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.development_cost_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.ebitda_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.ebit_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.ebt_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.iterest_paid_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.deprication_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.tax_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.net_earning_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
 
         ################### BS-Y #######################################
-        self.investment_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.fixed_asset_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.asset_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=capital)
-        self.inventory_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.operating_receivable_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.short_term_investment_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.asset_bank_account_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.paid_in_capital_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=capital)
-        self.current_asset_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=capital)
-        self.retained_earning_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.unallocated_earning_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.retained_earning_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.financial_operating_obligation_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.long_term_loan_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.short_term_loan_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.long_term_operating_liability_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.short_term_debt_suppliers_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=0)
-        self.liability_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=capital)
-        self.equity_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=capital)
+        self.investment_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.fixed_asset_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.asset_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=capital)
+        self.inventory_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.operating_receivable_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.short_term_investment_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.asset_bank_account_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.paid_in_capital_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=capital)
+        self.current_asset_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=capital)
+        self.retained_earning_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.unallocated_earning_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.retained_earning_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.financial_operating_obligation_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.long_term_loan_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.short_term_loan_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.long_term_operating_liability_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.short_term_debt_suppliers_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=0)
+        self.liability_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=capital)
+        self.equity_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value=capital)
 
+    def init_fcf_args(self):
+
+        self.fcf_project = self.start_project_OrderedDict(name=PROJECT_START,value="")
+        self.fcf_owners = self.start_project_OrderedDict(name=PROJECT_START,value="")
+
+        self.fcf_project_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+        self.fcf_owners_y = self.start_project_OrderedDefaultdict(name=PROJECT_START,value="")
+
+    def init_helper_attrs(self):
         self.hlp = OrderedDict()
         self.decr_st_loans = OrderedDict()
         self.decr_bank_assets = OrderedDict()
 
+        self.hlp_y = OrderedDefaultdict(int)
+        self.decr_st_loans_y = OrderedDefaultdict(int)
+        self.decr_bank_assets_y = OrderedDefaultdict(int)
 
     def calc_monthly_values_part1(self, start_day, end_day):
         """Main function to calc montly value for reports P1"""
@@ -177,7 +199,8 @@ class Report(BaseClassConfig):
         self.financial_operating_obligation[M] = self._calc_foo(end_day)
         self.equity[M] = self._calc_equity(end_day)
         self.liability[M] = self._calc_liabilities(end_day)
-        self.helper_values(end_day)
+
+
 
     def calc_yearly_values_part1(self,  end_day_y):
         """Main function to calc yearly value for reports P1"""
@@ -228,8 +251,16 @@ class Report(BaseClassConfig):
             pM = PROJECT_START
         return obj[pM]
 
+    def get_delta_cur_prev(self,  obj, date):
+        cur = obj[date]
+        prev = self.get_prev_month_value(obj, date)
+        return cur - prev
 
-    def helper_values(self, end_day):
+
+    def calc_helper_values_yearly(self, end_day):
+        pass
+
+    def calc_helper_values_monthly(self, end_day):
         M = end_day
         MIN_OST = 500
         prev_asset_bank_account = self.get_prev_month_value(self.asset_bank_account, M)
@@ -261,6 +292,24 @@ class Report(BaseClassConfig):
 
         self.financial_operating_obligation[M] = self._calc_foo(end_day)
         self.liability[M] = self._calc_liabilities(end_day)
+
+
+    def calc_fcf_monthly(self, end_day):
+        M = end_day
+        self.fcf_project[M] = (self.net_earning[M] -
+                               self.get_delta_cur_prev(self.fixed_asset, M) -
+                               self.get_delta_cur_prev(self.operating_receivable, M) +
+                               self.get_delta_cur_prev(self.short_term_debt_suppliers, M) +
+                               self.iterest_paid[M] - self.asset_bank_account[M]
+                               )
+
+        self.fcf_owners[M] = (- self.get_delta_cur_prev(self.paid_in_capital, M) +
+                              self.net_earning[M] +
+                              self.deprication[M]
+                              )
+
+    def calc_fcf_yearly(self, end_day):
+        pass
 
 
     def _calc_unallocated_earnings(self, date):
@@ -429,9 +478,6 @@ class Report(BaseClassConfig):
 
         return  prev1_value + prev2_value
 
-
-
-
     def calc_report_monthly_values2(self, func):
         """Calculates monthly values using 2 dates -first_day and last_day in month
         return  dict[end_day] = value
@@ -537,15 +583,23 @@ class Report(BaseClassConfig):
         self.write_report(output_filename, IS)
         print "IS Report outputed to file %s" % output_filename
 
-    def prepare_monthly_report_IS_BS(self, excel=False):
-        output_filename = self.get_report_filename('IS-BS')
+    def prepare_monthly_report_CF(self):
+        """Prepares and saves monthly CF report in csv file"""
+        output_filename = self.get_report_filename('CF')
+        self.write_report(output_filename, CF)
+        print "CF Report outputed to file %s" % output_filename
+
+    def prepare_monthly_report_IS_BS_CF(self, excel=False):
+        output_filename = self.get_report_filename('IS-BS-CF')
         bs_filename = output_filename + "_BS"
         is_filename = output_filename + "_IS"
+        cf_filename = output_filename + "_CF"
         self.write_report(bs_filename, BS)
         self.write_report(is_filename, IS)
+        self.write_report(cf_filename, CF)
 
         content = "\n"
-        for f in [is_filename, bs_filename]:
+        for f in [is_filename, bs_filename, cf_filename]:
             content += open(f).read() + '\n\n\n'
             os.remove(f)
 
@@ -558,7 +612,7 @@ class Report(BaseClassConfig):
             os.remove(output_filename)
             output_filename =  xls_output_filename
 
-        print "IS-BS Report outputed to file %s" % output_filename
+        print "IS-BS-CF Report outputed to file %s" % output_filename
 
     def get_report_filename(self, name, extension='csv'):
         cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -634,12 +688,12 @@ if __name__ == '__main__':
     economic_module = EconomicModule(mainconfig, technology_module, subside_module)
 
     r = Report(mainconfig, economic_module)
-    r.calc_values()
+    r.calc_report_values()
 
     #r.plot_charts_yearly()
     #r.plot_charts_monthly()
     #r.prepare_monthly_report_IS()
-    r.prepare_monthly_report_IS_BS()
+    r.prepare_monthly_report_IS_BS_CF()
 
     #print r.fixed_assets.values()
     #print r.assets.values()
