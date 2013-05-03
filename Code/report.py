@@ -131,7 +131,7 @@ class Report(BaseClassConfig):
         self.revenue[M] = self.economic_module.getRevenue(start_day, end_day)
 
         self.deprication[M] = self.economic_module.calcDepricationMonthly(end_day)
-        self.iterest_paid[M] = self.economic_module.calculateInterests(end_day)
+        self.iterest_paid[M] = self.economic_module.calculateDebtInterests(end_day)
 
         self.development_cost[M] = self.economic_module.getDevelopmentCosts(start_day, end_day)
         self.operational_cost[M] = self.economic_module.getOperationalCosts(start_day, end_day)
@@ -246,7 +246,8 @@ class Report(BaseClassConfig):
 
     def _calc_lt_loans(self, end_day):
         """Monthly calculation of  Long-Term Loans"""
-        return self.asset[end_day] - self.paid_in_capital[end_day]
+        return  self.economic_module.debt_rest_payments_wo_percents.get(end_day, 0)
+        #return self.asset[end_day] - self.paid_in_capital[end_day]
 
     def _calc_lt_operliab(self, end_day):
         """Monthly calculation of Long-Term Operating Liabilities - NOT IMPLEMENTED"""

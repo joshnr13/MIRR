@@ -161,6 +161,12 @@ def last_day_previous_month(date):
     last_day_prev_month = last_day_month(prev_month_date)
     return last_day_prev_month
 
+def last_day_next_month(date):
+    """return date - last day of next month"""
+    next_month_date =  date + relativedelta(months=1)
+    last_day_next_month = last_day_month(next_month_date)
+    return last_day_next_month
+
 def first_day_month(date):
     """return date - first day date in month with input date"""
     return dt.date( date.year, date.month, 1)
@@ -183,48 +189,6 @@ def add_x_years(date, years):
 def add_x_months(date, months):
     """return date X months later - 1 day"""
     return  date + relativedelta(months=int(months)) - relativedelta(days=1)
-
-class Annuitet():
-    def __init__(self,summa,yrate,yperiods):
-        """
-        summa - how much we borrow
-        yrate - fix rate in percents per year
-        yperiods - number of years to return debt
-        """
-        self.summa = summa
-        self.yrate = yrate
-        self.mperiods = yperiods * 12
-        self.mpayment = self.__calcMonthlyPayment()
-
-
-    def __calcMonthlyPayment(self):
-        P = self.yrate / 12
-        N = self.mperiods
-        S = self.summa
-
-        return  S * P * (1+P) ** N / ((1+P) ** N-1)
-
-
-    def calculate(self):
-        percent = (self.summa * self.yrate / 12)
-        debt = self.mpayment - percent
-        ost = self.summa - debt
-
-        percents = [percent]
-        debts = [debt]
-        ostatki = [ost]
-        for i in range(1, self.mperiods):
-            percent = ost * self.yrate / 12
-            debt = self.mpayment - percent
-            ost -= debt
-
-            percents.append(percent)
-            debts.append(debt)
-            ostatki.append(ost)
-
-        self.percents = percents
-        self.depts = debts
-        self.ostatki = ostatki
 
 
 def uniquify_filename(path, sep = ''):
@@ -324,7 +288,84 @@ def csv2xlsx(inputfilename, outputfilename, listname='report'):
 
         wb.save(filename = outputfilename)
 
+class Annuitet():
+    def __init__(self,summa,yrate,yperiods, start_date):
+        """
+        summa - how much we borrow
+        yrate - fix rate in percents per year
+        yperiods - number of years to return debt
+        """
+        self.summa = summa
+        self.yrate = yrate
+        self.mperiods = yperiods * 12
+        self.mpayment = self.__calcMonthlyPayment()
+        self.start_date = start_date
+        self.total_debt = self.mpayment * self.mperiods
+
+
+    def __calcMonthlyPayment(self):
+        P = self.yrate / 12
+        N = self.mperiods
+        S = self.summa
+
+        return  S * P * (1+P) ** N / ((1+P) ** N-1)
+
+
+    def calculate(self):
+        """Calculated annuitet values
+
+        @percent_payments = dict with sum we need to pay at current period - for percent of loan
+        @debt_payments = dict with sum we need to pay at current period - for body of loan
+        @rest_payments = dict with sum, we still need to pay in next periods
+
+        """
+        date = self.start_date
+
+        percent_payment = 0# (self.summa * self.yrate / 12)
+        debt_payment = 0
+        rest_payment = self.total_debt
+        rest_payment_wo_percent = self.summa
+
+        percent_payments = OrderedDict({date: percent_payment,})
+        debt_payments = OrderedDict({date: debt_payment,})
+        rest_payments = OrderedDict({date: rest_payment,})
+        rest_payments_wo_percents = OrderedDict({date: rest_payment_wo_percent,})
+
+        for i in range(0, self.mperiods):
+            date = last_day_next_month(date)
+
+            percent_payment = rest_payment_wo_percent * self.yrate / 12
+            debt_payment = self.mpayment - percent_payment
+            rest_payment -= self.mpayment
+            rest_payment_wo_percent -= debt_payment
+
+            if rest_payment < 0.01:
+                rest_payment = 0
+
+            if rest_payment_wo_percent < 0.01:
+                rest_payment_wo_percent = 0
+
+            percent_payments[date] = percent_payment
+            debt_payments[date] = debt_payment
+            rest_payments[date] = rest_payment
+            rest_payments_wo_percents[date] = rest_payment_wo_percent
+
+        self.percent_payments = percent_payments
+        self.debt_payments = debt_payments
+        self.rest_payments = rest_payments
+        self.rest_payments_wo_percents = rest_payments_wo_percents
+
+
 if __name__ == '__main__':
-    a = Annuitet(1000, 0.16, 12)
+    date = dt.date(2000, 12, 31)
+    a = Annuitet(summa=1000, yrate=0.16, yperiods=1, start_date=date)
     a.calculate()
-    print a.percents
+    for i in range(13):
+        print "%s: %-13s %-13s %-13s  %-13s  = %-13s" % (date,
+                                          str(a.rest_payments[date]),
+                                          a.rest_payments_wo_percents[date],
+                                   str(a.debt_payments[date]).zfill(6),
+                                   str(a.percent_payment[date]).zfill(6),
+                                   str(a.debt_payments[date] + a.percent_payment[date]).zfill(6)
+                                   )
+        date = last_day_next_month(date)

@@ -22,7 +22,7 @@ from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
 from annex import Annuitet, last_day_month,  getDaysNoInMonth, years_between_1Jan, months_between
-from annex import add_x_months, add_x_years, month_number_days
+from annex import add_x_months, add_x_years, month_number_days, last_day_next_month
 from main_config_reader import MainConfig
 from base_class import BaseClassConfig
 
@@ -166,9 +166,12 @@ class EconomicModule(BaseClassConfig):
             return 0
 
     def calcDebtPercents(self):
-        a = Annuitet(self.debt, self.debt_rate, self.debt_years)
+        first_month_dept = last_day_next_month(self.last_day_construction)
+        a = Annuitet(self.debt, self.debt_rate, self.debt_years, first_month_dept)
         a.calculate()
-        self.debt_percents = a.percents
+
+        self.debt_percents = a.debt_payments
+        self.debt_rest_payments_wo_percents = a.rest_payments_wo_percents
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
@@ -256,7 +259,6 @@ class EconomicModule(BaseClassConfig):
         else:
             return 0
 
-
     def getDebtPayment(self, date_start, date_end):
         """calculate the payment of the debt principal based on constant annuity repayment  - http://en.wikipedia.org/wiki/Fixed_rate_mortgage
         365.25 - average number of days per year"""
@@ -264,16 +266,13 @@ class EconomicModule(BaseClassConfig):
         payment = self.debt_rate * self.debt * number_of_days / 365.25
         return payment
 
-    def calculateInterests(self, date):
+    def calculateDebtInterests(self, date):
         """Return monthly debt percents we need to pay"""
-        cur_month = months_between(self.start_date_project, date)
-        if cur_month < len(self.debt_percents):
-            return self.debt_percents[cur_month]
-        else:
-            return 0
+        return  self.debt_percents.get(date, 0)
 
-    def getMonthlyInterests(self, date_start, date_end):
-        pass
+    def calculateDebtBody(self, date):
+        """Return monthly debt percents we need to pay"""
+        return  self.rest_payment_wo_percent.get(date, 0)
 
     def calculateFCF(self):
         """  net earnings (revenue - costs) + amortisation - investments in long term assests"""
@@ -293,8 +292,8 @@ class EconomicModule(BaseClassConfig):
 if __name__ == '__main__':
     mainconfig = MainConfig()
     em = EnergyModule(mainconfig)
-    technology_module = TechnologyModule(em)
-    subside_module = SubsidyModule()
+    technology_module = TechnologyModule(mainconfig, em)
+    subside_module = SubsidyModule(mainconfig)
     ecm = EconomicModule(mainconfig, technology_module, subside_module)
 
     start_date = datetime.date(2000, 1, 1)
