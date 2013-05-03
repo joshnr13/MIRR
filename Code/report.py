@@ -121,6 +121,10 @@ class Report(BaseClassConfig):
         self.liability_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=capital)
         self.equity_y = self.start_project_OrderedDefaultDict(name=PROJECT_START,value=capital)
 
+        self.hlp = OrderedDict()
+        self.decr_st_loans = OrderedDict()
+        self.decr_bank_assets = OrderedDict()
+
 
     def calc_monthly_values_part1(self, start_day, end_day):
         """Main function to calc montly value for reports P1"""
@@ -173,6 +177,7 @@ class Report(BaseClassConfig):
         self.financial_operating_obligation[M] = self._calc_foo(end_day)
         self.equity[M] = self._calc_equity(end_day)
         self.liability[M] = self._calc_liabilities(end_day)
+        self.helper_values(end_day)
 
     def calc_yearly_values_part1(self,  end_day_y):
         """Main function to calc yearly value for reports P1"""
@@ -216,6 +221,46 @@ class Report(BaseClassConfig):
             self.financial_operating_obligation_y[Y] +=self.financial_operating_obligation[M]
             self.liability_y[Y] += self.liability[M]
 
+    def get_prev_month_value(self, obj, date):
+        M = date
+        pM = last_day_previous_month(date)
+        if pM < self.start_date_project:
+            pM = PROJECT_START
+        return obj[pM]
+
+
+    def helper_values(self, end_day):
+        M = end_day
+        MIN_OST = 500
+        prev_asset_bank_account = self.get_prev_month_value(self.asset_bank_account, M)
+        prev_short_term_loan = self.get_prev_month_value(self.short_term_loan, M)
+
+        help = (self.fixed_asset[M] +
+                      self.operating_receivable[M] +
+                      self.short_term_investment[M] -
+                      self.equity[M] -
+                      self.long_term_loan[M] -
+                      self.short_term_debt_suppliers[M] +
+                      prev_asset_bank_account -
+                      prev_short_term_loan
+                      )
+        self.hlp[M] = help
+
+        if self.hlp[M] > 0:
+            self.decr_bank_assets[M] = min(help,prev_asset_bank_account-MIN_OST)
+            self.decr_st_loans[M] =  min(prev_short_term_loan, -help + max(self.decr_bank_assets[M], 0))
+        else:
+            self.decr_st_loans[M] = min(prev_short_term_loan, -help)
+            self.decr_bank_assets[M] = (help + self.decr_st_loans[M])
+
+        self.short_term_loan[M] = prev_short_term_loan - self.decr_st_loans[M]
+        self.asset_bank_account[M] = prev_asset_bank_account - self.decr_bank_assets[M]
+
+        self.current_asset[M] = self._calc_current_assets(end_day)
+        self.asset[M] = self._calc_assets(end_day)
+
+        self.financial_operating_obligation[M] = self._calc_foo(end_day)
+        self.liability[M] = self._calc_liabilities(end_day)
 
 
     def _calc_unallocated_earnings(self, date):
@@ -470,11 +515,14 @@ class Report(BaseClassConfig):
         """
         self.control = OrderedDict()
         for end_date_m in self.report_dates.values():
-            if self.asset[end_date_m] - self.liability[end_date_m] == 0:
-                self.control[end_date_m] = 0
-            else:
-                self.control[end_date_m] = self.asset[end_date_m] - self.liability[end_date_m]
-                #print "Error in balance sheet on date %s : assets = %s, liabilities = %s" % (end_date_m,self.asset[end_date_m] , self.liability[end_date_m])
+            self.check_balance_sheet_date(end_date_m)
+
+    def check_balance_sheet_date(self,  date):
+        if self.asset[date] - self.liability[date] == 0:
+            self.control[date] = 0
+        else:
+            self.control[date] = self.asset[date] - self.liability[date]
+            #print "Error in balance sheet on date %s : assets = %s, liabilities = %s" % (date,self.asset[date] , self.liability[end_date_m])
 
 
     def prepare_monthly_report_BS(self):
