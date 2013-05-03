@@ -12,6 +12,7 @@ from annex import years_between
 from main_config_reader import MainConfig
 from base_class import BaseClassConfig
 from annex import add_x_years, add_x_months
+from constants import TESTMODE
 
 class SubsidyModule(BaseClassConfig):
     def __init__(self, config_module):
@@ -28,7 +29,11 @@ class SubsidyModule(BaseClassConfig):
 
         delay_lower_limit = config.getfloat('Subsidy', 'delay_lower_limit')
         delay_upper_limit = config.getfloat('Subsidy', 'delay_upper_limit')
-        self.real_delay = random.randrange(delay_lower_limit, delay_upper_limit+1)
+
+        if TESTMODE:
+            self.real_delay = 0
+        else:
+            self.real_delay = random.randrange(delay_lower_limit, delay_upper_limit+1)
 
         self.first_day_subside = add_x_months(self.last_day_construction+datetime.timedelta(days=1), self.real_delay)
         self.last_day_subside = add_x_years(self.first_day_subside, self.duration)

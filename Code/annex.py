@@ -359,13 +359,14 @@ class Annuitet():
 if __name__ == '__main__':
     date = dt.date(2000, 12, 31)
     a = Annuitet(summa=1000, yrate=0.16, yperiods=1, start_date=date)
+    a = Annuitet(summa=250000, yrate=0.06, yperiods=12, start_date=date)
     a.calculate()
     for i in range(13):
         print "%s: %-13s %-13s %-13s  %-13s  = %-13s" % (date,
-                                          str(a.rest_payments[date]),
+                                          a.rest_payments[date],
                                           a.rest_payments_wo_percents[date],
-                                   str(a.debt_payments[date]).zfill(6),
-                                   str(a.percent_payment[date]).zfill(6),
-                                   str(a.debt_payments[date] + a.percent_payment[date]).zfill(6)
+                                   a.debt_payments[date],
+                                   a.percent_payments[date],
+                                   a.debt_payments[date] + a.percent_payments[date]
                                    )
         date = last_day_next_month(date)

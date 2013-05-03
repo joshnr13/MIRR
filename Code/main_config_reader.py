@@ -3,6 +3,7 @@ import random
 import datetime
 import ConfigParser
 from annex import add_x_months, add_x_years
+from constants import TESTMODE
 
 class MainConfig():
     def __init__(self):
@@ -24,8 +25,13 @@ class MainConfig():
         construction_duration_lower_limit = config.getfloat('Delays', 'construction_duration_lower_limit')
         construction_duration_upper_limit = config.getfloat('Delays', 'construction_duration_upper_limit')
 
-        self.real_permit_procurement_duration = random.randrange(permit_procurement_duration_lower_limit, permit_procurement_duration_upper_limit+1)
-        self.real_construction_duration = random.randrange(construction_duration_lower_limit, construction_duration_upper_limit+1)
+        if TESTMODE:
+            self.real_permit_procurement_duration = 0
+            self.real_construction_duration = 0
+        else :
+            self.real_permit_procurement_duration = random.randrange(permit_procurement_duration_lower_limit, permit_procurement_duration_upper_limit+1)
+            self.real_construction_duration = random.randrange(construction_duration_lower_limit, construction_duration_upper_limit+1)
+
         self.last_day_construction = add_x_months(self.start_date, self.real_permit_procurement_duration+self.real_construction_duration)
         self.last_day_permit_procurement = add_x_months(self.start_date, self.real_permit_procurement_duration)
 

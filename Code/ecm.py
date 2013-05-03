@@ -83,7 +83,7 @@ class EconomicModule(BaseClassConfig):
         self.debt_rate = config.getfloat('Debt', 'interest_rate') / 100
         self.debt_years = config.getint('Debt', 'periods')
 
-        self.capital = self.investments - self.investmentEquipment
+        self.capital = self.investments - self.debt
 
         ######################### DEPRICATION #################################
 
@@ -96,10 +96,12 @@ class EconomicModule(BaseClassConfig):
 
         while cur_date <= date_end:
             electricity_production = self.getElectricityProduction(cur_date)
+
             day_revenue_electricity = self._getDayRevenue_electricity(cur_date, electricity_production)
             day_revenue_subsidy = self._getDayRevenue_subsidy(cur_date, electricity_production)
+
             cur_date += datetime.timedelta(days=1)
-            revenue += day_revenue_electricity + day_revenue_subsidy
+            revenue += (day_revenue_electricity + day_revenue_subsidy)
         return revenue
 
     def getRevenue_elecricity(self, date_start, date_end):
@@ -170,7 +172,7 @@ class EconomicModule(BaseClassConfig):
         a = Annuitet(self.debt, self.debt_rate, self.debt_years, first_month_dept)
         a.calculate()
 
-        self.debt_percents = a.debt_payments
+        self.debt_percents = a.percent_payments
         self.debt_rest_payments_wo_percents = a.rest_payments_wo_percents
 
     def getPriceKwh(self, date):

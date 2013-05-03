@@ -26,6 +26,7 @@ commands['3'] = 'report_is'
 commands['4'] = 'report_bs'
 commands['5'] = 'report_isbs'
 commands['6'] = 'report_isbs_xl'
+commands['7'] = 'print_equipment'
 
 
 class Interface():
@@ -54,6 +55,9 @@ class Interface():
         except ImportError:
             print "Cannot import python module openpyxl. No excel support for reports!"
             self.report_isbs()
+
+    def print_equipment(self):
+        self.technology_module.print_equipment()
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")

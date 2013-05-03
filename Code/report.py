@@ -128,7 +128,8 @@ class Report(BaseClassConfig):
 
         self.revenue_electricity[M] = self.economic_module.getRevenue_elecricity(start_day, end_day)
         self.revenue_subsides[M] = self.economic_module.getRevenue_subside(start_day, end_day)
-        self.revenue[M] = self.economic_module.getRevenue(start_day, end_day)
+        #self.revenue[M] = self.economic_module.getRevenue(start_day, end_day)
+        self.revenue[M] = self.revenue_electricity[M] + self.revenue_subsides[M]
 
         self.deprication[M] = self.economic_module.calcDepricationMonthly(end_day)
         self.iterest_paid[M] = self.economic_module.calculateDebtInterests(end_day)
@@ -263,14 +264,11 @@ class Report(BaseClassConfig):
 
     def _calc_st_loans(self, end_day):
         """Monthly calculation of Short-Term Loans """
-        return 0
-        return self.assets[end_day] - sum([
-            self.equity[end_day],
-            self.long_term_loan[end_day],
-            self.long_term_operating_liability[end_day],
-            self.short_term_loan[end_day],
-            self.short_term_debt_suppliers[end_day],
-            ])
+        cur_earn = self.retained_earning[end_day]
+        if cur_earn < 0:
+            return abs(cur_earn)
+        else:
+            return 0
 
     def _calc_foo(self, date):
         """calculation Financial And Operating Obligations Monthly"""

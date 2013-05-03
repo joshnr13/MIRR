@@ -10,6 +10,7 @@ import csv
 import os
 from base_class import BaseClassConfig
 from main_config_reader import MainConfig
+from constants import TESTMODE
 
 class EnergyModule(BaseClassConfig):
 
@@ -28,7 +29,10 @@ class EnergyModule(BaseClassConfig):
 
     def getRandomFactor(self):
         """return random factor with normal distribution"""
-        return random.gauss(self.mean, self.stdev)
+        if TESTMODE:
+            return  self.mean
+        else:
+            return random.gauss(self.mean, self.stdev)
 
     def loadInputs(self):
         """Loads inputs to memory"""

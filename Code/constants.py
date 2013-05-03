@@ -3,6 +3,9 @@ import sys
 from annex import mkdir_p
 from collections import OrderedDict
 
+
+TESTMODE = True
+
 REPORT_ROUNDING = 2
 REPORT_PATH = '~/data/mirr_reports'     #relevent path to storing reports
 report_directory = os.path.expanduser(os.path.normpath(REPORT_PATH))
@@ -33,6 +36,8 @@ BS["Operating Receivables"] = "operating_receivable"
 BS["Short-Term Investments"] = "short_term_investment"
 BS["Assets On Bank Accounts"] = "asset_bank_account"
 BS["Assets"] = "asset"
+BS["Equity"] = "equity"
+
 BS["Paid-In Capital"] = "paid_in_capital"
 BS["Retained Earnings"] = "retained_earning"
 BS["Unallocated Earnings"] = "unallocated_earning"
