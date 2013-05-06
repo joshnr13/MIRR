@@ -252,12 +252,12 @@ def mkdir_p(path):
         else: raise
 
 
-def setColumnWidths(sheet, widths):
-    idx = 1
-    for w in widths:
-        colLetter = openpyxl.cell.get_column_letter(idx)
-        sheet.column_dimensions[colLetter].width = w
-        idx += 1
+#def setColumnWidths(sheet, widths):
+    #idx = 1
+    #for w in widths:
+        #colLetter = openpyxl.cell.get_column_letter(idx)
+        #sheet.column_dimensions[colLetter].width = w
+        #idx += 1
 
 def csv2xlsx(inputfilename, outputfilename, listname='report'):
     """Converts csv 2 excel"""
@@ -302,16 +302,16 @@ def combine_files(from_filenames, to_filename):
         output.write(content)
 
 
-def convert2excel(report_name, source, output):
-    """Converts souce file to excel file with name = @report_name"""
+def convert2excel(source, output):
+    """Converts souce file to excel file with name = @output"""
     csv2xlsx(source, output)
     os.remove(source)
     return  output
 
 def get_input_date(default=None, text=''):
-    i = raw_input("Input date %s or press ENTER to use default value %s::  " %(text, default))
+    date = raw_input("Input date %s or press ENTER to use default value %s::  " %(text, default))
     try:
-        result= dt.datetime.strptime(i,"%Y-%m-%d").date()
+        result= dt.datetime.strptime(date,"%Y-%m-%d").date()
     except ValueError:
         print "No value or value error. Return default value %s" % default
         result = default
@@ -319,10 +319,9 @@ def get_input_date(default=None, text=''):
     return result
 
 def get_input_int(default=None, text=''):
-    i = raw_input("Enter resolution or press ENTER to use default %s::" %default)
-
+    value = raw_input(text)
     try:
-        result= int(i)
+        result= int(value)
     except ValueError:
         print "No value or value error. Return default value %s" % default
         result = default

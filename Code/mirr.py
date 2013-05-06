@@ -1,22 +1,18 @@
-from constants import report_directory
+#!/usr/bin/env python
+# -*- coding utf-8 -*-
+
 import sys
-import datetime
-import pylab
-import numpy
-import csv
 import traceback
 
-from collections import defaultdict, OrderedDict
-from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
-from annex import accumulate, get_input_date, get_input_int
-
+from collections import  OrderedDict
+from annex import get_input_date, get_input_int
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
 from ecm import EconomicModule
 from report import Report
 from main_config_reader import MainConfig
-from report_ouput import ReportOutput
+from report_output import ReportOutput
 
 commands = OrderedDict()
 
@@ -55,7 +51,7 @@ class Interface():
         self.o.prepare_report_BS()
 
     def report_isbscf(self, yearly=False):
-        self.o.prepare_report_IS_BS_CF_IRR(yealy)
+        self.o.prepare_report_IS_BS_CF_IRR(yearly)
 
     def report_isbscf_xl(self, yearly=False):
         try:
@@ -63,7 +59,7 @@ class Interface():
             self.o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=yearly)
         except ImportError:
             print "Cannot import python module openpyxl. No excel support for reports!"
-            self.report_isbs(yearly=yearly)
+            self.report_isbscf(yearly=yearly)
 
     def report_isbscf_xl_yearly(self):
         return  self.report_isbscf_xl(yearly=True)

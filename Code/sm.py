@@ -6,18 +6,14 @@ import ConfigParser
 import os
 import random
 
-from tm import TechnologyModule
-from em import EnergyModule
-from annex import years_between
-from main_config_reader import MainConfig
-from base_class import BaseClassConfig
 from annex import add_x_years, add_x_months
 from constants import TESTMODE
+from base_class import BaseClassConfig
 
 class SubsidyModule(BaseClassConfig):
     def __init__(self, config_module):
-            BaseClassConfig.__init__(self, config_module)
-            self.loadConfig()
+        BaseClassConfig.__init__(self, config_module)
+        self.loadConfig()
 
     def loadConfig(self, filename='sm_config.ini'):
         """Reads module config file"""

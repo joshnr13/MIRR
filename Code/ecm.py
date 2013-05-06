@@ -1,21 +1,7 @@
 #!/usr/bin/env python
 # -*- coding utf-8 -*-
 
-"""
-calculateInterests
-((debt in previous period + debt in current period) /2) * interest rate * num of days/365
-
-calculateFCF
-calculates the free cash flow based on IS nad BS
-net earnings + amortisation - investments in long term assests
-
-generateISandBS
-parameters: dateStart; dateEnd
-"""
-
 import datetime
-import math
-import random
 import ConfigParser
 import os
 from tm import TechnologyModule

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding utf-8 -*-
+
 import os
 import csv
 import pylab
@@ -25,6 +28,7 @@ class ReportOutput():
         report_name = 'IS'
         output_filename = self.get_report_filename(report_name)
         self.write_report(output_filename, IS, yearly=yearly)
+        print "%s Report outputed to file %s" % (report_name, output_filename)
 
     def prepare_report_CF(self, excel=False, yearly=False):
         """Prepares and saves monthly CF report in csv file"""
@@ -51,7 +55,7 @@ class ReportOutput():
 
         if excel:
             xls_output_filename = self.get_report_filename(report_name, 'xlsx', yearly=yearly)
-            output_filename = convert2excel(report_name, source=output_filename, output=xls_output_filename)
+            output_filename = convert2excel(source=output_filename, output=xls_output_filename)
 
         print "%s Report outputed to file %s" % (report_name, output_filename)
 
@@ -165,9 +169,6 @@ class ReportOutput():
 
 
 if __name__ == '__main__':
-    import datetime
-    import numpy
-    import csv
     import os.path
 
     from collections import defaultdict, OrderedDict
@@ -176,7 +177,6 @@ if __name__ == '__main__':
     from annex import add_start_project_values, get_months_range, csv2xlsx, month_number_days
 
     from constants import PROJECT_START, report_directory, REPORT_ROUNDING
-    from numbers import Number
     from tm import TechnologyModule
     from em import EnergyModule
     from sm import SubsidyModule

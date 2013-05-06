@@ -6,7 +6,6 @@ import pylab
 import datetime
 import numpy
 import ConfigParser
-import csv
 import os
 from base_class import BaseClassConfig
 from main_config_reader import MainConfig
@@ -47,7 +46,6 @@ class EnergyModule(BaseClassConfig):
         """Parameters: start date
         based on monthly averages creates daily data
         """
-        """for each day of month:   .insulation = average monthly insolation for respective month * (random factor according to normal distribution)"""
         result = self.getAvMonthInsolation(date) * self.getRandomFactor()
         return result
 
