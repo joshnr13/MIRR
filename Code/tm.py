@@ -85,7 +85,6 @@ class TechnologyModule(BaseClassConfig):
         x, y = self.get_xy_values_for_plot(start_date, end_date, resolution)
         pylab.step(x, y)
         pylab.show()
-        print x, y
 
     def assembleSystem(self):
         """generates objects for each solarmodule """

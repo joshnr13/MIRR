@@ -1,25 +1,20 @@
 import datetime
-import pylab
 import numpy
 import csv
 import os.path
 
-from constants import report_directory, REPORT_ROUNDING
-
 from collections import defaultdict, OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
-from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year
-from annex import add_start_project_values, get_months_range, csv2xlsx, month_number_days
-from annex import OrderedDefaultdict, convert2excel, combine_files
-from constants import BS, IS, CF, PROJECT_START
-from numbers import Number
+from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, OrderedDefaultdict
+from annex import add_start_project_values, get_months_range, csv2xlsx, month_number_days, get_only_digits
+
+from constants import PROJECT_START, report_directory, REPORT_ROUNDING
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
 from ecm import EconomicModule
 from base_class import BaseClassConfig
 from main_config_reader import MainConfig
-
 
 
 class Report(BaseClassConfig):
@@ -329,11 +324,11 @@ class Report(BaseClassConfig):
         """
         #print self.fcf_owners.values()
 
-        fcf_owners_values = filter(lambda x :isinstance(x, Number), self.fcf_owners.values())
-        fcf_project = filter(lambda x :isinstance(x, Number), self.fcf_project.values())
+        fcf_owners_values = get_only_digits(self.fcf_owners)
+        fcf_project = get_only_digits(self.fcf_project)
 
-        fcf_owners_values_y = filter(lambda x :isinstance(x, Number), self.fcf_owners_y.values())
-        fcf_project_y = filter(lambda x :isinstance(x, Number), self.fcf_project_y.values())
+        fcf_owners_values_y = get_only_digits(self.fcf_owners_y)
+        fcf_project_y = get_only_digits(self.fcf_project_y)
 
         self.irr_owners = numpy.irr(fcf_owners_values)
         self.irr_project = numpy.irr(fcf_project)
@@ -555,47 +550,6 @@ class Report(BaseClassConfig):
         self.report_dates = report_dates
         self.report_dates_y = report_dates_y
 
-    def get_report_fields(self, rows_str, yearly):
-        postfix = "" if not yearly else "_y"
-        rows = [getattr(self, attr+postfix) for attr in rows_str if attr]
-        return rows
-
-    def prepare_rows(self, rows_str, yearly):
-        """Prepares rows for outputing to report
-        + Rounding
-        + Can output monthly (without change) and yearly (+_y) values ---> postfix
-        """
-        rows = self.get_report_fields(rows_str, yearly)
-
-        new_rows = []
-        for row in rows:
-            result = OrderedDict()
-            for k, v in row.items():
-                if isinstance(v, (float, int)):
-                    result[k] = round(v, REPORT_ROUNDING)
-                else:
-                    result[k] = v
-            new_rows.append(result)
-
-        return new_rows
-
-
-    def write_report(self, output_filename, report_dic, yearly):
-        """write report to file
-        @report_dic - dict with all values incl header
-        """
-        header = report_dic.keys()
-        rows = self.prepare_rows(report_dic.values(), yearly)
-        with open(output_filename,'ab') as f:
-            w = csv.DictWriter(f, rows[0].keys(), delimiter=';')
-            w.writeheader()
-            w.writerows(rows)
-
-        transponse_csv(output_filename)
-        add_header_csv(output_filename, header)
-        transponse_csv(output_filename)
-
-
     def check_balance_sheet(self, date):
         """Checks balance sheet Assets - Liabilities should be 0
         return  Nothing if all it OK,
@@ -606,117 +560,6 @@ class Report(BaseClassConfig):
         else:
             self.control[date] = self.asset[date] - self.liability[date]
 
-
-    def prepare_report_BS(self, excel=False, yearly=False):
-        """Prepares and saves monthly BS report in csv file"""
-        report_name = 'IS'
-        output_filename = self.get_report_filename(report_name)
-        self.write_report(output_filename, BS, yearly=yearly)
-        print "%s Report outputed to file %s" % (report_name, output_filename)
-
-    def prepare_report_IS(self, excel=False, yearly=False):
-        """Prepares and saves monthly IS report in csv file"""
-        report_name = 'IS'
-        output_filename = self.get_report_filename(report_name)
-        self.write_report(output_filename, IS, yearly=yearly)
-
-    def prepare_report_CF(self, excel=False, yearly=False):
-        """Prepares and saves monthly CF report in csv file"""
-        report_name = 'CF'
-        output_filename = self.get_report_filename(report_name)
-        self.write_report(output_filename, CF, yearly=yearly)
-
-        print "%s Report outputed to file %s" % (report_name, output_filename)
-
-    def prepare_report_IS_BS_CF_IRR(self, excel=False, yearly=False):
-        report_name = 'IS-BS-CF'
-        output_filename = self.get_report_filename(report_name, yearly=yearly)
-
-        bs_filename = output_filename + "_BS"
-        is_filename = output_filename + "_IS"
-        cf_filename = output_filename + "_CF"
-
-        self.write_report(bs_filename, BS, yearly=yearly)
-        self.write_report(is_filename, IS, yearly=yearly)
-        self.write_report(cf_filename, CF, yearly=yearly)
-
-        combine = [bs_filename, is_filename, cf_filename]
-        combine_files(combine, output_filename)
-
-        if excel:
-            xls_output_filename = self.get_report_filename(report_name, 'xlsx', yearly=yearly)
-            output_filename = convert2excel(report_name, source=output_filename, output=xls_output_filename)
-
-        print "%s Report outputed to file %s" % (report_name, output_filename)
-
-    def get_report_filename(self, name, extension='csv', yearly=False):
-        cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
-        if yearly:
-            report_name = "%s_%s_yearly.%s" % (cur_date, name, extension)
-        else :
-            report_name = "%s_%s_monthly.%s" % (cur_date, name, extension)
-        report_name = os.path.join(report_directory, report_name)
-
-        output_filename = uniquify_filename(report_name)
-        return output_filename
-
-    def plot_charts_monthly(self):
-        x = self.revenue.keys()
-        revenue = numpy.array(self.revenue.values())
-        cost = numpy.array(self.cost.values())
-        ebitda = numpy.array(self.ebitda.values())
-        deprication = self.deprication.values()
-        #net_earning = self.net_earning.values()
-
-        pylab.plot(revenue, label='REVENUE')
-        pylab.plot(cost, label='COST')
-        pylab.plot(ebitda, label='EBITDA')
-        pylab.plot(deprication, label='deprication')
-        #pylab.plot(net_earning, label='net_earning')
-
-        pylab.xlabel("months")
-        pylab.ylabel("EUROs")
-        pylab.legend()
-        pylab.grid(True, which="both",ls="-")
-        pylab.axhline()
-        pylab.axvline()
-        pylab.title("Monthly data")
-        pylab.show()
-
-        #print deprication
-        #print sum(deprication)
-
-    def plot_charts_yearly(self):
-        x = self.revenue_yearly.keys()
-
-        revenue = self.revenue_yearly.values()
-        cost = self.cost_yearly.values()
-        ebitda = self.ebitda_yearly.values()
-        deprication = self.deprication_yearly.values()
-        #net_earning = self.net_earning_yearly.values()
-
-        pylab.plot(revenue, label='REVENUE')
-        pylab.plot(cost, label='COST')
-        pylab.plot(ebitda, label='EBITDA')
-        pylab.plot(deprication, label='deprication')
-        #pylab.plot(net_earning, label='net_earning')
-
-        pylab.xlabel("years")
-        pylab.ylabel("EUROs")
-        pylab.legend()
-        pylab.grid(True, which="both",ls="-")
-        pylab.axhline()
-        pylab.axvline()
-        pylab.title("Yearly data")
-        pylab.show()
-
-    def plot_price(self):
-        pylab.plot(self.price.values())
-        pylab.show()
-
-    def plot_electricity(self):
-        pylab.plot(self.electricity.values())
-        pylab.show()
 
 if __name__ == '__main__':
     mainconfig = MainConfig()
@@ -731,7 +574,7 @@ if __name__ == '__main__':
     #r.plot_charts_yearly()
     #r.plot_charts_monthly()
     #r.prepare_monthly_report_IS()
-    r.prepare_report_IS_BS_CF_IRR(yearly=True)
+    #r.prepare_report_IS_BS_CF_IRR(yearly=True)
 
     #print r.fixed_assets.values()
     #print r.assets.values()

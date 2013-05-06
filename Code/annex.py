@@ -14,6 +14,7 @@ from math import floor
 from calendar import monthrange
 from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
+from numbers import Number
 
 try:
     from openpyxl import Workbook
@@ -306,6 +307,30 @@ def convert2excel(report_name, source, output):
     csv2xlsx(source, output)
     os.remove(source)
     return  output
+
+def get_input_date(default=None, text=''):
+    i = raw_input("Input date %s or press ENTER to use default value %s::  " %(text, default))
+    try:
+        result= dt.datetime.strptime(i,"%Y-%m-%d").date()
+    except ValueError:
+        print "No value or value error. Return default value %s" % default
+        result = default
+
+    return result
+
+def get_input_int(default=None, text=''):
+    i = raw_input("Enter resolution or press ENTER to use default %s::" %default)
+
+    try:
+        result= int(i)
+    except ValueError:
+        print "No value or value error. Return default value %s" % default
+        result = default
+
+    return result
+
+def get_only_digits(obj):
+    return  filter(lambda x :isinstance(x, Number), obj.values())
 
 class Annuitet():
     def __init__(self,summa,yrate,yperiods, start_date):
