@@ -288,6 +288,25 @@ def csv2xlsx(inputfilename, outputfilename, listname='report'):
 
         wb.save(filename = outputfilename)
 
+def combine_files(from_filenames, to_filename):
+    """Combining several files to one
+    from_filenames=[of filenames], to_filename="filename"
+    """
+    content = "\n"
+    for f in from_filenames:
+        content += open(f).read() + '\n\n\n'
+        os.remove(f)
+
+    with open(to_filename,'wb') as output:
+        output.write(content)
+
+
+def convert2excel(report_name, source, output):
+    """Converts souce file to excel file with name = @report_name"""
+    csv2xlsx(source, output)
+    os.remove(source)
+    return  output
+
 class Annuitet():
     def __init__(self,summa,yrate,yperiods, start_date):
         """

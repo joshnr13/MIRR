@@ -24,9 +24,12 @@ commands['1'] = 'charts_monthly'
 commands['2'] = 'charts_yearly'
 commands['3'] = 'report_is'
 commands['4'] = 'report_bs'
-commands['5'] = 'report_isbs'
-commands['6'] = 'report_isbs_xl'
-commands['7'] = 'print_equipment'
+commands['5'] = 'report_isbscf'
+commands['6'] = 'report_isbscf_xl'
+commands['7'] = 'report_isbscf_xl_yearly'
+commands['8'] = 'print_equipment'
+
+
 
 
 class Interface():
@@ -44,18 +47,23 @@ class Interface():
     def charts_yearly(self):
         self.r.plot_charts_yearly()
     def report_is(self):
-        self.r.prepare_monthly_report_IS()
+        self.r.prepare_report_IS()
     def report_bs(self):
-        self.r.prepare_monthly_report_BS()
-    def report_isbs(self):
-        self.r.prepare_monthly_report_IS_BS_CF()
-    def report_isbs_xl(self):
+        self.r.prepare_report_BS()
+
+    def report_isbscf(self, yearly=False):
+        self.r.prepare_report_IS_BS_CF_IRR(yealy)
+
+    def report_isbscf_xl(self, yearly=False):
         try:
             import openpyxl
-            self.r.prepare_monthly_report_IS_BS_CF(excel=True)
+            self.r.prepare_report_IS_BS_CF_IRR(excel=True, yearly=yearly)
         except ImportError:
             print "Cannot import python module openpyxl. No excel support for reports!"
-            self.report_isbs()
+            self.report_isbs(yearly=yearly)
+
+    def report_isbscf_xl_yearly(self):
+        return  self.report_isbscf_xl(yearly=True)
 
     def print_equipment(self):
         self.technology_module.print_equipment()
