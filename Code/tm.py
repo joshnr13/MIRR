@@ -4,6 +4,7 @@
 import math
 import pylab
 import datetime
+import random
 import ConfigParser
 import os
 from em import EnergyModule
@@ -178,7 +179,7 @@ class EquipmentGroup():
         """Base method to add new equipment - (equipment - class object)"""
         self.group_equipment.append(equipment)
 
-    def isGroupUnderMaintenance():
+    def isGroupUnderMaintenance(self):
         for equipment in self.group_equipment:
             if equipment.isStateMaintenance():
                 return  True
@@ -200,7 +201,7 @@ class EquipmentGroups():
         """isSystemOperational = isNetworkAvailable * isSystemUnderMaintenance"""
         return  self.isNetworkAvailable() * self.isSystemUnderMaintenance()
 
-    def isNetworkAvailable():
+    def isNetworkAvailable(self):
         """Availability of system network - user input as % of availability e.g. 99,9%
         return  False or True"""
         if random.random() >= self.network_available_probability:
@@ -208,7 +209,7 @@ class EquipmentGroups():
         else:
             return  False
 
-    def isSystemUnderMaintenance():
+    def isSystemUnderMaintenance(self):
         """check for maintenace of components (objects Equipment)"""
         for group in self.groups:
             if group.isGroupUnderMaintenance():

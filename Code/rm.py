@@ -3,7 +3,7 @@ import pylab
 class RiskModule():
     def __init__(self):
         pass
-    def outputIRRHistogram():
+    def outputIRRHistogram(self):
         """outputs histogram of IRR values into a jpg or other format"""
         pass
     def outputIRRXYchart(self):

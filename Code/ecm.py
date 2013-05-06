@@ -7,8 +7,8 @@ import os
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, last_day_month,  getDaysNoInMonth, years_between_1Jan, months_between
-from annex import add_x_months, add_x_years, month_number_days, last_day_next_month
+from annex import Annuitet, getDaysNoInMonth, years_between_1Jan, months_between
+from annex import add_x_years, month_number_days, last_day_next_month
 from main_config_reader import MainConfig
 from base_class import BaseClassConfig
 
@@ -54,7 +54,7 @@ class EconomicModule(BaseClassConfig):
         self.insuranceDurationEquipment = config.getfloat('Costs', 'insuranceDurationEquipment')
         self.insuranceLastDayEquipment = add_x_years(self.start_date_project, self.insuranceDurationEquipment)
 
-        self.getDevelopmentCostDuringPermitProcurement = config.getfloat('Costs', 'developmentCostDuringPermitProcurement')
+        self.developmentCostDuringPermitProcurement = config.getfloat('Costs', 'developmentCostDuringPermitProcurement')
         self.developmentCostDuringConstruction = config.getfloat('Costs', 'developmentCostDuringConstruction')
 
         self.market_price = config.getfloat('Electricity', 'market_price')
@@ -177,7 +177,7 @@ class EconomicModule(BaseClassConfig):
 
     def _getDevelopmentCostDuringPermitProcurement(self, date):
         """costs for developing phase of project at given date (1day) - part permit procurement"""
-        return self.getDevelopmentCostDuringPermitProcurement / month_number_days(date)
+        return self.developmentCostDuringPermitProcurement / month_number_days(date)
 
     def _getDevelopmentCostDuringConstruction(self, date):
         """costs for developing phase of project at given date (1day) - part construction"""
@@ -260,7 +260,7 @@ class EconomicModule(BaseClassConfig):
 
     def calculateDebtBody(self, date):
         """Return monthly debt percents we need to pay"""
-        return  self.rest_payment_wo_percent.get(date, 0)
+        return  self.debt_rest_payments_wo_percents.get(date, 0)
 
     def calculateFCF(self):
         """  net earnings (revenue - costs) + amortisation - investments in long term assests"""
