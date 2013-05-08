@@ -8,7 +8,7 @@ from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
 from annex import Annuitet, getDaysNoInMonth, years_between_1Jan, months_between
-from annex import add_x_years, month_number_days, last_day_next_month
+from annex import add_x_years, month_number_days, last_day_next_month, get_configs
 from main_config_reader import MainConfig
 from base_class import BaseClassConfig
 
@@ -38,42 +38,43 @@ class EconomicModule(BaseClassConfig):
             return  False
 
 
-    def loadConfig(self, filename='ecm_config.ini'):
+    def loadConfig(self, _filename='ecm_config.ini'):
         """Reads module config file
         @self.insuranceLastDayEquipment - last day when we need to pay for insurance
         """
-        config = ConfigParser.ConfigParser()
-        filepath = os.path.join(os.getcwd(), 'configs', filename)
-        config.read(filepath)
+        _config = ConfigParser.ConfigParser()
+        _filepath = os.path.join(os.getcwd(), 'configs', _filename)
+        _config.read(_filepath)
 
-        self.tax_rate = config.getfloat('Taxes', 'tax_rate') / 100
-
-        self.administrativeCosts = config.getfloat('Costs', 'administrativeCosts')
-        self.administrativeCostsGrowth_rate = config.getfloat('Costs', 'administrativeCostsGrowth_rate') / 100
-        self.insuranceFeeEquipment = config.getfloat('Costs', 'insuranceFeeEquipment') / 100
-        self.insuranceDurationEquipment = config.getfloat('Costs', 'insuranceDurationEquipment')
+        self.tax_rate = _config.getfloat('Taxes', 'tax_rate') / 100
+        self.administrativeCosts = _config.getfloat('Costs', 'administrativeCosts')
+        self.administrativeCostsGrowth_rate = _config.getfloat('Costs', 'administrativeCostsGrowth_rate') / 100
+        self.insuranceFeeEquipment = _config.getfloat('Costs', 'insuranceFeeEquipment') / 100
+        self.insuranceDurationEquipment = _config.getfloat('Costs', 'insuranceDurationEquipment')
         self.insuranceLastDayEquipment = add_x_years(self.start_date_project, self.insuranceDurationEquipment)
 
-        self.developmentCostDuringPermitProcurement = config.getfloat('Costs', 'developmentCostDuringPermitProcurement')
-        self.developmentCostDuringConstruction = config.getfloat('Costs', 'developmentCostDuringConstruction')
+        self.developmentCostDuringPermitProcurement = _config.getfloat('Costs', 'developmentCostDuringPermitProcurement')
+        self.developmentCostDuringConstruction = _config.getfloat('Costs', 'developmentCostDuringConstruction')
 
-        self.market_price = config.getfloat('Electricity', 'market_price')
-        self.price_groth_rate = config.getfloat('Electricity', 'growth_rate') / 100
+        self.market_price = _config.getfloat('Electricity', 'market_price')
+        self.price_groth_rate = _config.getfloat('Electricity', 'growth_rate') / 100
 
-        self.investments = config.getfloat('Investments', 'investment_value')
-        self.investmentEquipment = config.getfloat('Investments', 'investmentEquipment')
+        self.investments = _config.getfloat('Investments', 'investment_value')
+        self.investmentEquipment = _config.getfloat('Investments', 'investmentEquipment')
 
         ######################### DEBT ########################################
 
-        self.debt = config.getfloat('Debt', 'debt_value') * self.investments / 100
-        self.debt_rate = config.getfloat('Debt', 'interest_rate') / 100
-        self.debt_years = config.getint('Debt', 'periods')
+        self.debt = _config.getfloat('Debt', 'debt_value') * self.investments / 100
+        self.debt_rate = _config.getfloat('Debt', 'interest_rate') / 100
+        self.debt_years = _config.getint('Debt', 'periods')
 
         self.capital = self.investments - self.debt
 
         ######################### DEPRICATION #################################
 
-        self.deprication_duration = config.getfloat('Amortization', 'duration')
+        self.deprication_duration = _config.getfloat('Amortization', 'duration')
+
+        self.configs = get_configs(locals())
 
     def getRevenue(self, date_start, date_end):
         """return revenue from selling electricity + subsides for given period of time"""

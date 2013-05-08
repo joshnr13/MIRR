@@ -35,4 +35,15 @@ class BaseClassConfig():
     def lifetime (self):
         return self.config_module.getLifeTime()
 
+    @property
+    def report_dates(self):
+        return  self.config_module.getReportDates()
+
+    @property
+    def report_dates_y(self):
+        return  self.config_module.getReportDatesY()
+
+    def getConfigValues(self):
+        """return  dict with config names and values"""
+        return self.configs
 

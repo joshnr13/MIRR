@@ -9,7 +9,7 @@ import os.path
 from collections import defaultdict, OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
 from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, OrderedDefaultdict
-from annex import add_start_project_values, get_months_range, csv2xlsx, month_number_days, get_only_digits
+from annex import add_start_project_values, get_months_range, csv2xlsx, month_number_days, get_only_digits, last_year
 
 from constants import PROJECT_START, report_directory, REPORT_ROUNDING
 from tm import TechnologyModule
@@ -23,8 +23,11 @@ from main_config_reader import MainConfig
 class Report(BaseClassConfig):
     def __init__(self, config_module, economic_module):
         BaseClassConfig.__init__(self, config_module)
+
         self.economic_module = economic_module
-        self.report_get_dates()
+        self.technology_module =  economic_module.technology_module
+        self.subside_module = economic_module.subside_module
+        self.energy_module =  self.technology_module.energy_module
 
     def calc_report_values(self):
         """Main function to cacl all values for reports"""
@@ -44,6 +47,7 @@ class Report(BaseClassConfig):
 
             if is_last_day_year(end_day):
                 self.calc_yearly_values_part2(end_day)
+                self.calc_yearly_values_part3(end_day)
 
         self.calc_irr()
 
@@ -56,6 +60,8 @@ class Report(BaseClassConfig):
     def init_attrs(self):
         """Creating attrs for monthly and yearly values"""
         capital = self.economic_module.capital
+        self.sun_insolation = OrderedDict()
+        self.eclectricity_production = OrderedDict()
 
         ################### IS ########################################
         self.revenue = self.start_project_OrderedDict(name=PROJECT_START,value="")
@@ -153,6 +159,9 @@ class Report(BaseClassConfig):
         """Main function to calc montly value for reports P1"""
         M = end_day
 
+        #self.sun_insolation[M] = self.energy_module.
+        #self.eclectricity_production[M] = self.economic_module.technology_module.getElectricityProduction(start_day, end_day)
+
         self.revenue_electricity[M] = self.economic_module.getRevenue_elecricity(start_day, end_day)
         self.revenue_subsides[M] = self.economic_module.getRevenue_subside(start_day, end_day)
         #self.revenue[M] = self.economic_module.getRevenue(start_day, end_day)
@@ -218,7 +227,6 @@ class Report(BaseClassConfig):
             self.cost_y[Y] += self.cost[M]
             self.development_cost_y[Y] += self.development_cost[M]
             self.operational_cost_y[Y] += self.operational_cost[M]
-            self.current_asset_y
 
             self.ebitda_y[Y] += self.ebitda[M]
             self.ebit_y[Y] += self.ebit[M]
@@ -230,34 +238,45 @@ class Report(BaseClassConfig):
 
         for start_day_m, end_day_m in self.report_dates_y[end_day_y]:
             Y = end_day_y
+            Y1 =  last_year(end_day_y)#previous_year
             M = end_day_m
-            self.tax_y[Y] += self.tax[M]
+
+            ############## SUM #################
             self.net_earning_y[Y] += self.net_earning[M]
-
-            self.investment_y[Y] += self.investment[M]
-            self.fixed_asset_y[Y] += self.fixed_asset[M]
-
-            self.current_asset_y[Y] +=  self.current_asset[M]
-            self.operating_receivable_y[Y] +=  self.operating_receivable[M]
-            self.asset_bank_account_y[Y] += self.asset_bank_account[M]
-            self.asset_y[Y] += self.asset[M]
-
-            self.inventory_y[Y] += self.inventory[M]
-            self.equity_y[Y] += self.equity[M]
-            self.paid_in_capital_y[Y] += self.paid_in_capital[M]
+            self.tax_y[Y] += self.tax[M]
             self.retained_earning_y[Y] += self.retained_earning[M]
-            self.unallocated_earning_y[Y] += self.unallocated_earning[M]
-
-            self.long_term_loan_y[Y] +=self.long_term_loan[M]
-            self.long_term_operating_liability_y[Y] +=self.long_term_operating_liability[M]
-            self.short_term_loan_y[Y] +=self.short_term_loan[M]
-            self.short_term_debt_suppliers_y[Y] +=self.short_term_debt_suppliers[M]
-            self.financial_operating_obligation_y[Y] +=self.financial_operating_obligation[M]
-            self.liability_y[Y] += self.liability[M]
             self.control_y[Y] += self.control[M]
-
             self.fcf_owners_y[Y] += self.fcf_owners[M]
             self.fcf_project_y[Y] += self.fcf_project[M]
+
+            ############### NOT USED
+            self.inventory_y[Y] += self.inventory[M]
+            self.investment_y[Y] += self.investment[M]
+            self.long_term_operating_liability_y[Y] += self.long_term_operating_liability[M]
+
+    def calc_yearly_values_part3(self, end_day_y):
+        """Main function to calc yearly value for reports P2"""
+
+        Y = end_day_y
+        Y1 =  last_year(end_day_y)#previous_year
+
+        ########### LAST MONTH ###############
+        self.fixed_asset_y[Y] = self.fixed_asset[Y]
+        self.current_asset_y[Y] = self.current_asset[Y]
+        self.operating_receivable_y[Y] =  self.operating_receivable[Y]
+        self.asset_bank_account_y[Y] = self.asset_bank_account[Y]
+        self.asset_y[Y] = self.asset[Y]
+        self.equity_y[Y] = self.equity[Y]
+        self.paid_in_capital_y[Y] = self.paid_in_capital[Y]
+        self.long_term_loan_y[Y] =self.long_term_loan[Y]
+        self.short_term_loan_y[Y] =self.short_term_loan[Y]
+        self.short_term_debt_suppliers_y[Y] = self.short_term_debt_suppliers[Y]
+        self.financial_operating_obligation_y[Y] =self.financial_operating_obligation[Y]
+        self.liability_y[Y] = self.liability[Y]
+
+        prev_un_er =  self.unallocated_earning_y[Y1] if Y1 >= self.start_date_project else 0
+        prev_ret_er =  self.retained_earning_y[Y1] if Y1 >= self.start_date_project else 0
+        self.unallocated_earning_y[Y] = prev_un_er + prev_ret_er
 
     def get_prev_month_value(self, obj, date):
         """Get previous month value of @obj with current date @date"""
@@ -529,29 +548,6 @@ class Report(BaseClassConfig):
         for end_day in self.report_dates.values():
             results[end_day] = func(end_day)
         return results
-
-    def report_get_dates(self):
-        """saves all dates for report (last day of each month)
-        dic[first_day_month]=last_day_month
-        """
-        report_dates = OrderedDict()
-        report_dates_y = OrderedDict()
-
-        date = first_day_month(self.start_date_project)
-        date_to = self.end_date_project
-
-        while True:
-            report_date = last_day_month(date)
-            key = first_day_month(date)
-            report_dates[key] = report_date
-            if is_last_day_year(report_date):
-                report_dates_y[report_date] = get_months_range(report_date.year)
-            date = next_month(date)
-            if  date > date_to:
-                break
-
-        self.report_dates = report_dates
-        self.report_dates_y = report_dates_y
 
     def check_balance_sheet(self, date):
         """Checks balance sheet Assets - Liabilities should be 0

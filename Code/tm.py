@@ -10,6 +10,7 @@ import os
 from em import EnergyModule
 from main_config_reader import MainConfig
 from base_class import BaseClassConfig
+from annex import get_configs
 
 class TechnologyModule(BaseClassConfig):
     def __init__(self, config_module, energy_module):
@@ -18,40 +19,38 @@ class TechnologyModule(BaseClassConfig):
         self.loadConfig()
         self.assembleSystem()
 
-    def loadConfig(self, filename='tm_config.ini'):
+    def loadConfig(self, _filename='tm_config.ini'):
         """Reads module config file"""
-        config = ConfigParser.ConfigParser()
-        filepath = os.path.join(os.getcwd(), 'configs', filename)
-        config.read(filepath)
+        _config = ConfigParser.ConfigParser()
+        _filepath = os.path.join(os.getcwd(), 'configs', _filename)
+        _config.read(_filepath)
 
-        total_power = 10000
-        one_module_power = 250
-        modules_per_inverter = 4
-        self.electr_conv_factor = config.getfloat('Electricity', 'ConversionFactor')
+        self.electr_conv_factor = _config.getfloat('Electricity', 'ConversionFactor')
 
-        self.total_power = config.getfloat('Equipment', 'total_power')
-        self.one_module_power = config.getfloat('Equipment', 'one_module_power')
-        self.modules_per_inverter = int(config.getfloat('Equipment', 'modules_per_inverter'))
-        self.module_cost = config.getfloat('Equipment', 'module_cost')
-        self.inverter_cost = config.getfloat('Equipment', 'inverter_cost')
-        self.module_reliability = config.getfloat('Equipment', 'module_reliability') / 100
-        self.inverter_reliability = config.getfloat('Equipment', 'inverter_reliability') / 100
-        self.module_power_efficiency = config.getfloat('Equipment', 'module_power_efficiency') / 100
-        self.inverter_power_efficiency = config.getfloat('Equipment', 'inverter_power_efficiency') / 100
+        self.total_power = _config.getfloat('Equipment', 'total_power')
+        self.one_module_power = _config.getfloat('Equipment', 'one_module_power')
+        self.modules_per_inverter = int(_config.getfloat('Equipment', 'modules_per_inverter'))
+        self.module_cost = _config.getfloat('Equipment', 'module_cost')
+        self.inverter_cost = _config.getfloat('Equipment', 'inverter_cost')
+        self.module_reliability = _config.getfloat('Equipment', 'module_reliability') / 100
+        self.inverter_reliability = _config.getfloat('Equipment', 'inverter_reliability') / 100
+        self.module_power_efficiency = _config.getfloat('Equipment', 'module_power_efficiency') / 100
+        self.inverter_power_efficiency = _config.getfloat('Equipment', 'inverter_power_efficiency') / 100
+        self.network_available_probability = _config.getfloat('Network', 'network_available_probability') / 100
 
-        self.network_available_probability = config.getfloat('Network', 'network_available_probability') / 100
+        self.configs = get_configs(locals())
 
 
     def generateElectiricityProduction(self, date):
         """based on insolation generates electricity production values for each day
         produced electricity = insolation * energyConversionFactor"""
-        insolation = self.energy_module.generatePrimaryEnergyAvaialbility(date)
+        insolation = self.energy_module.get_insolation(date)
         return insolation * self.electr_conv_factor
 
     def getElectricityProduction(self, date_start, date_end):
         """return sum of electricity in kWh for each day for the selected period"""
         duration_days = (date_end - date_start).days
-        return sum([self.generateElectiricityProduction(date_start+datetime.timedelta(days=i)) for i in range(duration_days) ])
+        return sum([self.generateElectiricityProduction(date_start+datetime.timedelta(days=i)) for i in range(duration_days+1) ])
 
     def get_xy_values_for_plot(self, start_date, end_date, resolution):
         """return x,y values for plotting step chart"""

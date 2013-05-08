@@ -10,6 +10,8 @@ import os
 from base_class import BaseClassConfig
 from main_config_reader import MainConfig
 from constants import TESTMODE
+from collections import OrderedDict
+from annex import get_configs
 
 class EnergyModule(BaseClassConfig):
 
@@ -17,14 +19,18 @@ class EnergyModule(BaseClassConfig):
         BaseClassConfig.__init__(self, config_module)
         self.loadConfig()
         self.loadInputs()
+        self.calculateInsolations()
 
-    def loadConfig(self, filename='em_config.ini'):
+    def loadConfig(self, _filename='em_config.ini'):
         """Reads module config file"""
-        config = ConfigParser.ConfigParser()
-        filepath = os.path.join(os.getcwd(), 'configs', filename)
-        config.read(filepath)
-        self.mean = config.getfloat('NormalDistribution', 'mean')
-        self.stdev = config.getfloat('NormalDistribution', 'stdev')
+        _config = ConfigParser.ConfigParser()
+        _filepath = os.path.join(os.getcwd(), 'configs', _filename)
+        _config.read(_filepath)
+
+        self.mean = _config.getfloat('NormalDistribution', 'mean')
+        self.stdev = _config.getfloat('NormalDistribution', 'stdev')
+
+        self.configs = get_configs(locals())
 
     def getRandomFactor(self):
         """return random factor with normal distribution"""
@@ -37,6 +43,9 @@ class EnergyModule(BaseClassConfig):
         """Loads inputs to memory"""
         filepath = os.path.join(os.getcwd(), 'inputs', 'em_input.txt')
         self.inputs = numpy.genfromtxt(filepath, dtype=None, delimiter=';',  names=True)
+
+    def getInputs(self):
+        return  self.inputs
 
     def getAvMonthInsolation(self, date):
         """Returns average daily insolation in given date"""
@@ -51,8 +60,7 @@ class EnergyModule(BaseClassConfig):
 
     def generatePrimaryEnergyAvaialbilityLifetime(self):
         """return energy availability per each day in whole lifetime"""
-        lifetime_days = (self.end_date_project - self.start_date_project).days
-        return [self.generatePrimaryEnergyAvaialbility(self.start_date_project+datetime.timedelta(days=i)) for i in range(lifetime_days) ]
+        return self.insolations.values()
 
     def getAccumulatedEnergy(self, start_date, end_date):
         """
@@ -60,8 +68,8 @@ class EnergyModule(BaseClassConfig):
         return accumulated energy from start date(incl) till end date (incl)
         """
         result = 0
-        while start_date < end_date:
-            result += self.generatePrimaryEnergyAvaialbility(start_date)
+        while start_date <= end_date:
+            result += self.get_insolation(start_date)
             start_date += datetime.timedelta(days=1)
         return result
 
@@ -96,6 +104,19 @@ class EnergyModule(BaseClassConfig):
             sm += delta
 
         return x,y
+
+    def calculateInsolations(self):
+        """Calculating insolations for whole project"""
+        self.insolations = OrderedDict()
+        cur_date = self.start_date_project
+        while True:
+            if cur_date > self.end_date_project:
+                break
+            self.insolations[cur_date] = self.generatePrimaryEnergyAvaialbility(cur_date)
+            cur_date += datetime.timedelta(days=1)
+
+    def get_insolation(self,  date):
+        return  self.insolations[date]
 
     def outputPrimaryEnergy(self, start_date=None, end_date=None, resolution=None):
         """Parameters: start_date; end_date; resolution

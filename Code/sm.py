@@ -7,6 +7,7 @@ import os
 import random
 
 from annex import add_x_years, add_x_months
+from annex import get_configs
 from constants import TESTMODE
 from base_class import BaseClassConfig
 
@@ -15,24 +16,27 @@ class SubsidyModule(BaseClassConfig):
         BaseClassConfig.__init__(self, config_module)
         self.loadConfig()
 
-    def loadConfig(self, filename='sm_config.ini'):
+    def loadConfig(self, _filename='sm_config.ini'):
         """Reads module config file"""
-        config = ConfigParser.ConfigParser()
-        filepath = os.path.join(os.getcwd(), 'configs', filename)
-        config.read(filepath)
-        self.kWh_subsidy = config.getfloat('Subsidy', 'kWh_subsidy')
-        self.duration = config.getfloat('Subsidy', 'duration')
+        _config = ConfigParser.ConfigParser()
+        _filepath = os.path.join(os.getcwd(), 'configs', _filename)
+        _config.read(_filepath)
 
-        delay_lower_limit = config.getfloat('Subsidy', 'delay_lower_limit')
-        delay_upper_limit = config.getfloat('Subsidy', 'delay_upper_limit')
+        _delay_lower_limit = _config.getfloat('Subsidy', 'delay_lower_limit')
+        _delay_upper_limit = _config.getfloat('Subsidy', 'delay_upper_limit')
+
+        self.kWh_subsidy = _config.getfloat('Subsidy', 'kWh_subsidy')
+        self.duration = _config.getfloat('Subsidy', 'duration')
 
         if TESTMODE:
             self.real_delay = 0
         else:
-            self.real_delay = random.randrange(delay_lower_limit, delay_upper_limit+1)
+            self.real_delay = random.randrange(_delay_lower_limit, _delay_upper_limit+1)
 
         self.first_day_subside = add_x_months(self.last_day_construction+datetime.timedelta(days=1), self.real_delay)
         self.last_day_subside = add_x_years(self.first_day_subside, self.duration)
+
+        self.configs = get_configs(locals())
 
     def subsidyProduction(self, date):
         """return subsidy for production 1Kwh on given date"""

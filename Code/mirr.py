@@ -29,7 +29,7 @@ commands['9'] = 'outputPrimaryEnergy'
 commands['10'] = 'outputElectricityProduction'
 
 
-class Interface():
+class Mirr():
     def __init__(self):
         main_config = MainConfig()
         self.main_config = main_config
@@ -41,22 +41,47 @@ class Interface():
         self.r.calc_report_values()
         self.o = ReportOutput(self.r)
 
+    def getMainConfig(self):
+        return  self.main_config
+
+    def getEnergyModule(self):
+        return  self.energy_module
+
+    def getTechnologyModule(self):
+        return  self.technology_module
+
+    def getSubsideModule(self):
+        return  self.subside_module
+
+    def getEconomicModule(self):
+        return  self.economic_module
+
+    def getReportModule(self):
+        return  self.r
+
+class Interface():
+    def __init__(self, mirr):
+        self.mirr = mirr
+
     def charts_monthly(self):
-        self.o.plot_charts_monthly()
+        self.mirr.o.plot_charts_monthly()
+
     def charts_yearly(self):
-        self.o.plot_charts_yearly()
+        self.mirr.o.plot_charts_yearly()
+
     def report_is(self):
-        self.o.prepare_report_IS()
+        self.mirr.o.prepare_report_IS()
+
     def report_bs(self):
-        self.o.prepare_report_BS()
+        self.mirr.o.prepare_report_BS()
 
     def report_isbscf(self, yearly=False):
-        self.o.prepare_report_IS_BS_CF_IRR(yearly)
+        self.mirr.o.prepare_report_IS_BS_CF_IRR(yearly)
 
     def report_isbscf_xl(self, yearly=False):
         try:
             import openpyxl
-            self.o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=yearly)
+            self.mirr.o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=yearly)
         except ImportError:
             print "Cannot import python module openpyxl. No excel support for reports!"
             self.report_isbscf(yearly=yearly)
@@ -65,12 +90,12 @@ class Interface():
         return  self.report_isbscf_xl(yearly=True)
 
     def print_equipment(self):
-        self.technology_module.print_equipment()
+        self.mirr.technology_module.print_equipment()
 
     def get_inputs(self):
-        def_start = self.main_config.getStartDate()
-        def_end = self.main_config.getEndDate()
-        def_res = self.main_config.getResolution()
+        def_start = self.mirr.main_config.getStartDate()
+        def_end = self.mirr.main_config.getEndDate()
+        def_res = self.mirr.main_config.getResolution()
 
         memo = " (from %s to %s)" % (def_start,def_end)
         memo_res = " Enter resolution or press ENTER to use default %s" % (def_res, )
@@ -84,11 +109,11 @@ class Interface():
 
     def outputPrimaryEnergy(self):
         start_date, end_date, resolution = self.get_inputs()
-        self.energy_module.outputPrimaryEnergy(start_date, end_date, resolution)
+        self.mirr.energy_module.outputPrimaryEnergy(start_date, end_date, resolution)
 
     def outputElectricityProduction(self):
         start_date, end_date, resolution = self.get_inputs()
-        self.technology_module.outputElectricityProduction(start_date, end_date, resolution)
+        self.mirr.technology_module.outputElectricityProduction(start_date, end_date, resolution)
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")
@@ -114,18 +139,20 @@ def run_method(obj, line):
         method = getattr(obj, line, obj.no_such_method)
     method()
 
+if __name__ == '__main__':
 
-try:
-    i = Interface()
-    i.help()
-    while True:
-        line = raw_input('Prompt command (For exit: 0 or stop; For help: help): ').strip()
-        print_entered(line)
-        run_method(i, line)
-except KeyboardInterrupt:
-    print sys.exc_info()[1]
-except:
-    #print sys.exc_info()
-    var = traceback.format_exc()
-    print var
+    try:
+        mirr = Mirr()
+        i = Interface(mirr)
+        i.help()
+        while True:
+            line = raw_input('Prompt command (For exit: 0 or stop; For help: help): ').strip()
+            print_entered(line)
+            run_method(i, line)
+    except KeyboardInterrupt:
+        print sys.exc_info()[1]
+    except:
+        #print sys.exc_info()
+        var = traceback.format_exc()
+        print var
 

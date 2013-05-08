@@ -90,6 +90,15 @@ class memoize(object):
             res = cache[key] = self.func(*args, **kw)
         return res
 
+def get_configs(dic):
+    """Gets dict ,return   dict with keys not starts with _"""
+    result = {}
+    for k, v in dic.items():
+        if k.startswith('_') or k == 'self':
+            continue
+        result[k] = v
+    return result
+
 
 def accumulate(data, f=operator.add):
     xs = data.values()
@@ -151,9 +160,20 @@ def last_day_month(date):
     day = getDaysNoInMonth(date)
     return dt.date( date.year, date.month, day)
 
+def last_day_year(date):
+    """return date - last day date in month with input date"""
+    return dt.date( date.year, 12, 31)
+
 def month_number_days(date):
     last_day = last_day_month(date)
     return last_day.day
+
+def last_year(date):
+    """Return the same date but previous year"""
+    last_year = date.year - 1
+    last_month = date.month
+    temp_date = dt.date(last_year, last_month, 1)
+    return  last_day_month(temp_date)
 
 
 def last_day_previous_month(date):
@@ -214,6 +234,30 @@ def uniquify_filename(path, sep = ''):
         os.close(fd)
     return filename
 
+def get_report_dates(start_date_project, end_date_project):
+    """return  dates for reports
+    dic_monthly[first_day_month]=last_day_month
+    dic_yearly[last_day_month]=list_of_ (start_date,end_date)
+    """
+    report_dates = OrderedDict()
+    report_dates_y = OrderedDefaultdict(list)
+
+    date = first_day_month(start_date_project)
+    date_to = end_date_project
+
+    while True:
+        end_date = last_day_month(date)
+        end_date_y = last_day_year(date)
+        start_date = first_day_month(date)
+
+        report_dates[start_date] = end_date
+        report_dates_y[end_date_y].append((start_date, end_date))
+
+        date = next_month(date)
+        if  date > date_to:
+            break
+
+    return (report_dates, report_dates_y)
 
 def add_start_project_values(csv_filename, header, values=None):
     if values is not None:
@@ -400,16 +444,19 @@ class Annuitet():
 
 
 if __name__ == '__main__':
-    date = dt.date(2000, 12, 31)
-    a = Annuitet(summa=1000, yrate=0.16, yperiods=1, start_date=date)
-    a = Annuitet(summa=250000, yrate=0.06, yperiods=12, start_date=date)
-    a.calculate()
-    for i in range(13):
-        print "%s: %-13s %-13s %-13s  %-13s  = %-13s" % (date,
-                                          a.rest_payments[date],
-                                          a.rest_payments_wo_percents[date],
-                                   a.debt_payments[date],
-                                   a.percent_payments[date],
-                                   a.debt_payments[date] + a.percent_payments[date]
-                                   )
-        date = last_day_next_month(date)
+    date = dt.date(2000, 1, 1)
+    date2 = dt.date(2001, 12, 31)
+    print get_report_dates(date, date2)[1]
+
+    #a = Annuitet(summa=1000, yrate=0.16, yperiods=1, start_date=date)
+    #a = Annuitet(summa=250000, yrate=0.06, yperiods=12, start_date=date)
+    #a.calculate()
+    #for i in range(13):
+        #print "%s: %-13s %-13s %-13s  %-13s  = %-13s" % (date,
+                                          #a.rest_payments[date],
+                                          #a.rest_payments_wo_percents[date],
+                                   #a.debt_payments[date],
+                                   #a.percent_payments[date],
+                                   #a.debt_payments[date] + a.percent_payments[date]
+                                   #)
+        #date = last_day_next_month(date)
