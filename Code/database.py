@@ -18,9 +18,9 @@ def test_database_read():
     collection = db['collection']
 
     try:
-        iter = collection.find().sort("$natural")
+        results = collection.find().sort("$natural")
 
-        for doc in iter:
+        for doc in results:
             print "Iteration %s \n" % doc["hash_iteration"]
             #print doc
             print "Revenue\n\n"
