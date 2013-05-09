@@ -5,7 +5,6 @@ import os
 import csv
 import pylab
 import datetime
-import numpy
 
 from constants import report_directory, BS, IS, CF, REPORT_ROUNDING
 from annex import uniquify_filename, transponse_csv, add_header_csv
@@ -171,7 +170,7 @@ class ReportOutput():
 if __name__ == '__main__':
     import os.path
 
-    from collections import defaultdict, OrderedDict
+    from collections import OrderedDict
     from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
     from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, OrderedDefaultdict
     from annex import add_start_project_values, get_months_range, csv2xlsx, month_number_days
@@ -181,7 +180,6 @@ if __name__ == '__main__':
     from em import EnergyModule
     from sm import SubsidyModule
     from ecm import EconomicModule
-    from base_class import BaseClassConfig
     from main_config_reader import MainConfig
     from report import Report
 

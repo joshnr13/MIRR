@@ -8,6 +8,7 @@ import csv
 import operator
 import datetime as dt
 import errno
+import types
 
 from functools import partial
 from math import floor
@@ -443,10 +444,54 @@ class Annuitet():
         self.rest_payments_wo_percents = rest_payments_wo_percents
 
 
+def convert_dict(input_dict):
+    """part of deep_serilization od DICTS"""
+    result = OrderedDict()
+    for (key, value) in input_dict.items():
+        if key == 'report_dates_y':
+            print
+
+        key = convert_base_values(key)
+        value = convert_base_values(value)
+        value = convert_value(value)
+        result[key] = value
+    return result
+
+def convert_base_values(base_value):
+    """part of deep_serilization of BASE VALUES"""
+    if isinstance(base_value, (dt.datetime, dt.date)):
+        key = str(base_value)
+    else:
+        key = base_value
+    return key
+
+def convert_value(value):
+    """part of deep_serilization MAIN"""
+    if isinstance(value, types.DictionaryType):
+        return  convert_dict(value)
+    elif isinstance(value, (types.ListType, types.TupleType)):
+        return convert_list(value)
+    elif isinstance(value, (dt.datetime, dt.date)):
+        return str(value)
+    else:
+        return value
+
+def convert_list(input_lst):
+    """part of deep_serilization of LISTS and TUPLES"""
+    result = []
+    for v in input_lst:
+        converted = convert_value(v)
+        result.append(converted)
+    return result
+
+
 if __name__ == '__main__':
     date = dt.date(2000, 1, 1)
     date2 = dt.date(2001, 12, 31)
     print get_report_dates(date, date2)[1]
+    import types
+    o = OrderedDict()
+    print isinstance(o, types.DictionaryType)
 
     #a = Annuitet(summa=1000, yrate=0.16, yperiods=1, start_date=date)
     #a = Annuitet(summa=250000, yrate=0.06, yperiods=12, start_date=date)

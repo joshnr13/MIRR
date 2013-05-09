@@ -2,6 +2,7 @@
 class BaseClassConfig():
     def __init__(self, config_module):
         self.config_module = config_module
+        self.configs = None
 
     @property
     def start_date_project(self):
