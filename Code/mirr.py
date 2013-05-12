@@ -5,7 +5,7 @@ import sys
 import traceback
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
-from database import test_database_read, show_irr_distribution
+from database import test_database_read, get_and_show_irr_distribution
 from simulations import run_one_iteration, run_all_iterations
 from main_config_reader import MainConfig
 from _mirr import Mirr
@@ -105,7 +105,7 @@ class Interface():
         """Shows last N irrs distribution from database"""
         default_simulations_number = MainConfig().getSimulationNumber()
         simulations_number = get_input_int(text="Please select number of previous irrs for plotting distribution (default %s) :: " %default_simulations_number, default=default_simulations_number)
-        show_irr_distribution(number=simulations_number, field='irr_owners', yearly=False)
+        get_and_show_irr_distribution(number=simulations_number, field='irr_owners', yearly=False)
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")

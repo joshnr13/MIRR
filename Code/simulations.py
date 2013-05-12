@@ -4,9 +4,10 @@ import pylab
 from _mirr import Mirr
 from annex import get_only_digits, convert_value
 from collections import OrderedDict
-from database import get_connection
+from database import get_connection, get_and_show_irr_distribution, show_distribution
 from main_config_reader import MainConfig
 from report_output import ReportOutput
+from math import isnan
 
 class Simulation():
 
@@ -161,13 +162,17 @@ def run_all_iterations():
     print "Runing %s number of simulations" % simulation_number
     for i in range(simulation_number):
         last_report = run_one_iteration()
-        irrs.append(last_report.r.irr_owners_y)
+        irrs.append(last_report.r.irr_owners)
 
     last_report.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
-    print "IRRs" , irrs
+    good_irrs = [irr for irr in irrs if not isnan(irr)]
 
-    pylab.hist(irrs)
-    pylab.show()
+    if len(good_irrs) > 0:
+        field = 'irr_owners'
+        title = "Histogram of %s using last %s values" %(field, len(good_irrs))
+        show_distribution(good_irrs, field)
+    else :
+        print "All IRR values was Nan (cant be calculated, please check FCF , because IRR cannot be negative)"
 
 
 
