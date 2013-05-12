@@ -263,21 +263,6 @@ class EconomicModule(BaseClassConfig):
         """Return monthly debt percents we need to pay"""
         return  self.debt_rest_payments_wo_percents.get(date, 0)
 
-    def calculateFCF(self):
-        """  net earnings (revenue - costs) + amortisation - investments in long term assests"""
-        """
-        operational_results = Revenue + Amortization - Debt_percents - Taxes
-        investments_results = Investments (only in 1 period)
-        financial_results = returns_of_debts
-        FCF = operational_results-
-
-        """
-
-    def calculateReturn(self):
-        """calculates IRR and writes it to the database
-        inputs are the monthly free cash flows (FCF)  for the whole project
-        """
-
 if __name__ == '__main__':
     mainconfig = MainConfig()
     em = EnergyModule(mainconfig)

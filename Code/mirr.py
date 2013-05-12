@@ -4,9 +4,9 @@
 import sys
 import traceback
 from collections import  OrderedDict
-from annex import get_input_date, get_input_int
+from annex import get_input_date, get_input_int, cached_property, memoize
 from database import test_database_read
-from simulations import run_one_iteration
+from simulations import run_one_iteration, run_all_iterations
 from _mirr import Mirr
 
 commands = OrderedDict()
@@ -21,33 +21,38 @@ commands['7'] = 'report_isbscf_xl_yearly'
 commands['8'] = 'print_equipment'
 commands['9'] = 'outputPrimaryEnergy'
 commands['10'] = 'outputElectricityProduction'
-commands['11'] = 'test_database_write_results'
-commands['12'] = 'test_database_read'
+commands['11'] = 'run_1_sumulation'
+commands['12'] = 'run_simulations'
+commands['13'] = 'read_db'
 
 
 class Interface():
-    def __init__(self, mirr):
-        self.mirr = mirr
+    def __init__(self):
+        pass
+
+    @memoize
+    def getMirr(self):
+        return Mirr()
 
     def charts_monthly(self):
-        self.mirr.o.plot_charts_monthly()
+        self.getMirr().o.plot_charts_monthly()
 
     def charts_yearly(self):
-        self.mirr.o.plot_charts_yearly()
+        self.getMirr().o.plot_charts_yearly()
 
     def report_is(self):
-        self.mirr.o.prepare_report_IS()
+        self.getMirr().o.prepare_report_IS()
 
     def report_bs(self):
-        self.mirr.o.prepare_report_BS()
+        self.getMirr().o.prepare_report_BS()
 
     def report_isbscf(self, yearly=False):
-        self.mirr.o.prepare_report_IS_BS_CF_IRR(yearly)
+        self.getMirr().o.prepare_report_IS_BS_CF_IRR(yearly)
 
     def report_isbscf_xl(self, yearly=False):
         try:
             import openpyxl
-            self.mirr.o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=yearly)
+            self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=yearly)
         except ImportError:
             print "Cannot import python module openpyxl. No excel support for reports!"
             self.report_isbscf(yearly=yearly)
@@ -56,12 +61,12 @@ class Interface():
         return  self.report_isbscf_xl(yearly=True)
 
     def print_equipment(self):
-        self.mirr.technology_module.print_equipment()
+        self.getMirr().technology_module.print_equipment()
 
     def get_inputs(self):
-        def_start = self.mirr.main_config.getStartDate()
-        def_end = self.mirr.main_config.getEndDate()
-        def_res = self.mirr.main_config.getResolution()
+        def_start = self.getMirr().main_config.getStartDate()
+        def_end = self.getMirr().main_config.getEndDate()
+        def_res = self.getMirr().main_config.getResolution()
 
         memo = " (from %s to %s)" % (def_start,def_end)
         memo_res = " Enter resolution or press ENTER to use default %s" % (def_res, )
@@ -75,19 +80,23 @@ class Interface():
 
     def outputPrimaryEnergy(self):
         start_date, end_date, resolution = self.get_inputs()
-        self.mirr.energy_module.outputPrimaryEnergy(start_date, end_date, resolution)
+        self.getMirr().energy_module.outputPrimaryEnergy(start_date, end_date, resolution)
 
     def outputElectricityProduction(self):
         start_date, end_date, resolution = self.get_inputs()
-        self.mirr.technology_module.outputElectricityProduction(start_date, end_date, resolution)
+        self.getMirr().technology_module.outputElectricityProduction(start_date, end_date, resolution)
 
-    def test_database_read(self):
+    def read_db(self):
         """Test reading results from Mongo"""
         test_database_read()
 
-    def test_database_write_results(self):
+    def run_1_sumulation(self):
         """Test writing results to Mongo"""
         run_one_iteration()
+
+    def run_simulations(self):
+        run_all_iterations()
+
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")
@@ -116,8 +125,7 @@ def run_method(obj, line):
 if __name__ == '__main__':
 
     try:
-        mirr = Mirr()
-        i = Interface(mirr)
+        i = Interface()
         i.help()
         while True:
             line = raw_input('Prompt command (For exit: 0 or stop; For help: help): ').strip()

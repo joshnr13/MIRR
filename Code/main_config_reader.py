@@ -38,6 +38,7 @@ class ModuleConfigReader():
         self.end_date = add_x_years(self.start_date, self.lifetime)
         self.report_dates, self.report_dates_y = get_report_dates(self.start_date, self.end_date)
 
+        self.simulation_number = _config.getint('Simulation', 'simulation_number')
         self.configs = get_configs(self.__dict__)
 
     def getConfigsValues(self):
@@ -83,6 +84,11 @@ class MainConfig():
         return  Config values from file + some random generated
         """
         return self.configs
+
+    def getSimulationNumber(self):
+        return self.configs["simulation_number"]
+
+
 
 
 

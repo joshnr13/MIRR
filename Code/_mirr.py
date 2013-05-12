@@ -35,3 +35,7 @@ class Mirr():
 
     def getReportModule(self):
         return  self.r
+
+    def getOutputModule(self):
+        return  self.o
+

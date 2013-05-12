@@ -3,8 +3,10 @@ from _mirr import Mirr
 from annex import get_only_digits, convert_value
 from collections import OrderedDict
 from database import get_connection
+from main_config_reader import MainConfig
+from report_output import ReportOutput
 
-class Simulations():
+class Simulation():
 
     def __init__(self):
         db =  get_connection()
@@ -24,6 +26,7 @@ class Simulations():
         self.sm = self.i.getSubsideModule()
         self.em = self.i.getEnergyModule()
         self.r = self.i.getReportModule()
+        self.o = self.i.getOutputModule()
 
         self.main_configs = self.config.getConfigValues()
         self.ecm_configs = self.ecm.getConfigValues()
@@ -31,12 +34,13 @@ class Simulations():
         self.sm_configs = self.sm.getConfigValues()
         self.em_configs = self.em.getConfigValues()
 
-        self.inputs = self.em.getInputs()
+
+        #self.inputs = self.em.getInputs()
 
     def db_insert_results(self):
         """Prepares and in"""
         self.collection.insert(self.line, safe=True)
-        print "Inserted new iteration %s" %self.iteration_no
+        print "Inserting new iteration %s" %self.iteration_no
 
     def process_results(self):
         """Processing results before inserting to DB"""
@@ -135,11 +139,24 @@ class Simulations():
         return line
 
 def run_one_iteration():
-    d = Simulations()
+    d = Simulation()
     d.prepare_data()
     d.get_next_iteration()
     d.process_results()
     d.db_insert_results()
+    return d.o  #report_output module
+
+def run_all_iterations():
+    """Runs multiple simulations """
+    simulation_number = MainConfig().getSimulationNumber()
+    print "Runing %s number of simulations" % simulation_number
+    for i in range(simulation_number):
+        last_report = run_one_iteration()
+
+    last_report.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
+
+
 
 if __name__ == '__main__':
-    run_one_iteration()
+    #run_one_iteration()
+    run_all_iterations()
