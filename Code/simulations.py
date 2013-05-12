@@ -164,6 +164,7 @@ def run_all_iterations():
         irrs.append(last_report.r.irr_owners_y)
 
     last_report.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
+    print "IRRs" , irrs
 
     pylab.hist(irrs)
     pylab.show()
