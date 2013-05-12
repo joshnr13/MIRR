@@ -34,7 +34,7 @@ class SubsidyModule(BaseClassConfig):
             self.real_delay = random.randrange(_delay_lower_limit, _delay_upper_limit+1)
 
         self.first_day_subside = add_x_months(self.last_day_construction+datetime.timedelta(days=1), self.real_delay)
-        self.last_day_subside = add_x_years(self.first_day_subside, self.duration)
+        self.last_day_subside = add_x_months(self.first_day_subside, self.duration)
 
         self.configs = get_configs(locals())
 

@@ -5,8 +5,9 @@ import sys
 import traceback
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
-from database import test_database_read
+from database import test_database_read, show_irr_distribution
 from simulations import run_one_iteration, run_all_iterations
+from main_config_reader import MainConfig
 from _mirr import Mirr
 
 commands = OrderedDict()
@@ -23,7 +24,10 @@ commands['9'] = 'outputPrimaryEnergy'
 commands['10'] = 'outputElectricityProduction'
 commands['11'] = 'run_1_sumulation'
 commands['12'] = 'run_simulations'
-commands['13'] = 'read_db'
+commands['13'] = 'show_irr_distribution'
+
+commands['99'] = 'read_db'
+
 
 
 class Interface():
@@ -97,6 +101,10 @@ class Interface():
     def run_simulations(self):
         run_all_iterations()
 
+    def show_irr_distribution(self):
+        """Shows last N irrs distribution from database"""
+        simulations_number = MainConfig().getSimulationNumber()
+        show_irr_distribution(number=simulations_number*5, field='irr_owners', yearly=False)
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")

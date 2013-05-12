@@ -326,18 +326,35 @@ class Report(BaseClassConfig):
 
 
     def calc_fcf_monthly(self, end_day):
+        """Calculation of monthly FCF, it depends what period is now
+        - first time or others"""
         M = end_day
-        self.fcf_project[M] = (self.net_earning[M] -
-                               self.get_delta_cur_prev(self.fixed_asset, M) -
-                               self.get_delta_cur_prev(self.operating_receivable, M) +
-                               self.get_delta_cur_prev(self.short_term_debt_suppliers, M) +
-                               self.iterest_paid[M] - self.asset_bank_account[M]
-                               )
+        if M == self.start_date_project:
 
-        self.fcf_owners[M] = (- self.get_delta_cur_prev(self.paid_in_capital, M) +
-                              self.net_earning[M] +
-                              self.deprication[M]
-                              )
+            self.fcf_project[M] = (self.net_earning[M] -
+                                   self.get_delta_cur_prev(self.fixed_asset, M) -
+                                   self.get_delta_cur_prev(self.operating_receivable, M) +
+                                   self.get_delta_cur_prev(self.short_term_debt_suppliers, M) +
+                                   self.iterest_paid[M] - self.asset_bank_account[M]
+                                   )
+
+            self.fcf_owners[M] = (- self.get_delta_cur_prev(self.paid_in_capital, M) +
+                                  self.net_earning[M] +
+                                  self.deprication[M]
+                                  )
+
+        else:
+
+            self.fcf_project[M] = (self.net_earning[M] -
+                                   self.get_delta_cur_prev(self.fixed_asset, M) -
+                                   self.get_delta_cur_prev(self.operating_receivable, M) +
+                                   self.get_delta_cur_prev(self.short_term_debt_suppliers, M) +
+                                   self.iterest_paid[M]
+                                   )
+
+            self.fcf_owners[M] = (- self.get_delta_cur_prev(self.paid_in_capital, M) +
+                                  self.get_delta_cur_prev(self.asset_bank_account, M)
+                                  )
 
     def calc_irr(self):
         """Calculating IRR for project and owners, using numpy.IRR function

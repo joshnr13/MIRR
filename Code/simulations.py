@@ -1,4 +1,6 @@
 import datetime
+import pylab
+
 from _mirr import Mirr
 from annex import get_only_digits, convert_value
 from collections import OrderedDict
@@ -135,6 +137,10 @@ class Simulation():
         line["fcf_project_y"] = obj.fcf_project_y.values()
         line["fcf_owners_y"] = obj.fcf_owners_y.values()
 
+        line["irr_project"] = obj.irr_project
+        line["irr_owners"] = obj.irr_owners
+        line["irr_project_y"] = obj.irr_project_y
+        line["irr_owners_y"] = obj.irr_owners_y
 
         return line
 
@@ -147,13 +153,23 @@ def run_one_iteration():
     return d.o  #report_output module
 
 def run_all_iterations():
-    """Runs multiple simulations """
+    """Runs multiple simulations , saves report of last iteration
+    plots histogram or IRR distribution"""
+    irrs = []
     simulation_number = MainConfig().getSimulationNumber()
+
     print "Runing %s number of simulations" % simulation_number
     for i in range(simulation_number):
         last_report = run_one_iteration()
+        irrs.append(last_report.r.irr_owners_y)
 
     last_report.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
+
+    pylab.hist(irrs)
+    pylab.show()
+
+
+
 
 
 

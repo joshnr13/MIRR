@@ -5,7 +5,7 @@ import os
 from annex import mkdir_p
 from collections import OrderedDict
 
-TESTMODE = True
+TESTMODE = False
 
 REPORT_ROUNDING = 2
 REPORT_PATH = '~/data/mirr_reports'     #relevent path to storing reports
