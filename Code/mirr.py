@@ -103,8 +103,9 @@ class Interface():
 
     def show_irr_distribution(self):
         """Shows last N irrs distribution from database"""
-        simulations_number = MainConfig().getSimulationNumber()
-        show_irr_distribution(number=simulations_number*5, field='irr_owners', yearly=False)
+        default_simulations_number = MainConfig().getSimulationNumber()
+        simulations_number = get_input_int(text="Please select number of previous irrs for plotting distribution (default %s) :: " %default_simulations_number, default=default_simulations_number)
+        show_irr_distribution(number=simulations_number, field='irr_owners', yearly=False)
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")

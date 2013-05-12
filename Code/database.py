@@ -47,8 +47,8 @@ def show_irr_distribution(number, field, yearly):
         for doc in results:
             irrs.append(doc[field])
 
-        pylab.hist(irrs)
-        pylab.title("Histogram of %s using last %s values" %(field, number))
+        pylab.hist(irrs, bins=7)
+        pylab.title("Histogram of %s using last %s values" %(field, len(irrs)))
         pylab.show()
 
     except:

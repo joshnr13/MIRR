@@ -338,10 +338,8 @@ class Report(BaseClassConfig):
                                    self.iterest_paid[M] - self.asset_bank_account[M]
                                    )
 
-            self.fcf_owners[M] = (- self.get_delta_cur_prev(self.paid_in_capital, M) +
-                                  self.net_earning[M] +
-                                  self.deprication[M]
-                                  )
+            self.fcf_owners[M] = - self.get_delta_cur_prev(self.paid_in_capital, M)
+
 
         else:
 
