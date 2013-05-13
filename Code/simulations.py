@@ -6,7 +6,7 @@ import csv
 from _mirr import Mirr
 from annex import get_only_digits, convert_value, convert2excel, uniquify_filename, transponse_csv
 from collections import OrderedDict
-from database import get_connection, get_and_show_irr_distribution, show_distribution
+from database import get_connection, get_irr_values_from_db
 from main_config_reader import MainConfig
 from report_output import ReportOutput
 from math import isnan
@@ -149,26 +149,7 @@ class Simulation():
         return line
 
 
-def save_irr_values(values):
-    """Saves IRR values to excel file"""
-    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    report_name = "%s_%s.%s" % (cur_date, 'irr_values', 'csv')
-    report_full_name = os.path.join(report_directory, report_name)
-    output_filename = uniquify_filename(report_full_name)
-    numbers = ["Iteration number"] + list(range(1, len(values)+1 ))
 
-    with open(output_filename,'ab') as f:
-        values.insert(0, "IRR_values")
-        w = csv.writer(f, delimiter=';')
-        w.writerow(numbers)
-        w.writerow(values)
-
-    transponse_csv(output_filename)
-    xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
-    xls_output_filename = uniquify_filename(xls_output_filename)
-
-    convert2excel(source=output_filename, output=xls_output_filename)
-    print "CSV Report outputed to file %s" % (xls_output_filename)
 
 def run_one_iteration():
     d = Simulation()
@@ -195,20 +176,50 @@ def run_all_iterations(simulation_number=None):
     last_report.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
     good_irrs = [irr for irr in irrs if not isnan(irr)]
 
-    if len(good_irrs) > 0:
-        field = 'irr_owners'
-        title = "Histogram of %s using last %s values" %(field, len(good_irrs))
-        show_distribution(good_irrs, field)
-        return good_irrs
-    else :
-        print "All IRR values was Nan (cant be calculated, please check FCF , because IRR cannot be negative)"
-        return []
+    return good_irrs
+
+def show_irr_charts(values):
+    """Shows irr distribution and charts , field used for title"""
+    field = 'irr_owners'
+    title = " of %s using last %s values" %(field, len(values))
+
+    fig= pylab.figure()
+
+    ax1 = fig.add_subplot(211)
+    ax2 = fig.add_subplot(212)  # share ax1's xaxis
+
+    # Plot
+    ax1.hist(values, bins=7)
+    ax2.plot(range(1, len(values)+1), values, 'o-')
+
+    ax1.set_title("Histogram " + title)
+    ax2.set_title("Chart " + title)
+    pylab.show()
 
 
+def save_irr_values(values):
+    """Saves IRR values to excel file"""
+    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    report_name = "%s_%s.%s" % (cur_date, 'irr_values', 'csv')
+    report_full_name = os.path.join(report_directory, report_name)
+    output_filename = uniquify_filename(report_full_name)
+    numbers = ["Iteration number"] + list(range(1, len(values)+1 ))
 
+    with open(output_filename,'ab') as f:
+        values.insert(0, "IRR_values")
+        w = csv.writer(f, delimiter=';')
+        w.writerow(numbers)
+        w.writerow(values)
 
+    transponse_csv(output_filename)
+    xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
+    xls_output_filename = uniquify_filename(xls_output_filename)
 
+    convert2excel(source=output_filename, output=xls_output_filename)
+    print "CSV Report outputed to file %s" % (xls_output_filename)
 
 if __name__ == '__main__':
     #run_one_iteration()
     run_all_iterations()
+
+

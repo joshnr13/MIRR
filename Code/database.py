@@ -33,7 +33,7 @@ def test_database_read():
         print "Unexpected error:", sys.exc_info()[0]
 
 
-def get_and_show_irr_distribution(number, field, yearly):
+def get_irr_values_from_db(number, field, yearly):
     """Gets from DB and shows last @number of IRRs distribution
     selected by @field, using yearly suffix"""
 
@@ -48,24 +48,17 @@ def get_and_show_irr_distribution(number, field, yearly):
         irrs = []
         for doc in results:
             irrs.append(doc[field])
-
-        title = "Histogram of %s using last %s values" %(field, len(irrs))
-        if len(irrs) > 0:
-            show_distribution(irrs, title)
-            return irrs
-        else :
-            print "No IRR values in database. Cant plot charts!"
+        return irrs
 
     except:
         print "Unexpected error:", sys.exc_info()
+        return []
 
 
-def show_distribution(values, title):
-    pylab.hist(values, bins=7)
-    pylab.title(title)
-    pylab.show()
+
 
 
 if __name__ == '__main__':
 
+    print get_irr_values_from_db(10, 'irr_owners', False)
     get_and_show_irr_distribution(10, 'irr_owners', False)
