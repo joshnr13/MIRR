@@ -80,15 +80,8 @@ class Interface():
         start_date, end_date, resolution = self.get_inputs()
         self.getMirr().technology_module.outputElectricityProduction(start_date, end_date, resolution)
 
-    #def read_db(self):
-        #"""Test reading results from Mongo"""
-        #test_database_read()
-
-    #def run_1_sumulation(self):
-        #"""Test writing results to Mongo"""
-        #run_one_iteration()
-
     def run_simulations(self):
+        """Running simulation and saving results"""
         default_simulations_number = MainConfig().getSimulationNumber()
         simulations_number = get_input_int(text="Please select number of simulations (or press enter to default %s) :: " %default_simulations_number, default=default_simulations_number)
         irr_values =  run_all_iterations(simulations_number)

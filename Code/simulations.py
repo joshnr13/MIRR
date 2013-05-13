@@ -190,7 +190,7 @@ def show_irr_charts(values):
 
     # Plot
     ax1.hist(values, bins=7)
-    ax2.plot(range(1, len(values)+1), values, 'o-')
+    ax2.plot(range(1, len(values)+1), values, 'o')
 
     ax1.set_title("Histogram " + title)
     ax2.set_title("Chart " + title)
