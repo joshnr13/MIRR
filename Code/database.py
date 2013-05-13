@@ -50,7 +50,10 @@ def get_and_show_irr_distribution(number, field, yearly):
             irrs.append(doc[field])
 
         title = "Histogram of %s using last %s values" %(field, len(irrs))
-        show_distribution(irrs, title)
+        if len(irrs) > 0:
+            show_distribution(irrs, title)
+        else :
+            print "No IRR values in database. Cant plot charts!"
 
     except:
         print "Unexpected error:", sys.exc_info()
