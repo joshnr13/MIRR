@@ -6,8 +6,7 @@ import ConfigParser
 import os
 import random
 
-from annex import add_x_years, add_x_months
-from annex import get_configs
+from annex import add_x_years, add_x_months, get_configs, float_range
 from constants import TESTMODE
 from base_class import BaseClassConfig
 
@@ -25,21 +24,24 @@ class SubsidyModule(BaseClassConfig):
         _delay_lower_limit = _config.getfloat('Subsidy', 'delay_lower_limit')
         _delay_upper_limit = _config.getfloat('Subsidy', 'delay_upper_limit')
 
-        self.kWh_subsidy = _config.getfloat('Subsidy', 'kWh_subsidy')
+        self._kWh_subsidy_lower_limit = _config.getfloat('Subsidy', 'kWh_subsidy_lower_limit')
+        self._kWh_subsidy_upper_limit = _config.getfloat('Subsidy', 'kWh_subsidy_upper_limit')
         self.duration = _config.getfloat('Subsidy', 'duration')
 
         if TESTMODE:
-            self.real_delay = 0
+            self._real_delay = 0
+            self.kWh_subsidy = (self._kWh_subsidy_lower_limit + self._kWh_subsidy_upper_limit) / 2
         else:
-            self.real_delay = random.randrange(_delay_lower_limit, _delay_upper_limit+1)
+            self._real_delay = random.randrange(_delay_lower_limit, _delay_upper_limit+1)
+            self.kWh_subsidy = random.choice(float_range(self._kWh_subsidy_lower_limit ,self._kWh_subsidy_upper_limit, 0.01, True))
 
-        self.first_day_subside = add_x_months(self.last_day_construction+datetime.timedelta(days=1), self.real_delay)
+        self.first_day_subside = add_x_months(self.last_day_construction+datetime.timedelta(days=1), self._real_delay)
         self.last_day_subside = add_x_months(self.first_day_subside, self.duration)
 
         self.configs = get_configs(locals())
 
     def subsidyProduction(self, date):
-        """return subsidy for production 1Kwh on given date"""
+        """return subsidy in EUR for production 1Kwh on given @date"""
         if date >= self.first_day_subside and date <= self.last_day_subside:
             return self.kWh_subsidy
         else:
