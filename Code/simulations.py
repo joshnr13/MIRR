@@ -6,7 +6,7 @@ import csv
 from _mirr import Mirr
 from annex import get_only_digits, convert_value, convert2excel, uniquify_filename, transponse_csv
 from collections import OrderedDict
-from database import get_connection, get_irr_values_from_db
+from database import get_connection, get_values_from_db
 from main_config_reader import MainConfig
 from report_output import ReportOutput
 from math import isnan

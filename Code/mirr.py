@@ -6,7 +6,7 @@ import traceback
 import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
-from database import get_irr_values_from_db
+from database import get_values_from_db
 from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts
 from main_config_reader import MainConfig
 from _mirr import Mirr
@@ -91,9 +91,10 @@ class Interface():
 
     def report_irr(self):
         """Shows last N irrs distribution from database"""
+        field = 'irr_owners'
         default_simulations_number = MainConfig().getSimulationNumber()
         simulations_number = get_input_int(text="Please select number of previous irrs for plotting distribution (default %s) :: " %default_simulations_number, default=default_simulations_number)
-        irr_values = get_irr_values_from_db(number=simulations_number, field='irr_owners', yearly=False)
+        irr_values = get_values_from_db(number=simulations_number, field=[field], yearly=False)[field]
 
         if irr_values:
             show_irr_charts(irr_values)

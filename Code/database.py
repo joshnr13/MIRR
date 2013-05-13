@@ -1,6 +1,7 @@
 import sys
 import  pymongo
 import pylab
+from collections import defaultdict
 
 def get_connection():
     """get connection to db"""
@@ -33,22 +34,34 @@ def test_database_read():
         print "Unexpected error:", sys.exc_info()[0]
 
 
-def get_irr_values_from_db(number, field, yearly):
+def get_values_from_db(number, fields, yearly):
     """Gets from DB and shows last @number of IRRs distribution
-    selected by @field, using yearly suffix"""
-
-    if yearly:
-        field += '_y'
+    - selected by list of @fields,
+    - using yearly suffix
+    - and limited to @number
+    """
 
     db = get_connection()
     collection = db['collection']
 
+    select_by = {}
+    get_values = {}
+
+    for field in fields:
+        if yearly:
+            field += '_y'
+        select_by[field] = { '$exists' : True }
+        get_values[field] = True
+
     try:
-        results = collection.find({field:  { '$exists' : True }}, {field: True,'_id': False}).sort([("$natural", -1)]).limit(number);
-        irrs = []
+        sorted_order = [("$natural", -1)]
+        results = collection.find(select_by, get_values).sort(sorted_order).limit(number)
+        values = defaultdict(list)
         for doc in results:
-            irrs.append(doc[field])
-        return irrs
+            for field in fields:
+                values[field].append(doc[field])
+
+        return values
 
     except:
         print "Unexpected error:", sys.exc_info()
@@ -59,5 +72,5 @@ def get_irr_values_from_db(number, field, yearly):
 
 
 if __name__ == '__main__':
-
-    print get_irr_values_from_db(10, 'irr_owners', False)
+    fields = ['irr_owners', 'irr_project']
+    print get_values_from_db(10, fields, False)
