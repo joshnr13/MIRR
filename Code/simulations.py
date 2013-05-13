@@ -1,13 +1,16 @@
+import os
 import datetime
 import pylab
+import csv
 
 from _mirr import Mirr
-from annex import get_only_digits, convert_value
+from annex import get_only_digits, convert_value, convert2excel, uniquify_filename, transponse_csv
 from collections import OrderedDict
 from database import get_connection, get_and_show_irr_distribution, show_distribution
 from main_config_reader import MainConfig
 from report_output import ReportOutput
 from math import isnan
+from constants import report_directory
 
 class Simulation():
 
@@ -145,6 +148,28 @@ class Simulation():
 
         return line
 
+
+def save_irr_values(values):
+    """Saves IRR values to excel file"""
+    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    report_name = "%s_%s.%s" % (cur_date, 'irr_values', 'csv')
+    report_full_name = os.path.join(report_directory, report_name)
+    output_filename = uniquify_filename(report_full_name)
+    numbers = ["Iteration number"] + list(range(1, len(values)+1 ))
+
+    with open(output_filename,'ab') as f:
+        values.insert(0, "IRR_values")
+        w = csv.writer(f, delimiter=';')
+        w.writerow(numbers)
+        w.writerow(values)
+
+    transponse_csv(output_filename)
+    xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
+    xls_output_filename = uniquify_filename(xls_output_filename)
+
+    convert2excel(source=output_filename, output=xls_output_filename)
+    print "CSV Report outputed to file %s" % (xls_output_filename)
+
 def run_one_iteration():
     d = Simulation()
     d.prepare_data()
@@ -153,11 +178,13 @@ def run_one_iteration():
     d.db_insert_results()
     return d.o  #report_output module
 
-def run_all_iterations(simulations_number=None):
+def run_all_iterations(simulation_number=None):
     """Runs multiple simulations , saves report of last iteration
-    plots histogram or IRR distribution"""
+    plots histogram or IRR distribution
+
+    return  IRR values"""
     irrs = []
-    if simulations_number is  None:
+    if simulation_number is  None:
         simulation_number = MainConfig().getSimulationNumber()
 
     print "Runing %s number of simulations" % simulation_number
@@ -172,8 +199,10 @@ def run_all_iterations(simulations_number=None):
         field = 'irr_owners'
         title = "Histogram of %s using last %s values" %(field, len(good_irrs))
         show_distribution(good_irrs, field)
+        return good_irrs
     else :
         print "All IRR values was Nan (cant be calculated, please check FCF , because IRR cannot be negative)"
+        return []
 
 
 

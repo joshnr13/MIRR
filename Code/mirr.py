@@ -7,7 +7,7 @@ import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
 from database import test_database_read, get_and_show_irr_distribution
-from simulations import run_one_iteration, run_all_iterations
+from simulations import run_one_iteration, run_all_iterations, save_irr_values
 from main_config_reader import MainConfig
 from _mirr import Mirr
 
@@ -91,13 +91,17 @@ class Interface():
     def run_simulations(self):
         default_simulations_number = MainConfig().getSimulationNumber()
         simulations_number = get_input_int(text="Please select number of simulations (or press enter to default %s) :: " %default_simulations_number, default=default_simulations_number)
-        run_all_iterations(simulations_number)
+        irr_values = run_all_iterations(simulations_number)
+        if irr_values:
+            save_irr_values(irr_values)
 
     def report_irr(self):
         """Shows last N irrs distribution from database"""
         default_simulations_number = MainConfig().getSimulationNumber()
         simulations_number = get_input_int(text="Please select number of previous irrs for plotting distribution (default %s) :: " %default_simulations_number, default=default_simulations_number)
-        get_and_show_irr_distribution(number=simulations_number, field='irr_owners', yearly=False)
+        irr_values = get_and_show_irr_distribution(number=simulations_number, field='irr_owners', yearly=False)
+        if irr_values:
+            save_irr_values(irr_values)
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")
