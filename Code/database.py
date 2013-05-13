@@ -44,7 +44,7 @@ def get_irr_values_from_db(number, field, yearly):
     collection = db['collection']
 
     try:
-        results = collection.find({field:  { '$exists' : True }}, {field: True,'_id': False}).sort([("$natural", 1)]).limit(number);
+        results = collection.find({field:  { '$exists' : True }}, {field: True,'_id': False}).sort([("$natural", -1)]).limit(number);
         irrs = []
         for doc in results:
             irrs.append(doc[field])
@@ -61,4 +61,3 @@ def get_irr_values_from_db(number, field, yearly):
 if __name__ == '__main__':
 
     print get_irr_values_from_db(10, 'irr_owners', False)
-    get_and_show_irr_distribution(10, 'irr_owners', False)
