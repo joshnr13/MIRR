@@ -153,11 +153,12 @@ def run_one_iteration():
     d.db_insert_results()
     return d.o  #report_output module
 
-def run_all_iterations():
+def run_all_iterations(simulations_number=None):
     """Runs multiple simulations , saves report of last iteration
     plots histogram or IRR distribution"""
     irrs = []
-    simulation_number = MainConfig().getSimulationNumber()
+    if simulations_number is  None:
+        simulation_number = MainConfig().getSimulationNumber()
 
     print "Runing %s number of simulations" % simulation_number
     for i in range(simulation_number):

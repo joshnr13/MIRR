@@ -3,6 +3,7 @@
 
 import sys
 import traceback
+import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
 from database import test_database_read, get_and_show_irr_distribution
@@ -11,24 +12,23 @@ from main_config_reader import MainConfig
 from _mirr import Mirr
 
 commands = OrderedDict()
+i = 0
 commands['0'] = 'stop'
-commands['1'] = 'charts_monthly'
-commands['2'] = 'charts_yearly'
-commands['3'] = 'report_is'
-commands['4'] = 'report_bs'
-commands['5'] = 'report_isbscf'
-commands['6'] = 'report_isbscf_xl'
-commands['7'] = 'report_isbscf_xl_yearly'
-commands['8'] = 'print_equipment'
-commands['9'] = 'outputPrimaryEnergy'
-commands['10'] = 'outputElectricityProduction'
-commands['11'] = 'run_1_sumulation'
-commands['12'] = 'run_simulations'
-commands['13'] = 'show_irr_distribution'
+commands['1'] = 'run_simulations'
+commands['2'] = 'report_irr'
+commands['3'] = 'report_isbscf'
+commands['4'] = 'charts'
+commands['5'] = 'print_equipment'
+commands['6'] = 'outputPrimaryEnergy'
+commands['7'] = 'outputElectricityProduction'
 
-commands['99'] = 'read_db'
+#commands['99'] = 'read_db'
 
-
+"""run_simulations  - then it asks you how many
+report_irr - makes graphs about IRR distribution and saves data
+report_isbscf  - makes xls - yearly and monthly for last set written to the database
+charts - makes monthly and yearly charts for the last set written to the database
+"""
 
 class Interface():
     def __init__(self):
@@ -38,31 +38,22 @@ class Interface():
     def getMirr(self):
         return Mirr()
 
-    def charts_monthly(self):
+    def charts(self):
         self.getMirr().o.plot_charts_monthly()
-
-    def charts_yearly(self):
         self.getMirr().o.plot_charts_yearly()
 
-    def report_is(self):
-        self.getMirr().o.prepare_report_IS()
+    #def report_is(self):
+        #self.getMirr().o.prepare_report_IS()
 
-    def report_bs(self):
-        self.getMirr().o.prepare_report_BS()
+    #def report_bs(self):
+        #self.getMirr().o.prepare_report_BS()
 
-    def report_isbscf(self, yearly=False):
-        self.getMirr().o.prepare_report_IS_BS_CF_IRR(yearly)
+    #def report_isbscf(self, yearly=False):
+        #self.getMirr().o.prepare_report_IS_BS_CF_IRR(yearly)
 
-    def report_isbscf_xl(self, yearly=False):
-        try:
-            import openpyxl
-            self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=yearly)
-        except ImportError:
-            print "Cannot import python module openpyxl. No excel support for reports!"
-            self.report_isbscf(yearly=yearly)
-
-    def report_isbscf_xl_yearly(self):
-        return  self.report_isbscf_xl(yearly=True)
+    def report_isbscf(self):
+        self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
+        self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=True)
 
     def print_equipment(self):
         self.getMirr().technology_module.print_equipment()
@@ -81,7 +72,6 @@ class Interface():
 
         return (start_date, end_date, resolution)
 
-
     def outputPrimaryEnergy(self):
         start_date, end_date, resolution = self.get_inputs()
         self.getMirr().energy_module.outputPrimaryEnergy(start_date, end_date, resolution)
@@ -90,18 +80,20 @@ class Interface():
         start_date, end_date, resolution = self.get_inputs()
         self.getMirr().technology_module.outputElectricityProduction(start_date, end_date, resolution)
 
-    def read_db(self):
-        """Test reading results from Mongo"""
-        test_database_read()
+    #def read_db(self):
+        #"""Test reading results from Mongo"""
+        #test_database_read()
 
-    def run_1_sumulation(self):
-        """Test writing results to Mongo"""
-        run_one_iteration()
+    #def run_1_sumulation(self):
+        #"""Test writing results to Mongo"""
+        #run_one_iteration()
 
     def run_simulations(self):
-        run_all_iterations()
+        default_simulations_number = MainConfig().getSimulationNumber()
+        simulations_number = get_input_int(text="Please select number of simulations (or press enter to default %s) :: " %default_simulations_number, default=default_simulations_number)
+        run_all_iterations(simulations_number)
 
-    def show_irr_distribution(self):
+    def report_irr(self):
         """Shows last N irrs distribution from database"""
         default_simulations_number = MainConfig().getSimulationNumber()
         simulations_number = get_input_int(text="Please select number of previous irrs for plotting distribution (default %s) :: " %default_simulations_number, default=default_simulations_number)
