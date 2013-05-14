@@ -537,7 +537,7 @@ def irr(pmts, guess=0.1):
 
     f = lambda x: _discf(x, pmts)
     try:
-        return newton(f, guess, maxiter=100, tol=0.001 )
+        return newton(f, guess, maxiter=100, tol=0.001)
     except RuntimeError:
         return float('Nan')
 

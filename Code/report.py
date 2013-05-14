@@ -479,7 +479,7 @@ class Report(BaseClassConfig):
                 return 0
             else:
                 tax_rate = self.economic_module.getTaxRate()
-                return tax_rate * max(year_ebt/2.0, year_ebt + accumulated_earnings)
+                return tax_rate * max(year_ebt/2.0, year_ebt - accumulated_earnings)
         else:
             return 0
 
