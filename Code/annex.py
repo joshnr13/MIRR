@@ -9,6 +9,7 @@ import operator
 import datetime as dt
 import errno
 import types
+import numpy as np
 
 from functools import partial
 from math import floor
@@ -17,6 +18,7 @@ from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
 from numbers import Number
 from decimal import Decimal
+from scipy.optimize import newton
 
 try:
     from openpyxl import Workbook
@@ -516,6 +518,33 @@ def convert_list(input_lst):
         result.append(converted)
     return result
 
+
+def _discf(rate, pmts, ):
+    dcf=[]
+    cur_period=0
+    for i,cf in enumerate(pmts):
+        dcf.append(cf*(1+rate)**(-i))
+    return np.add.reduce(dcf)
+
+def irr(pmts, guess=0.1):
+    """
+    IRR function that accepts irregularly spaced cash flows
+    @values: array_like
+          Contains the cash flows including the initial investment
+    @Returns: Float
+          Internal Rate of Return
+    """
+
+    f = lambda x: _discf(x, pmts)
+    try:
+        return newton(f, guess, maxiter=100, tol=0.001 )
+    except RuntimeError:
+        return float('Nan')
+
+
+if __name__=="__main__":
+    pmts=[-1000,	-500,	-100,	1000]
+    print xirr(pmts)
 
 if __name__ == '__main__':
     date = dt.date(2000, 1, 1)

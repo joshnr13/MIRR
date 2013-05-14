@@ -36,9 +36,10 @@ def test_database_read():
 
 def get_values_from_db(number, fields, yearly):
     """Gets from DB and shows last @number of IRRs distribution
-    - selected by list of @fields,
+    - selected by list of @fields, any type - example ['irr_owners', 'irr_project', 'main_configs.lifetime']
     - using yearly suffix
     - and limited to @number
+    - SORTED in BACK order
     """
 
     db = get_connection()
@@ -59,7 +60,15 @@ def get_values_from_db(number, fields, yearly):
         values = defaultdict(list)
         for doc in results:
             for field in fields:
-                values[field].append(doc[field])
+                if "." in field:
+                    names = field.split('.')[::-1]
+                    value = doc[names.pop()]
+                    while names:
+                        value = value[names.pop()]
+                else:
+                    value = doc[field]
+
+                values[field].append(value)
 
         return values
 
@@ -72,5 +81,5 @@ def get_values_from_db(number, fields, yearly):
 
 
 if __name__ == '__main__':
-    fields = ['irr_owners', 'irr_project']
+    fields = ['irr_owners', 'irr_project', 'main_configs.lifetime']
     print get_values_from_db(10, fields, False)

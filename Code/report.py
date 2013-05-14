@@ -7,7 +7,7 @@ import os.path
 
 from collections import  OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, add_header_csv, last_day_previous_month
-from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, OrderedDefaultdict
+from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, OrderedDefaultdict, irr
 from annex import add_start_project_values, get_months_range,  month_number_days, get_only_digits, last_year
 
 from constants import PROJECT_START, REPORT_ROUNDING
@@ -86,7 +86,7 @@ class Report(BaseClassConfig):
         self.short_term_investment = self.start_project_OrderedDict(name=PROJECT_START,value=0)
         self.asset_bank_account = self.start_project_OrderedDict(name=PROJECT_START,value=capital)
         self.paid_in_capital = self.start_project_OrderedDict(name=PROJECT_START,value=capital)
-        self.current_asset = self.start_project_OrderedDict(name=PROJECT_START,value=capital)
+        self.current_asset = self.start_project_OrderedDict(name=PROJECT_START,value=0)
         self.retained_earning = self.start_project_OrderedDict(name=PROJECT_START,value=0)
         self.unallocated_earning = self.start_project_OrderedDict(name=PROJECT_START,value=0)
         self.retained_earning = self.start_project_OrderedDict(name=PROJECT_START,value=0)
@@ -329,7 +329,7 @@ class Report(BaseClassConfig):
         """Calculation of monthly FCF, it depends what period is now
         - first time or others"""
         M = end_day
-        if M == self.start_date_project:
+        if M == last_day_month(self.start_date_project):
 
             self.fcf_project[M] = (self.net_earning[M] -
                                    self.get_delta_cur_prev(self.fixed_asset, M) -
@@ -361,19 +361,19 @@ class Report(BaseClassConfig):
         #print self.fcf_owners.values()
 
         fcf_owners_values = get_only_digits(self.fcf_owners)
-        fcf_project = get_only_digits(self.fcf_project)
+        fcf_project_values = get_only_digits(self.fcf_project)
 
         fcf_owners_values_y = get_only_digits(self.fcf_owners_y)
         fcf_project_y = get_only_digits(self.fcf_project_y)
 
-        self.irr_owners = numpy.irr(fcf_owners_values)
-        self.irr_project = numpy.irr(fcf_project)
+        self.irr_owners = irr(fcf_owners_values)
+        self.irr_project = irr(fcf_project_values)
 
-        self.irr_owners_y = numpy.irr(fcf_owners_values_y)
-        self.irr_project_y = numpy.irr(fcf_project_y)
+        self.irr_owners_y = irr(fcf_owners_values_y)
+        self.irr_project_y = irr(fcf_project_y)
 
         self.fcf_owners[PROJECT_START] = "IRR = %s" % self.irr_owners
-        self.fcf_project[PROJECT_START] = "IRR = %s" % self.irr_owners
+        self.fcf_project[PROJECT_START] = "IRR = %s" % self.irr_project
 
         self.fcf_owners_y[PROJECT_START] = "IRR = %s" % self.irr_owners_y
         self.fcf_project_y[PROJECT_START] = "IRR = %s" % self.irr_project_y

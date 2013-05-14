@@ -62,10 +62,10 @@ class Simulation():
         line["date"] = datetime.datetime.now()
 
         line["main_configs"] = self.main_configs
-        #line["ecm_configs"] = self.ecm_configs
-        #line["tm_configs"] = self.tm_configs
-        #line["sm_configs"] = self.sm_configs
-        #line["em_configs"] = self.em_configs
+        line["ecm_configs"] = self.ecm_configs
+        line["tm_configs"] = self.tm_configs
+        line["sm_configs"] = self.sm_configs
+        line["em_configs"] = self.em_configs
 
         #line["inputs"] = self.inputs
 
@@ -217,6 +217,41 @@ def save_irr_values(values):
 
     convert2excel(source=output_filename, output=xls_output_filename)
     print "CSV Report outputed to file %s" % (xls_output_filename)
+
+
+def calc_correllation():
+    """
+    - permit_procurement_duration+
+    - construction_duration+
+    - subsidy duration+
+    - kWh_subsidy+
+    #line["ecm_configs"] = self.ecm_configs
+    #line["tm_configs"] = self.tm_configs
+    #line["em_configs"] = self.em_configs
+    """
+    fields = [
+    "main_configs.real_permit_procurement_duration",
+    "main_configs.real_construction_duration",
+    "sm_configs.kWh_subsidy",
+    "sm_configs.delay",
+    ]
+
+    """
+        >>> from numpy import *
+    >>> a = array([1,2,3,4,6,7,8,9])
+    >>> b = array([2,4,6,8,10,12,13,15])
+    >>> c = array([-1,-2,-2,-3,-4,-6,-7,-8])
+    >>> corrcoef([a,b,c])
+    array([[ 1.        ,  0.99535001, -0.9805214 ],
+           [ 0.99535001,  1.        , -0.97172394],
+           [-0.9805214 , -0.97172394,  1.        ]])
+
+    Here we can get the correlation coefficient of a,b (0.995), a,c (-0.981) and b,c (-0.972) at once. The two-data-set case is just a special case of N-data-set class. And probably it's better to keep the same return type. Since the "one value" can be obtained simply with
+
+    >>> corrcoef(a,b)[1,0]
+    0.99535001355530017
+    """
+
 
 if __name__ == '__main__':
     #run_one_iteration()
