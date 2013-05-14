@@ -15,26 +15,15 @@ class ReportOutput():
     def __init__(self, report_data):
         self.r = report_data
 
-    def prepare_report_BS(self, excel=False, yearly=False):
-        """Prepares and saves monthly BS report in csv file"""
-        report_name = 'IS'
-        output_filename = self.get_report_filename(report_name)
-        self.write_report(output_filename, BS, yearly=yearly)
-        print "%s Report outputed to file %s" % (report_name, output_filename)
+    def prepare_report_BS_db(self, excel=False, yearly=False):
+        report_name = 'IS_db'
+        report_dic = BS
 
-    def prepare_report_IS(self, excel=False, yearly=False):
-        """Prepares and saves monthly IS report in csv file"""
-        report_name = 'IS'
         output_filename = self.get_report_filename(report_name)
-        self.write_report(output_filename, IS, yearly=yearly)
-        print "%s Report outputed to file %s" % (report_name, output_filename)
+        rows = self.prepare_rows(report_dic.values(), yearly)
+        header = report_dic.keys()
 
-    def prepare_report_CF(self, excel=False, yearly=False):
-        """Prepares and saves monthly CF report in csv file"""
-        report_name = 'CF'
-        output_filename = self.get_report_filename(report_name)
-        self.write_report(output_filename, CF, yearly=yearly)
-
+        self.write_report(rows, header, output_filename, BS)
         print "%s Report outputed to file %s" % (report_name, output_filename)
 
     def prepare_report_IS_BS_CF_IRR(self, excel=False, yearly=False):
@@ -45,12 +34,21 @@ class ReportOutput():
         is_filename = output_filename + "_IS"
         cf_filename = output_filename + "_CF"
 
-        self.write_report(bs_filename, BS, yearly=yearly)
-        self.write_report(is_filename, IS, yearly=yearly)
-        self.write_report(cf_filename, CF, yearly=yearly)
+        bs_rows = self.prepare_rows(BS.values(), yearly)
+        bs_header = BS.keys()
 
-        combine = [bs_filename, is_filename, cf_filename]
-        combine_files(combine, output_filename)
+        is_rows = self.prepare_rows(IS.values(), yearly)
+        is_header = IS.keys()
+
+        cf_rows = self.prepare_rows(CF.values(), yearly)
+        cf_header = CF.keys()
+
+        self.write_report(bs_rows, bs_header, bs_filename)
+        self.write_report(is_rows, is_header, is_filename)
+        self.write_report(cf_rows, cf_header, cf_filename)
+
+        combine_list = [bs_filename, is_filename, cf_filename]
+        combine_files(combine_list, output_filename)
 
         if excel:
             xls_output_filename = self.get_report_filename(report_name, 'xlsx', yearly=yearly)
@@ -82,12 +80,9 @@ class ReportOutput():
 
         return new_rows
 
-    def write_report(self, output_filename, report_dic, yearly):
+    def write_report(self, rows, header, output_filename ):
         """write report to file
-        @report_dic - dict with all values incl header
         """
-        header = report_dic.keys()
-        rows = self.prepare_rows(report_dic.values(), yearly)
         with open(output_filename,'ab') as f:
             w = csv.DictWriter(f, rows[0].keys(), delimiter=';')
             w.writeheader()
