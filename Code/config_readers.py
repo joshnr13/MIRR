@@ -175,6 +175,7 @@ class EconomicModuleConfigReader():
 
         self.debt = _config.getfloat('Debt', 'debt_value') * self.investments / 100
         self.debt_rate = _config.getfloat('Debt', 'interest_rate') / 100
+        self.debt_rate_short = _config.getfloat('Debt', 'interest_rate_short') / 100
         self.debt_years = _config.getint('Debt', 'periods')
 
         self.capital = self.investments - self.debt
