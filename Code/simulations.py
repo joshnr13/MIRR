@@ -4,15 +4,14 @@ import pylab
 import csv
 
 from _mirr import Mirr
-from annex import get_only_digits, convert_value, convert2excel, uniquify_filename, transponse_csv
+from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv
 from collections import OrderedDict
-from database import get_connection, get_values_from_db
+from database import get_connection, get_values_from_db, get_rowvalue_from_db
 from config_readers import MainConfig
 from report_output import ReportOutput
 from constants import report_directory
 from numpy import corrcoef, around, isnan
 from pylab import *
-import matplotlib.colors as mcolors
 
 class Simulation():
 
@@ -294,9 +293,37 @@ def calc_correlation(number=100, yearly=False):
 
     show()
 
+def plot_charts(yearly=False):
+
+    fields = ['revenue', 'cost', 'ebitda', 'deprication']
+    #results = get_values_from_db(1, fields, yearly)
+
+    #revenue = get_only_digits2(results['revenue'][0])
+    #cost = get_only_digits2(results['cost'][0])
+    #ebitda = get_only_digits2(results['ebitda'][0])
+    #deprication = get_only_digits2(results['deprication'][0])
+    revenue, cost, ebitda, deprication = get_rowvalue_from_db(fields, yearly)
+
+    pylab.plot(revenue, label='REVENUE')
+    pylab.plot(cost, label='COST')
+    pylab.plot(ebitda, label='EBITDA')
+    pylab.plot(deprication, label='deprication')
+    #pylab.plot(net_earning, label='net_earning')
+
+    pylab.xlabel("months")
+    pylab.ylabel("EUROs")
+    pylab.legend()
+    pylab.grid(True, which="both",ls="-")
+    pylab.axhline()
+    pylab.axvline()
+    pylab.title("Monthly data")
+    pylab.show()
+
+
 if __name__ == '__main__':
     #run_one_iteration()
     #run_all_iterations()
-    calc_correlation()
+    #calc_correlation()
+    plot_charts()
 
 

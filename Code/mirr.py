@@ -7,7 +7,7 @@ import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
 from database import get_values_from_db
-from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts, calc_correlation
+from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts, calc_correlation, plot_charts
 from config_readers import MainConfig
 from _mirr import Mirr
 from numpy import isnan
@@ -41,9 +41,13 @@ class Interface():
     def getMirr(self):
         return Mirr()
 
+    #def charts(self):
+        #self.getMirr().o.plot_charts_monthly()
+        #self.getMirr().o.plot_charts_yearly()
+
     def charts(self):
-        self.getMirr().o.plot_charts_monthly()
-        self.getMirr().o.plot_charts_yearly()
+        plot_charts(yearly=False)
+        plot_charts(yearly=True)
 
     #def report_is(self):
         #self.getMirr().o.prepare_report_IS()
