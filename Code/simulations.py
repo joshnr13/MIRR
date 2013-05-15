@@ -235,7 +235,8 @@ def calc_correllation():
     "sm_configs.kWh_subsidy",
     "sm_configs.delay",
     ]
-
+    fields = ["sm_configs"]
+    print get_values_from_db(number=10, fields=fields, yearly=False)
     """
         >>> from numpy import *
     >>> a = array([1,2,3,4,6,7,8,9])
@@ -254,7 +255,8 @@ def calc_correllation():
 
 
 if __name__ == '__main__':
-    #run_one_iteration()
-    run_all_iterations()
+    run_one_iteration()
+    #run_all_iterations()
+    #calc_correllation()
 
 

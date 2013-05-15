@@ -12,33 +12,9 @@ from annex import add_x_years, month_number_days, last_day_next_month, get_confi
 from main_config_reader import MainConfig
 from base_class import BaseClassConfig
 
-class EconomicModule(BaseClassConfig):
 
-    def __init__(self, config_module, technology_module, subside_module):
-        BaseClassConfig.__init__(self, config_module)
-        self.technology_module = technology_module
-        self.subside_module = subside_module
-        self.loadConfig()
-        self.calcDebtPercents()
-
-    def isConstructionStarted(self, date):
-        """return  True if we recieved all permits and started but not finished
-        construction of equipment"""
-        if date > self.last_day_permit_procurement and date <= self.last_day_construction:
-            return  True
-        else:
-            return  False
-
-    def isProductionElectricityStarted(self, date):
-        """return  True if we recieved all permits, finished construction and can
-        sell electricity"""
-        if date > self.last_day_construction :
-            return  True
-        else:
-            return  False
-
-
-    def loadConfig(self, _filename='ecm_config.ini'):
+class EconomicModuleConfigReader():
+    def __init__(self,  _filename='ecm_config.ini'):
         """Reads module config file
         @self.insuranceLastDayEquipment - last day when we need to pay for insurance
         """
@@ -74,7 +50,35 @@ class EconomicModule(BaseClassConfig):
 
         self.deprication_duration = _config.getfloat('Amortization', 'duration')
 
-        self.configs = get_configs(locals())
+        self.configs = get_configs(self.__dict__)
+
+    def getConfigsValues(self):
+        return  self.configs
+
+class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
+
+    def __init__(self, config_module, technology_module, subside_module):
+        BaseClassConfig.__init__(self, config_module)
+        EconomicModuleConfigReader.__init__(self)
+        self.technology_module = technology_module
+        self.subside_module = subside_module
+        self.calcDebtPercents()
+
+    def isConstructionStarted(self, date):
+        """return  True if we recieved all permits and started but not finished
+        construction of equipment"""
+        if date > self.last_day_permit_procurement and date <= self.last_day_construction:
+            return  True
+        else:
+            return  False
+
+    def isProductionElectricityStarted(self, date):
+        """return  True if we recieved all permits, finished construction and can
+        sell electricity"""
+        if date > self.last_day_construction :
+            return  True
+        else:
+            return  False
 
     def getRevenue(self, date_start, date_end):
         """return revenue from selling electricity + subsides for given period of time"""
@@ -270,8 +274,8 @@ if __name__ == '__main__':
     subside_module = SubsidyModule(mainconfig)
     ecm = EconomicModule(mainconfig, technology_module, subside_module)
 
-    start_date = datetime.date(2000, 1, 1)
-    print ecm.getRevenue(start_date, start_date+datetime.timedelta(days=30))
+    start_date = datetime.date(2013, 1, 1)
+    print ecm.getRevenue(start_date, start_date+datetime.timedelta(days=3000))
 
 
 

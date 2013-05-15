@@ -358,8 +358,6 @@ class Report(BaseClassConfig):
         """Calculating IRR for project and owners, using numpy.IRR function
         both Montly and Yearly values
         """
-        #print self.fcf_owners.values()
-
         fcf_owners_values = get_only_digits(self.fcf_owners)
         fcf_project_values = get_only_digits(self.fcf_project)
 
@@ -368,9 +366,9 @@ class Report(BaseClassConfig):
 
         self.irr_owners = irr(fcf_owners_values)
         self.irr_project = irr(fcf_project_values)
-
         self.irr_owners_y = irr(fcf_owners_values_y)
         self.irr_project_y = irr(fcf_project_y)
+
 
         self.fcf_owners[PROJECT_START] = "IRR = %s" % self.irr_owners
         self.fcf_project[PROJECT_START] = "IRR = %s" % self.irr_project

@@ -13,16 +13,8 @@ from constants import TESTMODE
 from collections import OrderedDict
 from annex import get_configs
 
-class EnergyModule(BaseClassConfig):
-
-    def __init__(self, config_module):
-        BaseClassConfig.__init__(self, config_module)
-        self.loadConfig()
-        self.loadInputs()
-        self.calculateInsolations()
-
-    def loadConfig(self, _filename='em_config.ini'):
-        """Reads module config file"""
+class EnergyModuleConfigReader():
+    def __init__(self, _filename='em_config.ini'):
         _config = ConfigParser.ConfigParser()
         _filepath = os.path.join(os.getcwd(), 'configs', _filename)
         _config.read(_filepath)
@@ -30,7 +22,18 @@ class EnergyModule(BaseClassConfig):
         self.mean = _config.getfloat('NormalDistribution', 'mean')
         self.stdev = _config.getfloat('NormalDistribution', 'stdev')
 
-        self.configs = get_configs(locals())
+        self.configs = get_configs(self.__dict__)
+
+    def getConfigsValues(self):
+        return  self.configs
+
+class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
+
+    def __init__(self, config_module):
+        BaseClassConfig.__init__(self, config_module)
+        EnergyModuleConfigReader.__init__(self)
+        self.loadInputs()
+        self.calculateInsolations()
 
     def getRandomFactor(self):
         """return random factor with normal distribution"""
@@ -141,8 +144,8 @@ if __name__ == '__main__':
     em = EnergyModule(mainconfig)
 
     #print em.generatePrimaryEnergyAvaialbilityLifetime()
-    start_date = datetime.date(2000, 1, 1)
-    end_date = datetime.date(2001, 12, 31)
+    start_date = datetime.date(2013, 1, 1)
+    end_date = datetime.date(2013, 12, 31)
     em.outputPrimaryEnergy(start_date, end_date)
     #print (end_date - start_date).days
 

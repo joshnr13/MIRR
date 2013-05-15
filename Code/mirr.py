@@ -83,7 +83,7 @@ class Interface():
     def run_simulations(self):
         """Running simulation and saving results"""
         default_simulations_number = MainConfig().getSimulationNumber()
-        simulations_number = get_input_int(text="Please select number of simulations (or press enter to default %s) :: " %default_simulations_number, default=default_simulations_number)
+        simulations_number = get_input_int(text="Please select number of iterations (or press enter to default %s): " %default_simulations_number, default=default_simulations_number)
         irr_values =  run_all_iterations(simulations_number)
         if irr_values:
             save_irr_values(irr_values[:])

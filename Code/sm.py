@@ -10,12 +10,9 @@ from annex import add_x_years, add_x_months, get_configs, float_range
 from constants import TESTMODE
 from base_class import BaseClassConfig
 
-class SubsidyModule(BaseClassConfig):
-    def __init__(self, config_module):
-        BaseClassConfig.__init__(self, config_module)
-        self.loadConfig()
 
-    def loadConfig(self, _filename='sm_config.ini'):
+class SubsidyModuleConfigReader():
+    def __init__(self, _filename='sm_config.ini'):
         """Reads module config file"""
         _config = ConfigParser.ConfigParser()
         _filepath = os.path.join(os.getcwd(), 'configs', _filename)
@@ -40,6 +37,11 @@ class SubsidyModule(BaseClassConfig):
 
         self.configs = get_configs(locals())
 
+class SubsidyModule(BaseClassConfig, SubsidyModuleConfigReader):
+    def __init__(self, config_module):
+        BaseClassConfig.__init__(self, config_module)
+        SubsidyModuleConfigReader.__init__(self)
+
     def subsidyProduction(self, date):
         """return subsidy in EUR for production 1Kwh on given @date"""
         if date >= self.first_day_subside and date <= self.last_day_subside:
@@ -47,3 +49,7 @@ class SubsidyModule(BaseClassConfig):
         else:
             return 0
 
+
+if __name__ == '__main__':
+    from main_config_reader import MainConfig
+    s = SubsidyModule(MainConfig())

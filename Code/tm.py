@@ -12,14 +12,8 @@ from main_config_reader import MainConfig
 from base_class import BaseClassConfig
 from annex import get_configs
 
-class TechnologyModule(BaseClassConfig):
-    def __init__(self, config_module, energy_module):
-        BaseClassConfig.__init__(self, config_module)
-        self.energy_module = energy_module
-        self.loadConfig()
-        self.assembleSystem()
-
-    def loadConfig(self, _filename='tm_config.ini'):
+class TechnologyModuleConfigReader():
+    def __init__(self, _filename='tm_config.ini'):
         """Reads module config file"""
         _config = ConfigParser.ConfigParser()
         _filepath = os.path.join(os.getcwd(), 'configs', _filename)
@@ -38,8 +32,17 @@ class TechnologyModule(BaseClassConfig):
         self.inverter_power_efficiency = _config.getfloat('Equipment', 'inverter_power_efficiency') / 100
         self.network_available_probability = _config.getfloat('Network', 'network_available_probability') / 100
 
-        self.configs = get_configs(locals())
+        self.configs = get_configs(self.__dict__)
 
+    def getConfigsValues(self):
+        return  self.configs
+
+class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
+    def __init__(self, config_module, energy_module):
+        BaseClassConfig.__init__(self, config_module)
+        TechnologyModuleConfigReader.__init__(self)
+        self.energy_module = energy_module
+        self.assembleSystem()
 
     def generateElectiricityProduction(self, date):
         """based on insolation generates electricity production values for each day
@@ -218,18 +221,14 @@ class EquipmentGroups():
     def get_groups(self):
         return  self.groups
 
-
-
-
-
 if __name__ == '__main__':
     mainconfig = MainConfig()
     em = EnergyModule(mainconfig)
     tm = TechnologyModule(mainconfig, em)
 
     #print em.generatePrimaryEnergyAvaialbilityLifetime()
-    start_date = datetime.date(2000, 1, 1)
-    end_date = datetime.date(2001, 12, 31)
+    start_date = datetime.date(2013, 1, 1)
+    end_date = datetime.date(2013, 12, 31)
     tm.outputElectricityProduction(start_date, end_date)
 
     tm.print_equipment()
