@@ -8,24 +8,10 @@ import numpy
 import ConfigParser
 import os
 from base_class import BaseClassConfig
-from main_config_reader import MainConfig
+from config_readers import MainConfig, EnergyModuleConfigReader
 from constants import TESTMODE
 from collections import OrderedDict
 from annex import get_configs
-
-class EnergyModuleConfigReader():
-    def __init__(self, _filename='em_config.ini'):
-        _config = ConfigParser.ConfigParser()
-        _filepath = os.path.join(os.getcwd(), 'configs', _filename)
-        _config.read(_filepath)
-
-        self.mean = _config.getfloat('NormalDistribution', 'mean')
-        self.stdev = _config.getfloat('NormalDistribution', 'stdev')
-
-        self.configs = get_configs(self.__dict__)
-
-    def getConfigsValues(self):
-        return  self.configs
 
 class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 

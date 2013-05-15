@@ -8,7 +8,7 @@ from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
 from database import get_values_from_db
 from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts
-from main_config_reader import MainConfig
+from config_readers import MainConfig
 from _mirr import Mirr
 
 commands = OrderedDict()

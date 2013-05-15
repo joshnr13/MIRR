@@ -9,51 +9,9 @@ from em import EnergyModule
 from sm import SubsidyModule
 from annex import Annuitet, getDaysNoInMonth, years_between_1Jan, months_between
 from annex import add_x_years, month_number_days, last_day_next_month, get_configs
-from main_config_reader import MainConfig
+from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
 
-
-class EconomicModuleConfigReader():
-    def __init__(self,  _filename='ecm_config.ini'):
-        """Reads module config file
-        @self.insuranceLastDayEquipment - last day when we need to pay for insurance
-        """
-        _config = ConfigParser.ConfigParser()
-        _filepath = os.path.join(os.getcwd(), 'configs', _filename)
-        _config.read(_filepath)
-
-        self.tax_rate = _config.getfloat('Taxes', 'tax_rate') / 100
-        self.administrativeCosts = _config.getfloat('Costs', 'administrativeCosts')
-        self.administrativeCostsGrowth_rate = _config.getfloat('Costs', 'administrativeCostsGrowth_rate') / 100
-        self.insuranceFeeEquipment = _config.getfloat('Costs', 'insuranceFeeEquipment') / 100
-        self.insuranceDurationEquipment = _config.getfloat('Costs', 'insuranceDurationEquipment')
-        self.insuranceLastDayEquipment = add_x_years(self.start_date_project, self.insuranceDurationEquipment)
-
-        self.developmentCostDuringPermitProcurement = _config.getfloat('Costs', 'developmentCostDuringPermitProcurement')
-        self.developmentCostDuringConstruction = _config.getfloat('Costs', 'developmentCostDuringConstruction')
-
-        self.market_price = _config.getfloat('Electricity', 'market_price')
-        self.price_groth_rate = _config.getfloat('Electricity', 'growth_rate') / 100
-
-        self.investments = _config.getfloat('Investments', 'investment_value')
-        self.investmentEquipment = _config.getfloat('Investments', 'investmentEquipment')
-
-        ######################### DEBT ########################################
-
-        self.debt = _config.getfloat('Debt', 'debt_value') * self.investments / 100
-        self.debt_rate = _config.getfloat('Debt', 'interest_rate') / 100
-        self.debt_years = _config.getint('Debt', 'periods')
-
-        self.capital = self.investments - self.debt
-
-        ######################### DEPRICATION #################################
-
-        self.deprication_duration = _config.getfloat('Amortization', 'duration')
-
-        self.configs = get_configs(self.__dict__)
-
-    def getConfigsValues(self):
-        return  self.configs
 
 class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 

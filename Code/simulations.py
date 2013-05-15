@@ -7,7 +7,7 @@ from _mirr import Mirr
 from annex import get_only_digits, convert_value, convert2excel, uniquify_filename, transponse_csv
 from collections import OrderedDict
 from database import get_connection, get_values_from_db
-from main_config_reader import MainConfig
+from config_readers import MainConfig
 from report_output import ReportOutput
 from math import isnan
 from constants import report_directory
@@ -34,13 +34,13 @@ class Simulation():
         self.r = self.i.getReportModule()
         self.o = self.i.getOutputModule()
 
-        self.main_configs = self.config.getConfigValues()
-        self.ecm_configs = self.ecm.getConfigValues()
-        self.tm_configs = self.tm.getConfigValues()
-        self.sm_configs = self.sm.getConfigValues()
-        self.em_configs = self.em.getConfigValues()
+        self.main_configs = self.config.getConfigsValues()
+        self.ecm_configs = self.ecm.getConfigsValues()
+        self.tm_configs = self.tm.getConfigsValues()
+        self.sm_configs = self.sm.getConfigsValues()
+        self.em_configs = self.em.getConfigsValues()
 
-
+        print
         #self.inputs = self.em.getInputs()
 
     def db_insert_results(self):

@@ -526,7 +526,7 @@ def _discf(rate, pmts, ):
         dcf.append(cf*(1+rate)**(-i))
     return np.add.reduce(dcf)
 
-def irr(pmts, guess=0.1):
+def irr(pmts, guess=0.001):
     """
     IRR function that accepts irregularly spaced cash flows
     @values: array_like
@@ -534,11 +534,11 @@ def irr(pmts, guess=0.1):
     @Returns: Float
           Internal Rate of Return
     """
-    pmts = np.around(pmts, decimals=4)
+    #pmts = np.around(pmts, decimals=4)
     #pmts = np.float64(pmts)
     f = lambda x: _discf(x, pmts)
     try:
-        return newton(f, guess, maxiter=100, tol=0.001)
+        return newton(f, guess, maxiter=100, tol=1E-10)
     except RuntimeError:
         return float('Nan')
 

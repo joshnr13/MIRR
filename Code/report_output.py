@@ -175,7 +175,7 @@ if __name__ == '__main__':
     from em import EnergyModule
     from sm import SubsidyModule
     from ecm import EconomicModule
-    from main_config_reader import MainConfig
+    from config_readers import MainConfig
     from report import Report
 
     mainconfig = MainConfig()

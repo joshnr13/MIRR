@@ -8,34 +8,10 @@ import random
 import ConfigParser
 import os
 from em import EnergyModule
-from main_config_reader import MainConfig
+from config_readers import MainConfig, TechnologyModuleConfigReader
 from base_class import BaseClassConfig
 from annex import get_configs
 
-class TechnologyModuleConfigReader():
-    def __init__(self, _filename='tm_config.ini'):
-        """Reads module config file"""
-        _config = ConfigParser.ConfigParser()
-        _filepath = os.path.join(os.getcwd(), 'configs', _filename)
-        _config.read(_filepath)
-
-        self.electr_conv_factor = _config.getfloat('Electricity', 'ConversionFactor')
-
-        self.total_power = _config.getfloat('Equipment', 'total_power')
-        self.one_module_power = _config.getfloat('Equipment', 'one_module_power')
-        self.modules_per_inverter = int(_config.getfloat('Equipment', 'modules_per_inverter'))
-        self.module_cost = _config.getfloat('Equipment', 'module_cost')
-        self.inverter_cost = _config.getfloat('Equipment', 'inverter_cost')
-        self.module_reliability = _config.getfloat('Equipment', 'module_reliability') / 100
-        self.inverter_reliability = _config.getfloat('Equipment', 'inverter_reliability') / 100
-        self.module_power_efficiency = _config.getfloat('Equipment', 'module_power_efficiency') / 100
-        self.inverter_power_efficiency = _config.getfloat('Equipment', 'inverter_power_efficiency') / 100
-        self.network_available_probability = _config.getfloat('Network', 'network_available_probability') / 100
-
-        self.configs = get_configs(self.__dict__)
-
-    def getConfigsValues(self):
-        return  self.configs
 
 class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def __init__(self, config_module, energy_module):
@@ -225,10 +201,11 @@ if __name__ == '__main__':
     mainconfig = MainConfig()
     em = EnergyModule(mainconfig)
     tm = TechnologyModule(mainconfig, em)
+    print tm.getConfigsValues()
 
     #print em.generatePrimaryEnergyAvaialbilityLifetime()
     start_date = datetime.date(2013, 1, 1)
     end_date = datetime.date(2013, 12, 31)
-    tm.outputElectricityProduction(start_date, end_date)
+    #tm.outputElectricityProduction(start_date, end_date)
 
-    tm.print_equipment()
+    #tm.print_equipment()

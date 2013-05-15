@@ -16,7 +16,7 @@ from em import EnergyModule
 from sm import SubsidyModule
 from ecm import EconomicModule
 from base_class import BaseClassConfig
-from main_config_reader import MainConfig
+from config_readers import MainConfig
 
 
 class Report(BaseClassConfig):
