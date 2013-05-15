@@ -175,7 +175,7 @@ def run_all_iterations(simulation_number=None):
         last_report = run_one_iteration()
         irrs.append(last_report.r.irr_owners)
 
-    last_report.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
+    #last_report.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
     good_irrs = [irr for irr in irrs if not isnan(irr)]
 
     return good_irrs
