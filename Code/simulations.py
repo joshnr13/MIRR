@@ -11,6 +11,8 @@ from config_readers import MainConfig
 from report_output import ReportOutput
 from constants import report_directory
 from numpy import corrcoef, around, isnan
+from pylab import *
+import matplotlib.colors as mcolors
 
 class Simulation():
 
@@ -219,7 +221,7 @@ def save_irr_values(values):
     print "CSV Report outputed to file %s" % (xls_output_filename)
 
 
-def calc_corellation(number=10, yearly=False):
+def calc_correlation(number=100, yearly=False):
     """
     - permit_procurement_duration+
     - construction_duration+
@@ -242,30 +244,59 @@ def calc_corellation(number=10, yearly=False):
     cor = corrcoef(results)
     rounded_values = around(cor, decimals=3)
     print ("Corellation using last %s values from DB" % number)
+
+    values = []
+    field_values = {}
     for i, field in enumerate(fields):
         if field != main:
-            print "Correllation between %s and %s = %s" % (main, field, rounded_values[main_index, i])
-    """
-        >>> from numpy import *
-    >>> a = array([1,2,3,4,6,7,8,9])
-    >>> b = array([2,4,6,8,10,12,13,15])
-    >>> c = array([-1,-2,-2,-3,-4,-6,-7,-8])
-    >>> corrcoef([a,b,c])
-    array([[ 1.        ,  0.99535001, -0.9805214 ],
-           [ 0.99535001,  1.        , -0.97172394],
-           [-0.9805214 , -0.97172394,  1.        ]])
-    Here we can get the correlation coefficient of a,b (0.995), a,c (-0.981) and b,c (-0.972) at once.
-    The two-data-set case is just a special case of N-data-set class.
-    And probably it's better to keep the same return type.
-    Since the "one value" can be obtained simply with
-    >>> corrcoef(a,b)[1,0]
-    0.99535001355530017
-    """
+            value = rounded_values[main_index, i]
+            print "Correllation between %s and %s = %s" % (main, field, value)
+            values.append(value)
+            field_values[field] = value
 
+    fig = figure(1)
+    ax = fig.add_subplot(111)
+
+    v1 = list(filter(lambda x : x>0, values))
+    v2 = list(filter(lambda x : x<=0, values))
+
+    v1.sort(reverse=True)
+    v2.sort(reverse=True)
+
+    pos1 = range(len(v1))
+    pos2 = range(len(v1), len(v1)+len(v2))
+
+    ax.barh(pos1,v1, align='center', color='g')
+    ax.barh(pos2,v2, align='center', color='r')
+
+    y_names = sorted(field_values.items(), key=lambda x: x[1], reverse=True)
+    y_names = [g[0] for g in y_names]
+    yticks(pos1+pos2, y_names)
+    xlabel('correlation coefficient')
+    title('Correlation between IRR and stochastic values, using %s values' %len(results[0]))
+    grid(True)
+    xlim(-1,1)
+    ylim(-0.5, 3.5)
+    #setp(ax.get_yticklabels(), fontsize=12,)
+
+    fig.subplots_adjust(left=0.35)
+
+    for (i,j) in zip(v1,pos1):
+        value = i
+        rel_position = len(str(value))
+        annotate(value, xy=(i,j), color='green', weight='bold', size=12,xytext=(rel_position, 00), textcoords='offset points',)
+
+    for (i,j) in zip(v2,pos2):
+        value = i
+        rel_position = -len(str(value)) * 8
+        annotate(value, xy=(i,j), color='red', weight='bold', size=12,xytext=(rel_position, 00), textcoords='offset points',)
+
+
+    show()
 
 if __name__ == '__main__':
     #run_one_iteration()
     #run_all_iterations()
-    calc_correllation()
+    calc_correlation()
 
 

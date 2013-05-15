@@ -7,9 +7,11 @@ import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
 from database import get_values_from_db
-from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts, calc_corellation
+from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts, calc_correlation
 from config_readers import MainConfig
 from _mirr import Mirr
+from numpy import isnan
+from numbers import Number
 
 commands = OrderedDict()
 i = 0
@@ -21,7 +23,7 @@ commands['4'] = 'charts'
 commands['5'] = 'print_equipment'
 commands['6'] = 'outputPrimaryEnergy'
 commands['7'] = 'outputElectricityProduction'
-commands['8'] = 'irr_corellations'
+commands['8'] = 'irr_correlations'
 
 #commands['99'] = 'read_db'
 
@@ -95,17 +97,22 @@ class Interface():
         field = 'irr_owners'
         default_simulations_number = MainConfig().getSimulationNumber()
         simulations_number = get_input_int(text="Please select number of previous irrs for plotting distribution (default %s) :: " %default_simulations_number, default=default_simulations_number)
-        irr_values = get_values_from_db(number=simulations_number, field=[field], yearly=False)[field]
+        irr_values = get_values_from_db(number=simulations_number, fields=[field], yearly=False)[field]
+
+        irr_values = filter(lambda x: not isnan(x), irr_values)
 
         if irr_values:
+            print irr_values
             show_irr_charts(irr_values)
             save_irr_values(irr_values)
         else :
             print "All IRR values was Nan (cant be calculated, please check FCF , because IRR cannot be negative)"
             return []
 
-    def irr_corellations(self):
-        calc_corellation()
+    def irr_correlations(self):
+        default_number = 100
+        number = get_input_int(text="Please select last database records to use for correlation (or press enter to default %s): " %default_number, default=default_number)
+        calc_correlation(number)
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")

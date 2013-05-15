@@ -10,6 +10,7 @@ import datetime as dt
 import errno
 import types
 import numpy as np
+import sys
 
 from functools import partial
 from math import floor
@@ -20,12 +21,16 @@ from numbers import Number
 from decimal import Decimal
 from scipy.optimize import newton
 
+
 try:
     from openpyxl import Workbook
     from openpyxl.cell import get_column_letter
 except ImportError:
     print "No Excel support for reports"
 
+class NullDevice():
+    def write(self, s):
+        pass
 
 class cached_property(object):
     def __init__(self, func):
@@ -538,7 +543,10 @@ def irr(pmts, guess=0.001):
     #pmts = np.float64(pmts)
     f = lambda x: _discf(x, pmts)
     try:
-        return newton(f, guess, maxiter=100, tol=1E-10)
+        sys.stderr = NullDevice()
+        value = newton(f, guess, maxiter=100, tol=10**(-10))
+        sys.stderr = sys.__stderr__
+        return value
     except RuntimeError:
         return float('Nan')
 
