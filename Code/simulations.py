@@ -9,8 +9,8 @@ from collections import OrderedDict
 from database import get_connection, get_values_from_db
 from config_readers import MainConfig
 from report_output import ReportOutput
-from math import isnan
 from constants import report_directory
+from numpy import corrcoef, around, isnan
 
 class Simulation():
 
@@ -219,24 +219,32 @@ def save_irr_values(values):
     print "CSV Report outputed to file %s" % (xls_output_filename)
 
 
-def calc_correllation():
+def calc_corellation(number=10, yearly=False):
     """
     - permit_procurement_duration+
     - construction_duration+
     - subsidy duration+
     - kWh_subsidy+
-    #line["ecm_configs"] = self.ecm_configs
-    #line["tm_configs"] = self.tm_configs
-    #line["em_configs"] = self.em_configs
+    - irr_project
     """
     fields = [
     "main_configs.real_permit_procurement_duration",
     "main_configs.real_construction_duration",
     "sm_configs.kWh_subsidy",
     "sm_configs.delay",
+    'irr_project'
+
     ]
-    fields = ["sm_configs"]
-    print get_values_from_db(number=10, fields=fields, yearly=False)
+    results = get_values_from_db(number, fields, yearly).values()
+    main = 'irr_project'
+    main_index = 4
+
+    cor = corrcoef(results)
+    rounded_values = around(cor, decimals=3)
+    print ("Corellation using last %s values from DB" % number)
+    for i, field in enumerate(fields):
+        if field != main:
+            print "Correllation between %s and %s = %s" % (main, field, rounded_values[main_index, i])
     """
         >>> from numpy import *
     >>> a = array([1,2,3,4,6,7,8,9])
@@ -246,17 +254,18 @@ def calc_correllation():
     array([[ 1.        ,  0.99535001, -0.9805214 ],
            [ 0.99535001,  1.        , -0.97172394],
            [-0.9805214 , -0.97172394,  1.        ]])
-
-    Here we can get the correlation coefficient of a,b (0.995), a,c (-0.981) and b,c (-0.972) at once. The two-data-set case is just a special case of N-data-set class. And probably it's better to keep the same return type. Since the "one value" can be obtained simply with
-
+    Here we can get the correlation coefficient of a,b (0.995), a,c (-0.981) and b,c (-0.972) at once.
+    The two-data-set case is just a special case of N-data-set class.
+    And probably it's better to keep the same return type.
+    Since the "one value" can be obtained simply with
     >>> corrcoef(a,b)[1,0]
     0.99535001355530017
     """
 
 
 if __name__ == '__main__':
-    run_one_iteration()
+    #run_one_iteration()
     #run_all_iterations()
-    #calc_correllation()
+    calc_correllation()
 
 

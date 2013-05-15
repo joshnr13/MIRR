@@ -35,7 +35,7 @@ def test_database_read():
 
 
 def get_values_from_db(number, fields, yearly):
-    """Gets from DB and shows last @number of IRRs distribution
+    """Gets from DB and shows LAST @number of fields
     - selected by list of @fields, any type - example ['irr_owners', 'irr_project', 'main_configs.lifetime']
     - using yearly suffix
     - and limited to @number

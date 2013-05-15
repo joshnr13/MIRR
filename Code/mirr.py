@@ -7,7 +7,7 @@ import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
 from database import get_values_from_db
-from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts
+from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts, calc_corellation
 from config_readers import MainConfig
 from _mirr import Mirr
 
@@ -21,6 +21,7 @@ commands['4'] = 'charts'
 commands['5'] = 'print_equipment'
 commands['6'] = 'outputPrimaryEnergy'
 commands['7'] = 'outputElectricityProduction'
+commands['8'] = 'irr_corellations'
 
 #commands['99'] = 'read_db'
 
@@ -102,6 +103,9 @@ class Interface():
         else :
             print "All IRR values was Nan (cant be calculated, please check FCF , because IRR cannot be negative)"
             return []
+
+    def irr_corellations(self):
+        calc_corellation()
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")
