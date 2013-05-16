@@ -227,7 +227,7 @@ def get_pos_no(value, sorted_list, used):
             return i
 
 
-def calc_correlation(number=100, yearly=False):
+def calc_correlation(number=30, yearly=False):
     """
     - permit_procurement_duration+
     - construction_duration+
@@ -240,12 +240,13 @@ def calc_correlation(number=100, yearly=False):
     "main_configs.real_construction_duration",
     "sm_configs.kWh_subsidy",
     "sm_configs.delay",
+    "sm_configs.duration",
     'irr_project'
-
     ]
+
     results = get_values_from_db(number, fields, yearly).values()
     main = 'irr_project'
-    main_index = 4
+    main_index = 5
 
     cor = corrcoef(results)
     rounded_values = around(cor, decimals=3)
@@ -257,6 +258,8 @@ def calc_correlation(number=100, yearly=False):
         if field != main:
             value = rounded_values[main_index, i]
             print "Correllation between %s and %s = %s" % (main, field, value)
+            if isnan(value):
+                value = 0
             values.append(value)
             field_values[field] = value
 
@@ -272,18 +275,22 @@ def calc_correlation(number=100, yearly=False):
     used = []
     pos1 = [get_pos_no(value, sorted_list, used) for value in v1]
     pos2 = [get_pos_no(value, sorted_list, used) for value in v2]
+    print v1, pos1
+    print v2, pos2
 
     ax.barh(pos1,v1, align='center', color='g')
     ax.barh(pos2,v2, align='center', color='r')
 
     y_names = sorted(field_values.items(), key=lambda x: abs(x[1]), reverse=True)
     y_names = [g[0] for g in y_names]
-    yticks(pos1+pos2, y_names)
+    print y_names
+
+    yticks(list(reversed(range(len(y_names)))), y_names)
     xlabel('correlation coefficient')
     title('Correlation between IRR and stochastic values, using %s values' %len(results[0]))
     grid(True)
     xlim(-1,1)
-    ylim(-0.5, 3.5)
+    ylim(-0.5, len(field_values)-0.5)
     #setp(ax.get_yticklabels(), fontsize=12,)
 
     fig.subplots_adjust(left=0.35)
