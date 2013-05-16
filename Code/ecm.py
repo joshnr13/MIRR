@@ -20,7 +20,14 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         EconomicModuleConfigReader.__init__(self)
         self.technology_module = technology_module
         self.subside_module = subside_module
+        self.calc_config_values()
         self.calcDebtPercents()
+
+    def calc_config_values(self):
+        self.investments = self.technology_module.getEquipmentInvestmentCosts()
+        self.investmentEquipment = self.investments
+        self.debt = self.debt_part * self.investments
+        self.capital = self.investments - self.debt
 
     def isConstructionStarted(self, date):
         """return  True if we recieved all permits and started but not finished

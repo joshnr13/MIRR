@@ -129,18 +129,34 @@ class TechnologyModuleConfigReader():
         _filepath = os.path.join(os.getcwd(), 'configs', _filename)
         _config.read(_filepath)
 
+        ######################## BASE ###################
         self.electr_conv_factor = _config.getfloat('Electricity', 'ConversionFactor')
-
-        self.total_power = _config.getfloat('Equipment', 'total_power')
-        self.one_module_power = _config.getfloat('Equipment', 'one_module_power')
-        self.modules_per_inverter = int(_config.getfloat('Equipment', 'modules_per_inverter'))
-        self.module_cost = _config.getfloat('Equipment', 'module_cost')
-        self.inverter_cost = _config.getfloat('Equipment', 'inverter_cost')
-        self.module_reliability = _config.getfloat('Equipment', 'module_reliability') / 100
-        self.inverter_reliability = _config.getfloat('Equipment', 'inverter_reliability') / 100
-        self.module_power_efficiency = _config.getfloat('Equipment', 'module_power_efficiency') / 100
-        self.inverter_power_efficiency = _config.getfloat('Equipment', 'inverter_power_efficiency') / 100
+        self.groups_number = _config.getint('Equipment', 'groups_number')
+        self.module_power = _config.getfloat('Equipment', 'module_power')
+        self.modules_in_group = _config.getint('Equipment', 'modules_in_group')
+        self.transformers_number = _config.getint('Equipment', 'transformers_number')
         self.network_available_probability = _config.getfloat('Network', 'network_available_probability') / 100
+
+        ######################## PRICE ###################
+        self.module_price = _config.getfloat('Price', 'module_price')
+        self.inverter_price = _config.getfloat('Price', 'inverter_price')
+        self.transformer_price = _config.getfloat('Price', 'transformer_price')
+        self.documentation_price = _config.getfloat('Price', 'documentation_price')
+        self.connection_grip_price = _config.getfloat('Price', 'connection_grip_price')
+
+        ####################### RELIABILTY ####################
+        self.module_reliability = _config.getfloat('Reliability', 'module_reliability') / 100
+        self.inverter_reliability = _config.getfloat('Reliability', 'inverter_reliability') / 100
+        self.transformer_reliability = _config.getfloat('Reliability', 'transformer_reliability') / 100
+
+        ####################### EFFICIENCY ####################
+        self.module_power_efficiency = _config.getfloat('Efficiency', 'module_power_efficiency') / 100
+        self.inverter_power_efficiency = _config.getfloat('Efficiency', 'inverter_power_efficiency') / 100
+        self.transformer_power_efficiency = _config.getfloat('Efficiency', 'transformer_power_efficiency') / 100
+
+
+        ####################### TOTAL_POWER ####################
+        self.total_power = 10000
 
         self.configs = get_configs(self.__dict__)
 
@@ -171,17 +187,17 @@ class EconomicModuleConfigReader():
         self.market_price = _config.getfloat('Electricity', 'market_price')
         self.price_groth_rate = _config.getfloat('Electricity', 'growth_rate') / 100
 
-        self.investments = _config.getfloat('Investments', 'investment_value')
-        self.investmentEquipment = _config.getfloat('Investments', 'investmentEquipment')
+        ######################### INVESTMENTS #############################################
+
+        #self.investments = _config.getfloat('Investments', 'investment_value')
+        #self.investmentEquipment = _config.getfloat('Investments', 'investmentEquipment')
 
         ######################### DEBT ########################################
 
-        self.debt = _config.getfloat('Debt', 'debt_value') * self.investments / 100
+        self.debt_part = _config.getfloat('Debt', 'debt_value') / 100
         self.debt_rate = _config.getfloat('Debt', 'interest_rate') / 100
         self.debt_rate_short = _config.getfloat('Debt', 'interest_rate_short') / 100
         self.debt_years = _config.getint('Debt', 'periods')
-
-        self.capital = self.investments - self.debt
 
         ######################### DEPRICATION #################################
 
