@@ -244,7 +244,6 @@ class Report(BaseClassConfig):
             self.net_earning_y[Y] += self.net_earning[M]
             self.tax_y[Y] += self.tax[M]
             self.retained_earning_y[Y] += self.retained_earning[M]
-            self.control_y[Y] += self.control[M]
             self.fcf_owners_y[Y] += self.fcf_owners[M]
             self.fcf_project_y[Y] += self.fcf_project[M]
 
@@ -276,6 +275,7 @@ class Report(BaseClassConfig):
         prev_un_er =  self.unallocated_earning_y[Y1] if Y1 >= self.start_date_project else 0
         prev_ret_er =  self.retained_earning_y[Y1] if Y1 >= self.start_date_project else 0
         self.unallocated_earning_y[Y] = prev_un_er + prev_ret_er
+        self.control_y[Y] = self.asset_y[Y] - self.liability_y[Y]
 
     def get_prev_month_value(self, obj, date):
         """Get previous month value of @obj with current date @date"""
