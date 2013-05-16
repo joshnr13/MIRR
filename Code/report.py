@@ -338,8 +338,7 @@ class Report(BaseClassConfig):
                                    self.iterest_paid[M] - self.asset_bank_account[M]
                                    )
 
-            self.fcf_owners[M] = - self.get_delta_cur_prev(self.paid_in_capital, M)
-
+            self.fcf_owners[M] = - self.paid_in_capital[M]
 
         else:
 
@@ -511,37 +510,29 @@ class Report(BaseClassConfig):
         Revenue is paid in 60 days - so at the end of the month you have for two months of recievables
         """
         prev1_date = last_day_previous_month(date)
-        prev2_date = last_day_previous_month(prev1_date)
 
         if prev1_date < self.start_date_project:
             prev1_value = 0
-            prev2_value = 0
-        elif prev2_date < self.start_date_project:
-            prev1_value = self.revenue[prev1_date]
-            prev2_value = 0
+            cur_value = self.revenue[date]
         else :
-            prev1_value = self.revenue[prev1_date]
-            prev2_value = self.revenue[prev2_date]
+            prev1_value = self.cost[prev1_date]
+            cur_value = self.revenue[date]
 
-        return  prev1_value + prev2_value
+        return  prev1_value + cur_value
 
     def _calc_short_term_debt_suppliers(self,  date):
         """Calculation Monthly Short-Term Debt to Suppliers using same rule as for operating_receivable
         """
         prev1_date = last_day_previous_month(date)
-        prev2_date = last_day_previous_month(prev1_date)
 
         if prev1_date < self.start_date_project:
             prev1_value = 0
-            prev2_value = 0
-        elif prev2_date < self.start_date_project:
+            cur_value = self.cost[date]
+        else:
             prev1_value = self.cost[prev1_date]
-            prev2_value = 0
-        else :
-            prev1_value = self.cost[prev1_date]
-            prev2_value = self.cost[prev2_date]
+            cur_value = self.cost[date]
 
-        return  prev1_value + prev2_value
+        return  prev1_value + cur_value
 
     def calc_report_monthly_values2(self, func):
         """Calculates monthly values using 2 dates -first_day and last_day in month
