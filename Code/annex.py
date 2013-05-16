@@ -415,6 +415,7 @@ def get_input_int(default=None, text=''):
 def get_only_digits(obj):
     return  filter(lambda x :isinstance(x, Number), obj.values())
 
+
 class Annuitet():
     def __init__(self,summa,yrate,yperiods, start_date):
         """

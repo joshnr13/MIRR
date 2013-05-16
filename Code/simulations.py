@@ -4,15 +4,14 @@ import pylab
 import csv
 
 from _mirr import Mirr
-from annex import get_only_digits, convert_value, convert2excel, uniquify_filename, transponse_csv
+from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv
 from collections import OrderedDict
-from database import get_connection, get_values_from_db
+from database import get_connection, get_values_from_db, get_rowvalue_from_db
 from config_readers import MainConfig
 from report_output import ReportOutput
 from constants import report_directory
 from numpy import corrcoef, around, isnan
 from pylab import *
-import matplotlib.colors as mcolors
 
 class Simulation():
 
@@ -221,6 +220,13 @@ def save_irr_values(values):
     print "CSV Report outputed to file %s" % (xls_output_filename)
 
 
+def get_pos_no(value, sorted_list, used):
+    for i, v in enumerate(sorted_list):
+        if v == value and i not in used:
+            used.append(i)
+            return i
+
+
 def calc_correlation(number=100, yearly=False):
     """
     - permit_procurement_duration+
@@ -259,17 +265,18 @@ def calc_correlation(number=100, yearly=False):
 
     v1 = list(filter(lambda x : x>0, values))
     v2 = list(filter(lambda x : x<=0, values))
+    v1.sort(key=abs, reverse=True)
+    v2.sort(key=abs, reverse=True)
 
-    v1.sort(reverse=True)
-    v2.sort(reverse=True)
-
-    pos1 = range(len(v1))
-    pos2 = range(len(v1), len(v1)+len(v2))
+    sorted_list = sorted(values, key=abs)
+    used = []
+    pos1 = [get_pos_no(value, sorted_list, used) for value in v1]
+    pos2 = [get_pos_no(value, sorted_list, used) for value in v2]
 
     ax.barh(pos1,v1, align='center', color='g')
     ax.barh(pos2,v2, align='center', color='r')
 
-    y_names = sorted(field_values.items(), key=lambda x: x[1], reverse=True)
+    y_names = sorted(field_values.items(), key=lambda x: abs(x[1]), reverse=True)
     y_names = [g[0] for g in y_names]
     yticks(pos1+pos2, y_names)
     xlabel('correlation coefficient')
@@ -291,12 +298,39 @@ def calc_correlation(number=100, yearly=False):
         rel_position = -len(str(value)) * 8
         annotate(value, xy=(i,j), color='red', weight='bold', size=12,xytext=(rel_position, 00), textcoords='offset points',)
 
-
     show()
+
+def plot_charts(yearly=False):
+
+    fields = ['revenue', 'cost', 'ebitda', 'deprication']
+    #results = get_values_from_db(1, fields, yearly)
+
+    #revenue = get_only_digits2(results['revenue'][0])
+    #cost = get_only_digits2(results['cost'][0])
+    #ebitda = get_only_digits2(results['ebitda'][0])
+    #deprication = get_only_digits2(results['deprication'][0])
+    revenue, cost, ebitda, deprication = get_rowvalue_from_db(fields, yearly)
+
+    pylab.plot(revenue, label='REVENUE')
+    pylab.plot(cost, label='COST')
+    pylab.plot(ebitda, label='EBITDA')
+    pylab.plot(deprication, label='deprication')
+    #pylab.plot(net_earning, label='net_earning')
+
+    pylab.xlabel("months")
+    pylab.ylabel("EUROs")
+    pylab.legend()
+    pylab.grid(True, which="both",ls="-")
+    pylab.axhline()
+    pylab.axvline()
+    pylab.title("Monthly data")
+    pylab.show()
+
 
 if __name__ == '__main__':
     #run_one_iteration()
     #run_all_iterations()
     calc_correlation()
+    #plot_charts()
 
 

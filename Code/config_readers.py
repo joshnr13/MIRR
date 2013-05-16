@@ -102,14 +102,17 @@ class SubsidyModuleConfigReader():
 
         self._kWh_subsidy_lower_limit = _config.getfloat('Subsidy', 'kWh_subsidy_lower_limit')
         self._kWh_subsidy_upper_limit = _config.getfloat('Subsidy', 'kWh_subsidy_upper_limit')
-        self.duration = _config.getfloat('Subsidy', 'duration')
+        self._duration_upper_limit = _config.getfloat('Subsidy', 'duration_upper_limit')
+        self._duration_lower_limit = _config.getfloat('Subsidy', 'duration_lower_limit')
 
         if TESTMODE:
             self.delay = 0
-            self.kWh_subsidy = (self._kWh_subsidy_lower_limit + self._kWh_subsidy_upper_limit) / 2
+            self.kWh_subsidy = (self._kWh_subsidy_lower_limit + self._kWh_subsidy_upper_limit) / 2.0
+            self.duration = (self.duration_upper_limit + self.duration_lower_limit) / 2.0
         else:
             self.delay = random.randrange(_delay_lower_limit, _delay_upper_limit+1)
-            self.kWh_subsidy = random.choice(float_range(self._kWh_subsidy_lower_limit ,self._kWh_subsidy_upper_limit, 0.01, True))
+            self.kWh_subsidy = random.choice(float_range(self._kWh_subsidy_lower_limit ,self._kWh_subsidy_upper_limit, 0,001, True))
+            self.duration = random.choice(random.randint(self.duration_upper_limit, self.duration_lower_limit))
 
         self.first_day_subside = add_x_months(self.last_day_construction+datetime.timedelta(days=1), self.delay)
         self.last_day_subside = add_x_months(self.first_day_subside, self.duration)

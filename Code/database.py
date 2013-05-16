@@ -2,6 +2,7 @@ import sys
 import  pymongo
 import pylab
 from collections import defaultdict
+from numbers import Number
 
 def get_connection():
     """get connection to db"""
@@ -34,6 +35,14 @@ def test_database_read():
         print "Unexpected error:", sys.exc_info()[0]
 
 
+def add_yearly_prefix(field, yearly):
+    if yearly:
+        if field.find('.') == -1:
+            field += '_y'
+            return field
+    return field
+
+
 def get_values_from_db(number, fields, yearly):
     """Gets from DB and shows LAST @number of fields
     - selected by list of @fields, any type - example ['irr_owners', 'irr_project', 'main_configs.lifetime']
@@ -49,8 +58,8 @@ def get_values_from_db(number, fields, yearly):
     get_values = {}
 
     for field in fields:
-        if yearly:
-            field += '_y'
+        field = add_yearly_prefix(field, yearly)
+        print field
         select_by[field] = { '$exists' : True }
         get_values[field] = True
 
@@ -60,6 +69,7 @@ def get_values_from_db(number, fields, yearly):
         values = defaultdict(list)
         for doc in results:
             for field in fields:
+                field = add_yearly_prefix(field, yearly)
                 if "." in field:
                     names = field.split('.')[::-1]
                     value = doc[names.pop()]
@@ -74,12 +84,38 @@ def get_values_from_db(number, fields, yearly):
 
     except:
         print "Unexpected error:", sys.exc_info()
-        return []
+        return {}
 
 
+def get_rowvalue_from_db(fields, yearly):
+    """Gets 1 LAST ROW from DB
+    - selected by list of @fields, any type - example ['irr_owners', 'irr_project', 'main_configs.lifetime']
+    - using yearly suffix
+    """
+    dic_values = get_values_from_db(1, fields, yearly)
+    print dic_values
+    result = []
+
+    for field in fields:
+        field = add_yearly_prefix(field, yearly)
+        value = dic_values[field]
+        row = filter(lambda x :isinstance(x, (Number, list)), value)
+        row = row[0]
+        if isinstance(row, list):
+            row = filter(lambda x :isinstance(x, Number), row)
+        result.append(row)
+
+    return result
 
 
+#def test():
+    #select_by =  {'irr_owners_y': {'$exists': True}, 'main_configs.lifetime_y': {'$exists': True}, 'irr_project_y': {'$exists': True}}
+    #get_values =
+    #sorted_order =
+    #number = 1
+    #results = collection.find(select_by, get_values).sort(sorted_order).limit(number)
 
 if __name__ == '__main__':
-    fields = ['irr_owners', 'irr_project', 'main_configs.lifetime']
-    print get_values_from_db(10, fields, False)
+    fields = ['irr_owners', 'irr_project', 'main_configs.lifetime', 'revenue']
+    print get_rowvalue_from_db( fields, True)
+    print get_rowvalue_from_db( fields, False)
