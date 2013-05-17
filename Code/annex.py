@@ -532,24 +532,30 @@ def _discf(rate, pmts, ):
         dcf.append(cf*(1+rate)**(-i))
     return np.add.reduce(dcf)
 
-def irr(pmts, guess=0.001):
-    """
-    IRR function that accepts irregularly spaced cash flows
-    @values: array_like
-          Contains the cash flows including the initial investment
-    @Returns: Float
-          Internal Rate of Return
-    """
-    #pmts = np.around(pmts, decimals=4)
-    #pmts = np.float64(pmts)
-    f = lambda x: _discf(x, pmts)
-    try:
-        sys.stderr = NullDevice()
-        value = newton(f, guess, maxiter=100, tol=10**(-10))
-        sys.stderr = sys.__stderr__
-        return value
-    except RuntimeError:
-        return float('Nan')
+#def irr(pmts, guess=0.01):
+    #"""
+    #IRR function that accepts irregularly spaced cash flows
+    #@values: array_like
+          #Contains the cash flows including the initial investment
+    #@Returns: Float
+          #Internal Rate of Return
+    #"""
+    ##pmts = np.around(pmts, decimals=4)
+    ##pmts = np.float64(pmts)
+    #f = lambda x: _discf(x, pmts)
+    #try:
+        #sys.stderr = NullDevice()
+        #value = newton(f, guess, maxiter=100, tol=10**(-10))
+        #sys.stderr = sys.__stderr__
+        #if value > 1:
+            #print "Too large IRR %s . Setting to zero" % value
+            #value = 0
+        #if value < 0.0001:
+            #print "Too low IRR %s . Setting to zero" % value
+            #value = 0
+        #return value
+    #except RuntimeError:
+        #return float('Nan')
 
 
 if __name__=="__main__":

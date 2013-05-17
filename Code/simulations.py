@@ -239,8 +239,8 @@ def calc_correlation(number=30, yearly=False):
     "main_configs.real_permit_procurement_duration",
     "main_configs.real_construction_duration",
     "sm_configs.kWh_subsidy",
-    "sm_configs.delay",
-    "sm_configs.duration",
+    "sm_configs.subsidy_delay",
+    "sm_configs.subsidy_duration",
     'irr_project'
     ]
 
@@ -250,10 +250,16 @@ def calc_correlation(number=30, yearly=False):
 
     cor = corrcoef(results)
     rounded_values = around(cor, decimals=3)
-    print ("Corellation using last %s values from DB" % number)
 
     values = []
     field_values = {}
+
+    if rounded_values.size  ==  0:
+        print "No needed values in Database. Please run simulations before!"
+        return
+    else:
+        print ("Corellation using last %s values from DB" % number)
+
     for i, field in enumerate(fields):
         if field != main:
             value = rounded_values[main_index, i]
@@ -335,7 +341,7 @@ def plot_charts(yearly=False):
 
 
 if __name__ == '__main__':
-    #run_one_iteration()
+    run_one_iteration()
     #run_all_iterations()
     calc_correlation()
     #plot_charts()
