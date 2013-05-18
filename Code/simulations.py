@@ -279,7 +279,7 @@ def get_correlation_values(main_field, number=30, yearly=False):
     results = get_values_from_db(number, fields, yearly).values()
     cor = corrcoef(results)
     rounded_values = around(cor, decimals=3)
-    number_values_used = len(results)
+    number_values_used = len(results[0])
 
     return  rounded_values, number_values_used
 

@@ -113,7 +113,6 @@ class Interface():
         irr_values = filter(lambda x: not isnan(x), irr_values)
 
         if irr_values:
-            print irr_values
             show_irr_charts(irr_values)
             save_irr_values(irr_values)
         else :
