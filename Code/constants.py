@@ -67,4 +67,5 @@ CORRELLATION_FIELDS["subsidy_Kw"] = "sm_configs.kWh_subsidy"
 CORRELLATION_FIELDS["subsidy_delay"] = "sm_configs.subsidy_delay"
 CORRELLATION_FIELDS["subsidy_duration"] = "sm_configs.subsidy_duration"
 
-CORRELLATION_MAIN_FIELD = {"IRR": 'irr_project'}
+CORRELLATION_IRR_FIELD = {"IRR": 'irr_project'}
+CORRELLATION_NPV_FIELD = {"NPV": 'npv_project'}

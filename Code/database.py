@@ -92,17 +92,17 @@ def get_rowvalue_from_db(fields, yearly):
     - using yearly suffix
     """
     dic_values = get_values_from_db(1, fields, yearly)
-    print dic_values
     result = []
 
     for field in fields:
         field = add_yearly_prefix(field, yearly)
         value = dic_values[field]
         row = filter(lambda x :isinstance(x, (Number, list)), value)
-        row = row[0]
-        if isinstance(row, list):
-            row = filter(lambda x :isinstance(x, Number), row)
-        result.append(row)
+        if row:
+            row = row[0]
+            if isinstance(row, list):
+                row = filter(lambda x :isinstance(x, Number), row)
+            result.append(row)
 
     return result
 
@@ -115,6 +115,7 @@ def get_rowvalue_from_db(fields, yearly):
     #results = collection.find(select_by, get_values).sort(sorted_order).limit(number)
 
 if __name__ == '__main__':
-    fields = ['irr_owners', 'irr_project', 'main_configs.lifetime', 'revenue']
-    print get_rowvalue_from_db( fields, True)
+    fields = ['irr_owners', 'irr_project', 'main_configs.lifetime', 'revenue', 'npv_project']
+    fields = [ 'npv_project', 'wacc', 'fcf_project']
+    #print get_rowvalue_from_db( fields, True)
     print get_rowvalue_from_db( fields, False)

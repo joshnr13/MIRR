@@ -9,7 +9,7 @@ from collections import  OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, add_header_csv, last_day_previous_month
 from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, OrderedDefaultdict
 from annex import add_start_project_values, get_months_range,  month_number_days, get_only_digits, last_year
-from financial_analysis import irr
+from financial_analysis import irr, npv
 
 from constants import PROJECT_START, REPORT_ROUNDING
 from tm import TechnologyModule
@@ -50,6 +50,8 @@ class Report(BaseClassConfig):
                 self.calc_yearly_values_part3(end_day)
 
         self.calc_irr()
+        self.calc_wacc()
+        self.calc_npv()
 
     def start_project_OrderedDict(self, name=PROJECT_START, value=""):
         return OrderedDict({name: value,})
@@ -376,6 +378,32 @@ class Report(BaseClassConfig):
         self.fcf_owners_y[PROJECT_START] = "IRR = %s" % self.irr_owners_y
         self.fcf_project_y[PROJECT_START] = "IRR = %s" % self.irr_project_y
 
+    def calc_npv(self):
+        """Calculation of monthly and yearly NPV for owners and project"""
+
+        fcf_owners_values = get_only_digits(self.fcf_owners)
+        fcf_project_values = get_only_digits(self.fcf_project)
+
+        fcf_owners_values_y = get_only_digits(self.fcf_owners_y)
+        fcf_project_y = get_only_digits(self.fcf_project_y)
+
+        self.npv_owners = npv(self.wacc, fcf_owners_values)
+        self.npv_owners_y = npv(self.wacc, fcf_owners_values_y)
+
+        self.npv_project = npv(self.wacc, fcf_project_values)
+        self.npv_project_y = npv(self.wacc, fcf_project_y)
+
+
+    def calc_wacc(self):
+        """ WACC = share of debt in financing * cost of debt * (1-tax rate) + cost of capital * share of capital
+        share of debt + share of capital = 1"""
+        cost_capital = self.economic_module.cost_capital
+        share_debt =  self.economic_module.debt_share
+        share_capital = 1 - share_debt
+        tax_rate = self.economic_module.tax_rate
+        cost_debt = self.economic_module.debt_rate
+
+        self.wacc =  share_debt * cost_debt * (1 - tax_rate) + cost_capital * share_capital
 
     def _calc_unallocated_earnings(self, date):
         """Calculating accumulated earnings = previous (net_earning+unallocated_earning) """

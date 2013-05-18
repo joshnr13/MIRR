@@ -161,7 +161,6 @@ class TechnologyModuleConfigReader():
         return  self.configs
 
 
-
 class EconomicModuleConfigReader():
     def __init__(self,  _filename='ecm_config.ini'):
         """Reads module config file
@@ -187,12 +186,13 @@ class EconomicModuleConfigReader():
 
         ######################### INVESTMENTS #############################################
 
+        self.cost_capital = _config.getfloat('Investments', 'cost_capital') / 100
         #self.investments = _config.getfloat('Investments', 'investment_value')
         #self.investmentEquipment = _config.getfloat('Investments', 'investmentEquipment')
 
         ######################### DEBT ########################################
 
-        self.debt_part = _config.getfloat('Debt', 'debt_value') / 100
+        self.debt_share = _config.getfloat('Debt', 'debt_share') / 100
         self.debt_rate = _config.getfloat('Debt', 'interest_rate') / 100
         self.debt_rate_short = _config.getfloat('Debt', 'interest_rate_short') / 100
         self.debt_years = _config.getint('Debt', 'periods')

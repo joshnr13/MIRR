@@ -12,6 +12,7 @@ from config_readers import MainConfig
 from _mirr import Mirr
 from numpy import isnan
 from numbers import Number
+from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD
 
 commands = OrderedDict()
 i = 0
@@ -25,6 +26,7 @@ commands['6'] = 'outputPrimaryEnergy'
 commands['7'] = 'outputElectricityProduction'
 commands['8'] = 'irr_correlations'
 commands['9'] = 'irr_scatter_charts'
+commands['10'] = 'npv_correlations'
 
 #commands['99'] = 'read_db'
 
@@ -120,8 +122,15 @@ class Interface():
 
     def irr_correlations(self):
         default_number = 100
+        field = CORRELLATION_IRR_FIELD
         number = get_input_int(text="Please select last database records to use for correlation (or press enter to default %s): " %default_number, default=default_number)
-        plot_correlation_tornado(number)
+        plot_correlation_tornado(field, number)
+
+    def npv_correlations(self):
+        default_number = 100
+        field = CORRELLATION_NPV_FIELD
+        number = get_input_int(text="Please select last database records to use for correlation (or press enter to default %s): " %default_number, default=default_number)
+        plot_correlation_tornado(field, number)
 
     def irr_scatter_charts(self):
         default_number = 100

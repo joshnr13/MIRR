@@ -26,7 +26,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def calc_config_values(self):
         self.investments = self.technology_module.getEquipmentInvestmentCosts()
         self.investmentEquipment = self.investments
-        self.debt = self.debt_part * self.investments
+        self.debt = self.debt_share * self.investments
         self.capital = self.investments - self.debt
 
     def isConstructionStarted(self, date):

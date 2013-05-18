@@ -9,7 +9,7 @@ from collections import OrderedDict
 from database import get_connection, get_values_from_db, get_rowvalue_from_db
 from config_readers import MainConfig
 from report_output import ReportOutput
-from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_MAIN_FIELD
+from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD
 from numpy import corrcoef, around, isnan
 from pylab import *
 from itertools import izip_longest
@@ -153,6 +153,15 @@ class Simulation():
         line["irr_project_y"] = obj.irr_project_y
         line["irr_owners_y"] = obj.irr_owners_y
 
+        line["npv_project"] = obj.npv_project
+        line["npv_owners"] = obj.npv_owners
+        line["npv_project_y"] = obj.npv_project_y
+        line["npv_owners_y"] = obj.npv_owners_y
+
+        line["wacc"] = obj.wacc
+        line["wacc_y"] = obj.wacc
+
+
         return line
 
 
@@ -235,12 +244,11 @@ def irr_scatter_charts(number=10, yearly=False):
     """
     cols = 3
     rows = 2
-    main = CORRELLATION_MAIN_FIELD.values()[0]
-    figures = get_values_from_db(number, CORRELLATION_MAIN_FIELD.values()+CORRELLATION_FIELDS.values(), yearly)
+    main = CORRELLATION_IRR_FIELD.values()[0]
+    figures = get_values_from_db(number, [main]+CORRELLATION_FIELDS.values(), yearly)
     irrs = figures.pop(main)
     titles = invert_dict(CORRELLATION_FIELDS)
 
-    print figures
     fig, axeslist = pylab.subplots(ncols=cols, nrows=rows)
 
     for ind,title in izip_longest(range(cols*rows), figures):
@@ -264,9 +272,10 @@ def get_pos_no(value, sorted_list, used):
             return i
 
 
-def get_correllation_values(number=30, yearly=False):
+def get_correlation_values(main_field, number=30, yearly=False):
+    """get correlation of main_field with CORRELLATION_FIELDS"""
 
-    fields = CORRELLATION_MAIN_FIELD.values() + CORRELLATION_FIELDS.values()
+    fields = [main_field] + CORRELLATION_FIELDS.values()
     results = get_values_from_db(number, fields, yearly).values()
     cor = corrcoef(results)
     rounded_values = around(cor, decimals=3)
@@ -274,13 +283,15 @@ def get_correllation_values(number=30, yearly=False):
 
     return  rounded_values, number_values_used
 
-def plot_correlation_tornado(number=30, yearly=False):
-    """Plot tornado chart with correlation of IRR and other stochastic variables"""
-
-    rounded_values, number_values_used = get_correllation_values(number, yearly)
+def plot_correlation_tornado(field_dic, number=30, yearly=False):
+    """Plot tornado chart with correlation of field and other stochastic variables"""
 
     values = []
     field_values = {}
+    main_field_name = field_dic.keys()[0]
+    main_field_db_name = field_dic.values()[0]
+
+    rounded_values, number_values_used = get_correlation_values(main_field_db_name, number, yearly)
 
     if rounded_values.size  ==  0:
         print "No needed values in Database. Please run simulations before!"
@@ -288,9 +299,9 @@ def plot_correlation_tornado(number=30, yearly=False):
     else:
         print ("Corellation using last %s values from DB" % number)
 
-    for i, (field_short_name, field_db_name) in enumerate(CORRELLATION_FIELDS.items()):
+    for i, (field_short_name, main_field_db_name) in enumerate(CORRELLATION_FIELDS.items()):
         value = rounded_values[0, i+1]
-        print "Correllation between %s and %s = %s" % ('IRR', field_short_name, value)
+        print "Correllation between %s and %s = %s" % (main_field_name, field_short_name, value)
         if isnan(value):
             value = 0
         values.append(value)
@@ -317,7 +328,7 @@ def plot_correlation_tornado(number=30, yearly=False):
 
     yticks(list(reversed(range(len(y_names)))), y_names)
     xlabel('correlation coefficient')
-    title('Correlation between IRR and stochastic values, using %s values' %number_values_used)
+    title('Correlation between %s and stochastic values, using %s values' %(main_field_name, number_values_used))
     grid(True)
     xlim(-1,1)
     ylim(-0.5, len(field_values)-0.5)
