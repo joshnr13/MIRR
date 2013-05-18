@@ -7,7 +7,7 @@ import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
 from database import get_values_from_db
-from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts, calc_correlation, plot_charts
+from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts, plot_correlation_tornado, plot_charts
 from config_readers import MainConfig
 from _mirr import Mirr
 from numpy import isnan
@@ -120,7 +120,7 @@ class Interface():
     def irr_correlations(self):
         default_number = 100
         number = get_input_int(text="Please select last database records to use for correlation (or press enter to default %s): " %default_number, default=default_number)
-        calc_correlation(number)
+        plot_correlation_tornado(number)
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")

@@ -60,3 +60,11 @@ CF["FCF project"] = "fcf_project"
 CF["FCF owners"] = "fcf_owners"
 
 
+CORRELLATION_FIELDS = OrderedDict() # IRR ONE SHOULD HAVE NAME =IRR and be FIRST ONE
+CORRELLATION_FIELDS["permit_procurement_duration"] = "main_configs.real_permit_procurement_duration"
+CORRELLATION_FIELDS["construction_duration"] = "main_configs.real_construction_duration"
+CORRELLATION_FIELDS["subsidy_Kw"] = "sm_configs.kWh_subsidy"
+CORRELLATION_FIELDS["subsidy_delay"] = "sm_configs.subsidy_delay"
+CORRELLATION_FIELDS["subsidy_duration"] = "sm_configs.subsidy_duration"
+
+CORRELLATION_MAIN_FIELD = {"IRR": 'irr_project'}

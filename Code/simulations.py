@@ -9,9 +9,10 @@ from collections import OrderedDict
 from database import get_connection, get_values_from_db, get_rowvalue_from_db
 from config_readers import MainConfig
 from report_output import ReportOutput
-from constants import report_directory
+from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_MAIN_FIELD
 from numpy import corrcoef, around, isnan
 from pylab import *
+from itertools import izip_longest
 
 class Simulation():
 
@@ -225,6 +226,38 @@ def save_irr_values(values):
     print "CSV Report outputed to file %s" % (xls_output_filename)
 
 
+def plot_scatter_charts(number=10, yearly=False):
+    #title = " of %s using last %s values" %(field, len(values))
+    """
+    Parameters
+    ----------
+    figures : <title, figure> dictionary
+    ncols : number of columns of subplots wanted in the display
+    nrows : number of rows of subplots wanted in the figure
+    """
+    figures = get_values_from_db(number, CORRELLATION_FIELDS.values(), yearly)
+    charts_number = len(figures)
+    cols = 3
+    rows = 2
+    fig, axeslist = pylab.subplots(ncols=cols, nrows=rows)
+
+    for ind,title in izip_longest(range(cols*rows), figures):
+        print title
+        #if ind <= charts_number - 1:
+        if title is not None:
+
+            values = figures[title]
+            print values
+            axeslist.ravel()[ind].plot(values, 'o')
+            axeslist.ravel()[ind].set_title(title)
+        else:
+            axeslist.ravel()[ind].set_axis_off()
+
+    pylab.show()
+    print 1
+
+
+
 def get_pos_no(value, sorted_list, used):
     for i, v in enumerate(sorted_list):
         if v == value and i not in used:
@@ -232,29 +265,20 @@ def get_pos_no(value, sorted_list, used):
             return i
 
 
-def calc_correlation(number=30, yearly=False):
-    """
-    - permit_procurement_duration+
-    - construction_duration+
-    - subsidy duration+
-    - kWh_subsidy+
-    - irr_project
-    """
-    fields = [
-    "main_configs.real_permit_procurement_duration",
-    "main_configs.real_construction_duration",
-    "sm_configs.kWh_subsidy",
-    "sm_configs.subsidy_delay",
-    "sm_configs.subsidy_duration",
-    'irr_project'
-    ]
+def get_correllation_values(number=30, yearly=False):
 
+    fields = CORRELLATION_MAIN_FIELD.values() + CORRELLATION_FIELDS.values()
     results = get_values_from_db(number, fields, yearly).values()
-    main = 'irr_project'
-    main_index = 5
-
     cor = corrcoef(results)
     rounded_values = around(cor, decimals=3)
+    number_values_used = len(results)
+
+    return  rounded_values, number_values_used
+
+def plot_correlation_tornado(number=30, yearly=False):
+    """Plot tornado chart with correlation of IRR and other stochastic variables"""
+
+    rounded_values, number_values_used = get_correllation_values(number, yearly)
 
     values = []
     field_values = {}
@@ -265,14 +289,13 @@ def calc_correlation(number=30, yearly=False):
     else:
         print ("Corellation using last %s values from DB" % number)
 
-    for i, field in enumerate(fields):
-        if field != main:
-            value = rounded_values[main_index, i]
-            print "Correllation between %s and %s = %s" % (main, field, value)
-            if isnan(value):
-                value = 0
-            values.append(value)
-            field_values[field] = value
+    for i, (field_short_name, field_db_name) in enumerate(CORRELLATION_FIELDS.items()):
+        value = rounded_values[0, i+1]
+        print "Correllation between %s and %s = %s" % ('IRR', field_short_name, value)
+        if isnan(value):
+            value = 0
+        values.append(value)
+        field_values[field_short_name] = value
 
     fig = figure(1)
     ax = fig.add_subplot(111)
@@ -286,19 +309,16 @@ def calc_correlation(number=30, yearly=False):
     used = []
     pos1 = [get_pos_no(value, sorted_list, used) for value in v1]
     pos2 = [get_pos_no(value, sorted_list, used) for value in v2]
-    print v1, pos1
-    print v2, pos2
 
     ax.barh(pos1,v1, align='center', color='g')
     ax.barh(pos2,v2, align='center', color='r')
 
     y_names = sorted(field_values.items(), key=lambda x: abs(x[1]), reverse=True)
     y_names = [g[0] for g in y_names]
-    print y_names
 
     yticks(list(reversed(range(len(y_names)))), y_names)
     xlabel('correlation coefficient')
-    title('Correlation between IRR and stochastic values, using %s values' %len(results[0]))
+    title('Correlation between IRR and stochastic values, using %s values' %number_values_used)
     grid(True)
     xlim(-1,1)
     ylim(-0.5, len(field_values)-0.5)
@@ -346,9 +366,10 @@ def plot_charts(yearly=False):
 
 
 if __name__ == '__main__':
-    run_one_iteration()
+    #run_one_iteration()
     #run_all_iterations()
-    calc_correlation()
+    #plot_correlation_tornado()
+    plot_scatter_charts()
     #plot_charts()
 
 
