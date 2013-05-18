@@ -63,6 +63,9 @@ class MainConfig():
     def getLastDayPermitProcurement(self):
         return  self.configs["last_day_permit_procurement"]
 
+    def getFirstDayConstruction(self):
+        return  self.configs["last_day_permit_procurement"] + datetime.timedelta(days=1)
+
     def getLastDayConstruction(self):
         return  self.configs["last_day_construction"]
 

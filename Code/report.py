@@ -435,7 +435,6 @@ class Report(BaseClassConfig):
     def _calc_lt_loans(self, end_day):
         """Monthly calculation of  Long-Term Loans"""
         return  self.economic_module.debt_rest_payments_wo_percents.get(end_day, 0)
-        #return self.asset[end_day] - self.paid_in_capital[end_day]
 
     def _calc_lt_operliab(self, end_day):
         """Monthly calculation of Long-Term Operating Liabilities - NOT IMPLEMENTED"""
@@ -498,7 +497,6 @@ class Report(BaseClassConfig):
             accumulated_earnings = self.accumulated_earnings_to(date)
             year_ebt = self.ebt_y[date]
 
-
             if year_ebt <= 0:
                 return 0
             elif year_ebt + accumulated_earnings <= 0:
@@ -529,7 +527,8 @@ class Report(BaseClassConfig):
         if prev_month_date < self.start_date_project:
             prev_month_date = PROJECT_START
         prev_fixed_asset = self.fixed_asset[prev_month_date] #.get(prev_month_last_day, 0)
-        cur_investments = self.investment[date]
+
+        cur_investments = self.economic_module.getMonthlyInvestments(date)
         cur_deprication = self.deprication[date]
 
         return (cur_investments + prev_fixed_asset - cur_deprication)

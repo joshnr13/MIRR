@@ -7,8 +7,8 @@ import os
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, getDaysNoInMonth, years_between_1Jan, months_between
-from annex import add_x_years, month_number_days, last_day_next_month, get_configs
+from annex import Annuitet, getDaysNoInMonth, years_between_1Jan, months_between, last_day_month
+from annex import add_x_years,add_x_months, month_number_days, last_day_next_month, get_configs, sum_attrs_per_date, OrderedDefaultdict
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
 
@@ -25,6 +25,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def calc_config_values(self):
         self.investments = self.technology_module.getEquipmentInvestmentCosts()
+        self.investments_monthly = OrderedDefaultdict(int)
         self.investmentEquipment = self.investments
         self.debt = self.debt_share * self.investments
         self.capital = self.investments - self.debt
@@ -123,13 +124,45 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         else:
             return 0
 
-    def calcDebtPercents(self):
-        first_month_dept = last_day_next_month(self.last_day_construction)
-        a = Annuitet(self.debt, self.debt_rate, self.debt_years, first_month_dept)
-        a.calculate()
 
-        self.debt_percents = a.percent_payments
-        self.debt_rest_payments_wo_percents = a.rest_payments_wo_percents
+    def calcDebtPercents(self):
+        """The investment is spread as follows:
+             30% - 2 month before the start of construction
+             50% - at start of construction
+             20% - at the end of construction
+        """
+
+        ####### FIRST - 30% 2 month before the start of construction
+        part = 0.3
+        start_date = last_day_month(add_x_months(self.first_day_construction, -2))
+        invest_value = self.debt*part
+        self.investments_monthly[start_date] = invest_value
+
+        a1 = Annuitet(invest_value, self.debt_rate, self.debt_years, start_date)
+        a1.calculate()
+
+        ####### SECOND - 50% - at start of construction
+        part = 0.5
+        start_date = last_day_month(self.first_day_construction)
+        invest_value = self.debt*part
+        self.investments_monthly[start_date] = invest_value
+
+        a2 = Annuitet(invest_value, self.debt_rate, self.debt_years, start_date)
+        a2.calculate()
+
+        ####### THIRD - 20% - at the end of construction
+        part = 0.2
+        start_date = last_day_month(self.last_day_construction)
+        invest_value = self.debt*part
+        self.investments_monthly[start_date] = invest_value
+
+        a3 = Annuitet(invest_value, self.debt_rate, self.debt_years, start_date)
+        a3.calculate()
+
+        #######################################################################
+
+        self.debt_percents = sum_attrs_per_date([a1, a2, a3], "percent_payments")
+        self.debt_rest_payments_wo_percents = sum_attrs_per_date([a1, a2, a3], "rest_payments_wo_percents")
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
@@ -212,10 +245,16 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         return self.tax_rate
 
     def getMonthlyInvestments(self, date):
-        if date.month  ==  self.start_date_project.month and date.year == self.start_date_project.year:
-            return self.investments
-        else:
-            return 0
+        """Gets investments of current date (on month of that date)"""
+        return  self.investments_monthly[date]
+
+        #last_day = last_day_month(date)
+        #start_construction = self.first_day_construction
+
+        #if date.month  ==  start_construction.month and date.year == start_construction.year:
+            #return self.investments
+        #else:
+            #return 0
 
     def getDebtPayment(self, date_start, date_end):
         """calculate the payment of the debt principal based on constant annuity repayment  - http://en.wikipedia.org/wiki/Fixed_rate_mortgage

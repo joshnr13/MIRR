@@ -24,6 +24,10 @@ class BaseClassConfig():
         return self._config_module.getLastDayPermitProcurement()
 
     @property
+    def first_day_construction(self):
+        return self._config_module.getFirstDayConstruction()
+
+    @property
     def last_day_construction(self):
         return self._config_module.getLastDayConstruction()
 
