@@ -557,6 +557,11 @@ def _discf(rate, pmts, ):
     #except RuntimeError:
         #return float('Nan')
 
+def invert_dict(d):
+    newdict = {}
+    for k, v in d.iteritems():
+        newdict[v] = k
+    return newdict
 
 if __name__=="__main__":
     pmts=[-1000,	500,	100,	1000, -200, 100, 10, -222]

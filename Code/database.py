@@ -59,7 +59,6 @@ def get_values_from_db(number, fields, yearly):
 
     for field in fields:
         field = add_yearly_prefix(field, yearly)
-        print field
         select_by[field] = { '$exists' : True }
         get_values[field] = True
 

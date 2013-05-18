@@ -7,7 +7,7 @@ import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
 from database import get_values_from_db
-from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts, plot_correlation_tornado, plot_charts
+from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts, plot_correlation_tornado, plot_charts, irr_scatter_charts
 from config_readers import MainConfig
 from _mirr import Mirr
 from numpy import isnan
@@ -24,6 +24,7 @@ commands['5'] = 'print_equipment'
 commands['6'] = 'outputPrimaryEnergy'
 commands['7'] = 'outputElectricityProduction'
 commands['8'] = 'irr_correlations'
+commands['9'] = 'irr_scatter_charts'
 
 #commands['99'] = 'read_db'
 
@@ -121,6 +122,11 @@ class Interface():
         default_number = 100
         number = get_input_int(text="Please select last database records to use for correlation (or press enter to default %s): " %default_number, default=default_number)
         plot_correlation_tornado(number)
+
+    def irr_scatter_charts(self):
+        default_number = 100
+        number = get_input_int(text="Please select last database records to use for scatter_chart (or press enter to default %s): " %default_number, default=default_number)
+        irr_scatter_charts(number)
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")

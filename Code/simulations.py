@@ -4,7 +4,7 @@ import pylab
 import csv
 
 from _mirr import Mirr
-from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv
+from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv, invert_dict
 from collections import OrderedDict
 from database import get_connection, get_values_from_db, get_rowvalue_from_db
 from config_readers import MainConfig
@@ -226,35 +226,34 @@ def save_irr_values(values):
     print "CSV Report outputed to file %s" % (xls_output_filename)
 
 
-def plot_scatter_charts(number=10, yearly=False):
+def irr_scatter_charts(number=10, yearly=False):
     #title = " of %s using last %s values" %(field, len(values))
     """
-    Parameters
-    ----------
     figures : <title, figure> dictionary
     ncols : number of columns of subplots wanted in the display
     nrows : number of rows of subplots wanted in the figure
     """
-    figures = get_values_from_db(number, CORRELLATION_FIELDS.values(), yearly)
-    charts_number = len(figures)
     cols = 3
     rows = 2
+    main = CORRELLATION_MAIN_FIELD.values()[0]
+    figures = get_values_from_db(number, CORRELLATION_MAIN_FIELD.values()+CORRELLATION_FIELDS.values(), yearly)
+    irrs = figures.pop(main)
+    titles = invert_dict(CORRELLATION_FIELDS)
+
+    print figures
     fig, axeslist = pylab.subplots(ncols=cols, nrows=rows)
 
     for ind,title in izip_longest(range(cols*rows), figures):
-        print title
-        #if ind <= charts_number - 1:
         if title is not None:
-
             values = figures[title]
-            print values
-            axeslist.ravel()[ind].plot(values, 'o')
-            axeslist.ravel()[ind].set_title(title)
+            plot_title = titles[title]
+            axeslist.ravel()[ind].plot(irrs, values, 'o')
+            axeslist.ravel()[ind].set_title(plot_title)
+            axeslist.ravel()[ind].set_xlabel(main)
         else:
             axeslist.ravel()[ind].set_axis_off()
 
     pylab.show()
-    print 1
 
 
 
@@ -369,7 +368,7 @@ if __name__ == '__main__':
     #run_one_iteration()
     #run_all_iterations()
     #plot_correlation_tornado()
-    plot_scatter_charts()
+    irr_scatter_charts(100)
     #plot_charts()
 
 
