@@ -33,14 +33,14 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
             eq_group.add_inverter(self.inverter_price, self.inverter_reliability, self.inverter_power_efficiency)
 
             for j in range(self.modules_in_group):
-                eq_group.add_solar_module(self.module_price, self.module_reliability, self.module_power_efficiency)
+                eq_group.add_solar_module(self.module_price, self.module_reliability, self.module_power_efficiency, self.module_power)
 
             self.equipment_groups.add_group(eq_group)
 
-        transformer_group = EquipmentGroup()
-        self.equipment_groups.add_group(transformer_group)
-        for i in range(self.transformers_number):
-            transformer_group.add_transformer(self.transformer_price, self.transformer_reliability,self.transformer_power_efficiency)
+        if self.transformer_present:
+            transformer_group = EquipmentGroup()
+            self.equipment_groups.add_group(transformer_group)
+            transformer_group.add_transformer(self.transformer_price, self.transformer_reliability, self.transformer_power_efficiency)
 
     def calculate_equipment_investment_costs(self):
         """Calculation of investment costs"""
@@ -49,7 +49,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
             self.connection_grip_price +
             self.documentation_price +
             self.modules_in_group * self.groups_number * self.module_price +
-            self.transformers_number * self.transformer_price +
+            self.transformer_present * self.transformer_price +
             self.inverter_price * self.groups_number * self.inverter_price
             )
 
@@ -60,10 +60,11 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def print_equipment(self):
         """prints all equipment tree"""
-        for group in self.equipment_groups.get_groups():
-            print "\tGroup: %s" % group
-            for eq in group.get_equipment():
-                print "\t\tEquipment: %s" % eq
+        for i, group in enumerate(self.equipment_groups.get_groups()):
+            print "Group: %s" % (i + 1)
+            print group
+            #for eq in group.get_equipment():
+                #print "\t\tEquipment: %s" % eq
 
     def generateElectiricityProduction(self, date):
         """based on insolation generates electricity production values for each day
@@ -114,7 +115,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
 class Equipment():
     """Is the principal class for all equipment. """
-    def __init__(self,reliability, price, power_efficiency, state, system_crucial, group_cruical):
+    def __init__(self,reliability, price, power_efficiency, power, state, system_crucial, group_cruical):
         """
         @state - current state - working, maintance, failure
         @system_crucial - if state is not working then the whole system does not work
@@ -125,9 +126,11 @@ class Equipment():
         self.state = 0
         self.crucial = True
         self.group_cruical = False
-        self.power_efficiency = power_efficiency
+        self.efficiency = power_efficiency
         self.invesment_price = price
         self.reliability = reliability
+        self.power = power
+        self.name = ""
 
     def isStateWorking(self):
         if self.getState() == 1:
@@ -157,7 +160,11 @@ class Equipment():
         return  self.group_cruical
 
     def __str__(self):
-        return "Name: %s  Price: %s  Reliability: %s  Effiency: %s" % (self.name,self.invesment_price, self.reliability, self.power_efficiency)
+        return "Name: %s  Price: %s  Reliability: %s  Effiency: %s" % (self.name,self.invesment_price, self.reliability, self.efficiency)
+
+    def get_params(self):
+        return  self.__dict__
+
 
 class EquipmentSolarModule(Equipment):
     """Class for holding special info about Solar Modules"""
@@ -179,20 +186,27 @@ class EquipmentTransformer(Equipment):
 
 class EquipmentGroup():
 
-    def __init__(self):
+    def __init__(self, name="Base Group"):
+        self.name = name
         self.group_equipment = []
+        self.inverters = 0
+        self.solar_modules = 0
+        self.transformers = 0
 
-    def add_solar_module(self, price, reliability, efficiency):
-        eq = EquipmentSolarModule(reliability, price, efficiency, state=0, system_crucial=False, group_cruical=False)
+    def add_solar_module(self, price, reliability, efficiency, power):
+        eq = EquipmentSolarModule(reliability, price, efficiency,power, state=0, system_crucial=False, group_cruical=False)
         self.add_equipment(eq)
+        self.solar_modules += 1
 
     def add_inverter(self, price, reliability, efficiency):
-        eq = EquipmentInverter(reliability, price, efficiency, state=0, system_crucial=False, group_cruical=True )
+        eq = EquipmentInverter(reliability, price, efficiency, power=None, state=0, system_crucial=False, group_cruical=True )
         self.add_equipment(eq)
+        self.inverters += 1
 
     def add_transformer(self, price, reliability, efficiency):
-        eq = EquipmentTransformer(reliability, price, efficiency, state=0, system_crucial=False, group_cruical=True )
+        eq = EquipmentTransformer(reliability, price, efficiency, power=None, state=0, system_crucial=False, group_cruical=True )
         self.add_equipment(eq)
+        self.transformers += 1
 
     def add_equipment(self,  equipment):
         """Base method to add new equipment - (equipment - class object)"""
@@ -206,6 +220,35 @@ class EquipmentGroup():
 
     def get_equipment(self):
         return  self.group_equipment[:]
+
+    def get_equipment_params(self, cls):
+        for eq in self.get_equipment():
+            if isinstance(eq, cls):
+                return eq.get_params()
+        else:
+            return None
+
+    def __str__(self):
+        description = []
+        if self.solar_modules:
+            solar_params = self.get_equipment_params(EquipmentSolarModule)
+            solar_params['solar_modules'] = self.solar_modules
+            s =  "{solar_modules} x Solar Module {power}W, Reliability: {reliability}, Effiency: {efficiency}".format(**solar_params)
+            description.append(s)
+
+        if self.inverters:
+            inverter_params = self.get_equipment_params(EquipmentInverter)
+            inverter_params['inverter_modules'] = self.inverters
+            i =  "{inverter_modules} x Inverter, Reliability: {reliability}, Effiency: {efficiency}".format(**inverter_params)
+            description.append(i)
+
+        if self.transformers:
+            transformer_params = self.get_equipment_params(EquipmentTransformer)
+            transformer_params['transformer_modules'] = self.transformers
+            t =  "{transformer_modules} x Transformer, Reliability: {reliability}, Effiency: {efficiency}".format(**transformer_params)
+            description.append(t)
+
+        return "  " + "\n  ".join(description)
 
 
 class EquipmentGroups():

@@ -21,7 +21,12 @@ class Simulation():
         self.iterations = db['iteration']
 
     def get_next_iteration(self):
-        """Get next iteration number"""
+        """Get next iteration number
+
+        TODO! Move it to database module !!!!!!!!!!!!!!!!!!
+        TODO! Make database module as class !!!!!!!!!!!!!!!!!!!!!
+
+        """
         self.iterations.update({'_id':'seq'}, {'$inc':{'seq':1}}, upsert=True)
         self.iteration_no = self.iterations.find_one()['seq']
 

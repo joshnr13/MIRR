@@ -151,10 +151,12 @@ if __name__ == '__main__':
     try:
         i = Interface()
         i.help()
+
         while True:
             line = raw_input('Prompt command (For exit: 0 or stop; For help: help): ').strip()
             print_entered(line)
             run_method(i, line)
+
     except KeyboardInterrupt:
         print sys.exc_info()[1]
     except:

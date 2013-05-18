@@ -44,7 +44,6 @@ class ModuleConfigReader():
     def getConfigsValues(self):
         return  self.configs
 
-
 class MainConfig():
     def __init__(self):
         self.configs = ModuleConfigReader().getConfigsValues()
@@ -88,8 +87,6 @@ class MainConfig():
     def getSimulationNumber(self):
         return self.configs["simulation_number"]
 
-
-
 class SubsidyModuleConfigReader():
     def __init__(self, _filename='sm_config.ini'):
         """Reads module config file"""
@@ -132,9 +129,9 @@ class TechnologyModuleConfigReader():
         ######################## BASE ###################
         self.electr_conv_factor = _config.getfloat('Electricity', 'ConversionFactor')
         self.groups_number = _config.getint('Equipment', 'groups_number')
-        self.module_power = _config.getfloat('Equipment', 'module_power')
+        self.module_power = _config.getint('Equipment', 'module_power')
         self.modules_in_group = _config.getint('Equipment', 'modules_in_group')
-        self.transformers_number = _config.getint('Equipment', 'transformers_number')
+        self.transformer_present = _config.getboolean('Equipment', 'transformer_present')
         self.network_available_probability = _config.getfloat('Network', 'network_available_probability') / 100
 
         ######################## PRICE ###################
@@ -179,6 +176,7 @@ class EconomicModuleConfigReader():
         self.administrativeCostsGrowth_rate = _config.getfloat('Costs', 'administrativeCostsGrowth_rate') / 100
         self.insuranceFeeEquipment = _config.getfloat('Costs', 'insuranceFeeEquipment') / 100
         self.insuranceDurationEquipment = _config.getfloat('Costs', 'insuranceDurationEquipment')
+
         self.insuranceLastDayEquipment = add_x_years(self.start_date_project, self.insuranceDurationEquipment)
 
         self.developmentCostDuringPermitProcurement = _config.getfloat('Costs', 'developmentCostDuringPermitProcurement')
