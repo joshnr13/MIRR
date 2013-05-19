@@ -142,7 +142,7 @@ class TechnologyModuleConfigReader():
         self.inverter_price = _config.getfloat('Price', 'inverter_price')
         self.transformer_price = _config.getfloat('Price', 'transformer_price')
         self.documentation_price = _config.getfloat('Price', 'documentation_price')
-        self.connection_grip_price = _config.getfloat('Price', 'connection_grip_price')
+        self.connection_grip_cost = _config.getfloat('Price', 'connection_grip_cost')
 
         ####################### RELIABILTY ####################
         self.module_reliability = _config.getfloat('Reliability', 'module_reliability') / 100

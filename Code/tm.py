@@ -46,7 +46,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         """Calculation of investment costs"""
 
         self.total_costs = (
-            self.connection_grip_price +
+            self.connection_grip_cost +
             self.documentation_price +
             self.modules_in_group * self.groups_number * self.module_price +
             self.transformer_present * self.transformer_price +
