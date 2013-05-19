@@ -167,12 +167,14 @@ class Simulation():
 
 
 
-def run_one_iteration():
+def run_one_iteration(insert=True):
     d = Simulation()
     d.prepare_data()
     d.get_next_iteration()
     d.process_results()
-    d.db_insert_results()
+    if insert:
+        d.db_insert_results()
+
     return d.o  #report_output module
 
 def run_all_iterations(simulation_number=None):
@@ -375,11 +377,17 @@ def plot_charts(yearly=False):
     pylab.show()
 
 
+def test_100_iters():
+    for i in range(100):
+        run_one_iteration(insert=False)
+
+
 if __name__ == '__main__':
     #run_one_iteration()
     #run_all_iterations()
     #plot_correlation_tornado()
-    irr_scatter_charts(100)
+    #irr_scatter_charts(100)
     #plot_charts()
+    test_100_iters()
 
 
