@@ -92,6 +92,7 @@ class CashFlows():
 
     def irr(self):
         irrs = self.get_irrs()
+        irrs.sort(reverse=True)
         return  self.get_one_irr(irrs)
 
 

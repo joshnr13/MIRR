@@ -50,7 +50,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
             self.documentation_price +
             self.modules_in_group * self.groups_number * self.module_price +
             self.transformer_present * self.transformer_price +
-            self.inverter_price * self.groups_number * self.inverter_price
+            self.groups_number * self.inverter_price
             )
 
     def getEquipmentInvestmentCosts(self):
@@ -292,5 +292,5 @@ if __name__ == '__main__':
     end_date = datetime.date(2013, 12, 31)
     #tm.outputElectricityProduction(start_date, end_date)
 
-    tm.print_equipment()
+    #tm.print_equipment()
     print tm.getEquipmentInvestmentCosts()
