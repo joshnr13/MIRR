@@ -112,7 +112,7 @@ class SubsidyModuleConfigReader():
         else:
             self.subsidy_delay = random.randint(_subsidy_delay_lower_limit, _subsidy_delay_upper_limit)
             self.kWh_subsidy = random.choice(float_range(_kWh_subsidy_lower_limit ,_kWh_subsidy_upper_limit, 0.001, True))
-            self.subsidy_duration = random.randint(_subsidy_duration_upper_limit, _subsidy_duration_lower_limit)
+            self.subsidy_duration = random.randint(_subsidy_duration_lower_limit, _subsidy_duration_upper_limit )
 
         self.first_day_subsidy = add_x_months(self.last_day_construction+datetime.timedelta(days=1), self.subsidy_delay)
         self.last_day_subsidy = add_x_months(self.first_day_subsidy, self.subsidy_duration)
