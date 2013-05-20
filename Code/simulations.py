@@ -237,53 +237,46 @@ def save_irr_values(values):
     print "CSV Report outputed to file %s" % (xls_output_filename)
 
 
-def irr_scatter_charts(number=10, yearly=False):
-    #title = " of %s using last %s values" %(field, len(values))
-    """
-    figures : <title, figure> dictionary
-    ncols : number of columns of subplots wanted in the display
-    nrows : number of rows of subplots wanted in the figure
-    """
-    cols = 3
-    rows = 2
-    main = CORRELLATION_IRR_FIELD.values()[0]
-    figures = get_values_from_db(number, [main]+CORRELLATION_FIELDS.values(), yearly)
-    irrs = figures.pop(main)
-    titles = invert_dict(CORRELLATION_FIELDS)
+def get_limit_values(x, y):
+    min_irr = min(x)
+    max_irr = max(x)
+    irr_range = max_irr - min_irr
 
-    fig, axeslist = pylab.subplots(ncols=cols, nrows=rows)
+    min_val = min(y)
+    max_val = max(y)
+    val_range = max_val - min_irr
 
-    for ind,title in izip_longest(range(cols*rows), figures):
-        if title is not None:
-            values = figures[title]
-            plot_title = titles[title]
-            axeslist.ravel()[ind].plot(irrs, values, 'o')
-            axeslist.ravel()[ind].set_title(plot_title)
-            axeslist.ravel()[ind].set_xlabel(main)
-        else:
-            axeslist.ravel()[ind].set_axis_off()
+    delta_x = 0.05
+    delta_y = 0.05
 
-    pylab.show()
+    min_irr = min_irr - delta_x * irr_range
+    max_irr = max_irr + delta_x * irr_range
+
+    min_val = min_val - delta_y * val_range
+    max_val = max_val + delta_y * val_range
 
 
-
-def get_pos_no(value, sorted_list, used):
-    for i, v in enumerate(sorted_list):
-        if v == value and i not in used:
-            used.append(i)
-            return i
+    return ((min_irr, max_irr), (min_val, max_val))
 
 
 def get_correlation_values(main_field, number=30, yearly=False):
     """get correlation of main_field with CORRELLATION_FIELDS"""
 
     fields = [main_field] + CORRELLATION_FIELDS.values()
-    results = get_values_from_db(number, fields, yearly).values()
-    cor = corrcoef(results)
-    rounded_values = around(cor, decimals=3)
-    number_values_used = len(results[0])
+    results = get_values_from_db(number, fields, yearly)
+    #print("results = %s" %(results,))  #debug-info-print
 
-    return  rounded_values, number_values_used
+    main_list_values = results.pop(main_field)
+    number_values_used = len(main_list_values)
+
+    correllation_dict = {}
+    for k, v in results.items():
+        cor = corrcoef([main_list_values, v] )[0][1]
+        rounded_value = round(cor, 3)
+        correllation_dict[k] = rounded_value
+
+    return  correllation_dict, number_values_used
+
 
 def plot_correlation_tornado(field_dic, number=30, yearly=False):
     """Plot tornado chart with correlation of field and other stochastic variables"""
@@ -293,16 +286,16 @@ def plot_correlation_tornado(field_dic, number=30, yearly=False):
     main_field_name = field_dic.keys()[0]
     main_field_db_name = field_dic.values()[0]
 
-    rounded_values, number_values_used = get_correlation_values(main_field_db_name, number, yearly)
+    rounded_values_dict, number_values_used = get_correlation_values(main_field_db_name, number, yearly)
 
-    if rounded_values.size  ==  0:
+    if number_values_used  ==  0:
         print "No needed values in Database. Please run simulations before!"
         return
     else:
-        print ("Corellation using last %s values from DB" % number)
+        print ("Corellation using last %s values from DB" % number_values_used)
 
     for i, (field_short_name, main_field_db_name) in enumerate(CORRELLATION_FIELDS.items()):
-        value = rounded_values[0, i+1]
+        value = rounded_values_dict[main_field_db_name]
         print "Correllation between %s and %s = %s" % (main_field_name, field_short_name, value)
         if isnan(value):
             value = 0
@@ -350,6 +343,60 @@ def plot_correlation_tornado(field_dic, number=30, yearly=False):
 
     show()
 
+
+def irr_scatter_charts(number=10, yearly=False):
+    #title = " of %s using last %s values" %(field, len(values))
+    """
+    figures : <title, figure> dictionary
+    ncols : number of columns of subplots wanted in the display
+    nrows : number of rows of subplots wanted in the figure
+    """
+    cols = 3
+    rows = 2
+    main = CORRELLATION_IRR_FIELD.values()[0]
+    figures = get_values_from_db(number, [main]+CORRELLATION_FIELDS.values(), yearly)
+    #print("figures = %s" %(figures,))  #debug-info-print figures
+    irrs = figures.pop(main)
+    titles = invert_dict(CORRELLATION_FIELDS)
+
+    fig, axeslist = pylab.subplots(ncols=cols, nrows=rows)
+    left,bottom,width,height = 0.2,0.1,0.6,0.6 # margins as % of canvas size
+
+    for ind,title in izip_longest(range(cols*rows), figures):
+        obj = axeslist.ravel()[ind]
+        if title is not None:
+            values = figures[title]
+            plot_title = titles[title]
+
+            axes = pylab.Axes(obj.figure, [1,1,1,1]) # [left, bottom, width, height] where each value is between 0 and 1
+
+            obj.plot(irrs, values, 'o')
+            obj.set_title(plot_title)
+            obj.set_xlabel(main)
+
+            limx, limy = get_limit_values(irrs, values)
+
+            obj.set_xlim(limx)
+            obj.set_ylim(limy)
+
+            obj.figure.add_axes([12,12,12,12], frameon=False)
+            #obj.add_axes(fig,[left,bottom,width,height])
+        else:
+            obj.set_axis_off()
+
+    pylab.show()
+
+
+
+def get_pos_no(value, sorted_list, used):
+    for i, v in enumerate(sorted_list):
+        if v == value and i not in used:
+            used.append(i)
+            return i
+
+
+
+
 def plot_charts(yearly=False):
 
     fields = ['revenue', 'cost', 'ebitda', 'deprication']
@@ -388,6 +435,7 @@ if __name__ == '__main__':
     #plot_correlation_tornado()
     #irr_scatter_charts(100)
     #plot_charts()
-    test_100_iters()
+    #test_100_iters()
+    irr_scatter_charts()
 
 
