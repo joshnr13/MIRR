@@ -24,7 +24,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.calcDebtPercents()
 
     def calc_config_values(self):
-        self.investments = self.technology_module.getEquipmentInvestmentCosts()
+        self.investments = self.technology_module.getInvestmentCost()
         self.investments_monthly = OrderedDefaultdict(int)
         self.investmentEquipment = self.investments
         self.debt = self.debt_share * self.investments
