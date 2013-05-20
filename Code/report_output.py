@@ -6,7 +6,7 @@ import csv
 import pylab
 import datetime
 
-from constants import report_directory, BS, IS, CF, REPORT_ROUNDING
+from constants import report_directory, BS, IS, CF, NPV, REPORT_ROUNDING
 from annex import uniquify_filename, transponse_csv, add_header_csv
 from annex import convert2excel, combine_files, get_only_digits
 from collections import OrderedDict
@@ -33,6 +33,7 @@ class ReportOutput():
         bs_filename = output_filename + "_BS"
         is_filename = output_filename + "_IS"
         cf_filename = output_filename + "_CF"
+        npv_filename = output_filename + "_NPV"
 
         bs_rows = self.prepare_rows(BS.values(), yearly)
         bs_header = BS.keys()
@@ -43,11 +44,15 @@ class ReportOutput():
         cf_rows = self.prepare_rows(CF.values(), yearly)
         cf_header = CF.keys()
 
+        npv_rows = self.prepare_rows(NPV.values(), yearly)
+        npv_header = NPV.keys()
+
         self.write_report(bs_rows, bs_header, bs_filename)
         self.write_report(is_rows, is_header, is_filename)
         self.write_report(cf_rows, cf_header, cf_filename)
+        self.write_report(npv_rows, npv_header, npv_filename)
 
-        combine_list = [bs_filename, is_filename, cf_filename]
+        combine_list = [bs_filename, is_filename, cf_filename, npv_filename]
         combine_files(combine_list, output_filename)
 
         if excel:

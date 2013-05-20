@@ -5,9 +5,13 @@ SMALL = 0.00001
 
 class CashFlows():
     def __init__(self, cashflows):
+        """@cashflows - list of cashflow values
+           @npvs - dict with calcultaned npv with different rates
+           @pv - list of present values of cashflow
+        """
         self.cashflows = cashflows
         self.npvs = {}
-
+        self.pv = []
 
     def derivative_npv(self,  rate):
         cf = self.cashflows[1:]
@@ -19,7 +23,10 @@ class CashFlows():
 
         return total
 
-    def npv(self,  rate):
+    def getPV(self):
+        return  self.pv
+
+    def npv(self,  rate, save_pv=False):
         total = 0.0
         if rate not in self.npvs:
             for i, cashflow in enumerate(self.cashflows):
@@ -27,6 +34,9 @@ class CashFlows():
                 val = (cashflow / ((1 + rate)** (stepen) + SMALL))
                 val = float(val)
                 total += val
+                if save_pv:
+                    self.pv.append(val)
+
             self.npvs[rate] = total
             return total
         else:
@@ -104,6 +114,10 @@ def npv(rate, vals):
     c = CashFlows(vals)
     return c.npv(rate)
 
+def npv_pv(rate, vals):
+    """return  NPV value and list of PV"""
+    c = CashFlows(vals)
+    return (c.npv(rate, save_pv=True), c.getPV())
 
 if __name__ == '__main__':
 

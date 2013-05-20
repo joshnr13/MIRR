@@ -52,12 +52,17 @@ BS["Control"] = "control"
 
 PROJECT_START = "Project Start"
 
-
-
-CF = OrderedDict()  #BALANCE SHEET , format dic[field_name]=attr_name or blank
+CF = OrderedDict()  #CASH FLOW , format dic[field_name]=attr_name or blank
 CF["Dates"] = ""
 CF["FCF project"] = "fcf_project"
 CF["FCF owners"] = "fcf_owners"
+
+NPV = OrderedDict()  #NPV , format dic[field_name]=attr_name or blank
+NPV["Dates"] = ""
+NPV["NPV project"] = "pv_project"
+NPV["NPV owners"] = "pv_owners"
+
+
 
 
 CORRELLATION_FIELDS = OrderedDict() # IRR ONE SHOULD HAVE NAME =IRR and be FIRST ONE

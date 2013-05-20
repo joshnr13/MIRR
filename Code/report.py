@@ -9,7 +9,7 @@ from collections import  OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, add_header_csv, last_day_previous_month
 from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, OrderedDefaultdict
 from annex import add_start_project_values, get_months_range,  month_number_days, get_only_digits, last_year
-from financial_analysis import irr, npv
+from financial_analysis import irr, npv, npv_pv
 
 from constants import PROJECT_START, REPORT_ROUNDING
 from tm import TechnologyModule
@@ -389,12 +389,30 @@ class Report(BaseClassConfig):
         fcf_owners_values_y = get_only_digits(self.fcf_owners_y)
         fcf_project_y = get_only_digits(self.fcf_project_y)
 
-        self.npv_owners = npv(self.wacc, fcf_owners_values)
-        self.npv_owners_y = npv(self.wacc, fcf_owners_values_y)
+        self.npv_owners, pv_owners_list = npv_pv(self.wacc, fcf_owners_values)
+        self.npv_owners_y, pv_owners_list_y = npv_pv(self.wacc, fcf_owners_values_y)
+        self.npv_project, pv_project_list = npv_pv(self.wacc, fcf_project_values)
+        self.npv_project_y, pv_project_list_y = npv_pv(self.wacc, fcf_project_y)
 
-        self.npv_project = npv(self.wacc, fcf_project_values)
-        self.npv_project_y = npv(self.wacc, fcf_project_y)
+        self.pv_owners = self.map_pv_dates(pv_owners_list, [self.wacc, self.npv_owners])
+        self.pv_owners_y = self.map_pv_dates(pv_owners_list_y, [self.wacc,self.npv_owners_y], yearly=True)
+        self.pv_project =  self.map_pv_dates(pv_owners_list, [self.wacc,self.npv_project])
+        self.pv_project_y = self.map_pv_dates(pv_project_list_y, [self.wacc,self.npv_project_y], yearly=True)
 
+    def map_pv_dates(self, values, initial_value="", yearly=False):
+        """Maps list of values to report dates"""
+        if yearly:
+            dates = self.report_dates_y
+        else:
+            dates = self.report_dates.values()
+
+        result = OrderedDict()
+        result[PROJECT_START] = "WACC= %0.3f , NPV=%0.1f" % (initial_value[0], initial_value[1])
+
+        for date, val in zip(dates, values):
+            result[date] = val
+
+        return  result
 
     def calc_wacc(self):
         """ WACC = share of debt in financing * cost of debt * (1-tax rate) + cost of capital * share of capital

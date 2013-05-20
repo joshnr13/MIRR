@@ -368,7 +368,10 @@ def csv2xlsx(inputfilename, outputfilename, listname='report'):
         first_column = columns[0]
         ws.column_dimensions[first_column].width = 40
 
-        for column in columns[1:]:
+        second_column = columns[1]
+        ws.column_dimensions[second_column].width = 30
+
+        for column in columns[2:]:
             ws.column_dimensions[column].width = 12
 
         wb.save(filename = outputfilename)

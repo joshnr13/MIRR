@@ -60,11 +60,9 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def print_equipment(self):
         """prints all equipment tree"""
-        for i, group in enumerate(self.plant.get_groups()):
+        for i, group_info in enumerate(self.plant.get_groups()):
             print "Group: %s" % (i + 1)
-            print group
-            #for eq in group.get_equipment():
-                #print "\t\tEquipment: %s" % eq
+            print group_info
 
     def generateElectiricityProduction(self, date):
         """based on insolation generates electricity production values for each day
