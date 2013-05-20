@@ -103,12 +103,12 @@ class Interface():
             save_irr_values(irr_values[:])
             show_irr_charts(irr_values[:])
 
-    def report_irr(self):
+    def report_irr(self, yearly=False):
         """Shows last N irrs distribution from database"""
-        field = 'irr_owners'
+        field = 'irr_project'
         default_simulations_number = MainConfig().getSimulationNumber()
         simulations_number = get_input_int(text="Please select number of previous irrs for plotting distribution (default %s) :: " %default_simulations_number, default=default_simulations_number)
-        irr_values = get_values_from_db(number=simulations_number, fields=[field], yearly=False)[field]
+        irr_values = get_values_from_db(number=simulations_number, fields=[field], yearly=yearly)[field]
 
         irr_values = filter(lambda x: not isnan(x), irr_values)
 

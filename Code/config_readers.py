@@ -138,25 +138,22 @@ class TechnologyModuleConfigReader():
         self.network_available_probability = _config.getfloat('Network', 'network_available_probability') / 100
 
         ######################## PRICE ###################
-        self.module_price = _config.getfloat('Price', 'module_price')
-        self.inverter_price = _config.getfloat('Price', 'inverter_price')
-        self.transformer_price = _config.getfloat('Price', 'transformer_price')
-        self.documentation_price = _config.getfloat('Price', 'documentation_price')
-        self.connection_grip_cost = _config.getfloat('Price', 'connection_grip_cost')
+        self.module_price = _config.getfloat('SolarModule', 'module_price')
+        self.inverter_price = _config.getfloat('Inverter', 'inverter_price')
+        self.transformer_price = _config.getfloat('Transformer', 'transformer_price')
+
+        self.documentation_price = _config.getfloat('AdditionalPrice', 'documentation_price')
+        self.connection_grip_cost = _config.getfloat('AdditionalPrice', 'connection_grip_cost')
 
         ####################### RELIABILTY ####################
-        self.module_reliability = _config.getfloat('Reliability', 'module_reliability') / 100
-        self.inverter_reliability = _config.getfloat('Reliability', 'inverter_reliability') / 100
-        self.transformer_reliability = _config.getfloat('Reliability', 'transformer_reliability') / 100
+        self.module_reliability = _config.getfloat('SolarModule', 'module_reliability') / 100
+        self.inverter_reliability = _config.getfloat('Inverter', 'inverter_reliability') / 100
+        self.transformer_reliability = _config.getfloat('Transformer', 'transformer_reliability') / 100
 
         ####################### EFFICIENCY ####################
-        self.module_power_efficiency = _config.getfloat('Efficiency', 'module_power_efficiency') / 100
-        self.inverter_power_efficiency = _config.getfloat('Efficiency', 'inverter_power_efficiency') / 100
-        self.transformer_power_efficiency = _config.getfloat('Efficiency', 'transformer_power_efficiency') / 100
-
-
-        ####################### TOTAL_POWER ####################
-        self.total_power = 10000
+        self.module_power_efficiency = _config.getfloat('SolarModule', 'module_power_efficiency') / 100
+        self.inverter_power_efficiency = _config.getfloat('Inverter', 'inverter_power_efficiency') / 100
+        self.transformer_power_efficiency = _config.getfloat('Transformer', 'transformer_power_efficiency') / 100
 
         self.configs = get_configs(self.__dict__)
 
