@@ -70,7 +70,7 @@ class Interface():
 
         eqipment_price = self.getMirr().technology_module.getEquipmentInvestmentCosts()
         print "\n Equipment investment cost - Total: %s" % eqipment_price
-       
+
     def get_inputs(self):
         def_start = self.getMirr().main_config.getStartDate()
         def_end = self.getMirr().main_config.getEndDate()
@@ -119,14 +119,15 @@ class Interface():
             return []
 
     def irr_correlations(self):
-        default_number = 100
         field = CORRELLATION_IRR_FIELD
-        number = get_input_int(text="Please select last database records to use for correlation (or press enter to default %s): " %default_number, default=default_number)
-        plot_correlation_tornado(field, number)
+        self._run_correlations(field)
 
     def npv_correlations(self):
-        default_number = 100
         field = CORRELLATION_NPV_FIELD
+        self._run_correlations(field)
+
+    def _run_correlations(self, field):
+        default_number = 100
         number = get_input_int(text="Please select last database records to use for correlation (or press enter to default %s): " %default_number, default=default_number)
         plot_correlation_tornado(field, number)
 
