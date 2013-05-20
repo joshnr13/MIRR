@@ -420,7 +420,11 @@ def plot_charts(yearly=False):
     pylab.grid(True, which="both",ls="-")
     pylab.axhline()
     pylab.axvline()
-    pylab.title("Monthly data")
+    if yearly:
+        title = 'Yearly data'
+    else :
+        title = "Monthly data"
+    pylab.title(title)
     pylab.show()
 
 

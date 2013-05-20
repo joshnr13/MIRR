@@ -133,27 +133,27 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         """
 
         ####### FIRST - 30% 2 month before the start of construction
-        part = 0.3
+        part1 = 0.3
         start_date = last_day_month(add_x_months(self.first_day_construction, -2))
-        invest_value = self.debt*part
+        invest_value = self.debt*part1
         self.investments_monthly[start_date] = invest_value
 
         a1 = Annuitet(invest_value, self.debt_rate, self.debt_years, start_date)
         a1.calculate()
 
         ####### SECOND - 50% - at start of construction
-        part = 0.5
+        part2 = 0.5
         start_date = last_day_month(self.first_day_construction)
-        invest_value = self.debt*part
+        invest_value = self.debt*part2
         self.investments_monthly[start_date] = invest_value
 
         a2 = Annuitet(invest_value, self.debt_rate, self.debt_years, start_date)
         a2.calculate()
 
         ####### THIRD - 20% - at the end of construction
-        part = 0.2
+        part3 = 0.2
         start_date = last_day_month(self.last_day_construction)
-        invest_value = self.debt*part
+        invest_value = self.debt*part3
         self.investments_monthly[start_date] = invest_value
 
         a3 = Annuitet(invest_value, self.debt_rate, self.debt_years, start_date)
