@@ -19,48 +19,48 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         TechnologyModuleConfigReader.__init__(self)
         self.energy_module = energy_module
         self.assembleSystem()
-        self.getInvestmentCost()
+        self.calculate_equipment_investment_costs()
 
     def assembleSystem(self):
         """generates objects for each solarmodule """
         self.total_power = self.groups_number * self.modules_in_group * self.module_power
 
-        self.buildPlant()
-        self.addSolarModulesAndInverter()
-        self.addTrasformer()
-        self.addConnectiodGrid()
-
-    def buildPlant(self):
-        self.plant = EquipmentGroups(self.network_available_probability)
-
-    def addSolarModulesAndInverter(self):
+        self.equipment_groups = EquipmentGroups(self.network_available_probability)
 
         for i in range(self.groups_number):
-            eq_group = EquipmentGroup(name="Solar Group")
-            self.plant.add_group(eq_group)
+            eq_group = EquipmentGroup()
+
             eq_group.add_inverter(self.inverter_price, self.inverter_reliability, self.inverter_power_efficiency)
+
             for j in range(self.modules_in_group):
                 eq_group.add_solar_module(self.module_price, self.module_reliability, self.module_power_efficiency, self.module_power)
 
-    def addTrasformer(self):
+            self.equipment_groups.add_group(eq_group)
 
         if self.transformer_present:
-            transformer_group = EquipmentGroup(name="Transformet Group")
-            self.plant.add_group(transformer_group)
+            transformer_group = EquipmentGroup()
+            self.equipment_groups.add_group(transformer_group)
             transformer_group.add_transformer(self.transformer_price, self.transformer_reliability, self.transformer_power_efficiency)
 
-    def addConnectiodGrid(self):
-        connection_grid_group = EquipmentGroup(name="Connection Group")
-        self.plant.add_group(connection_grid_group)
-        connection_grid_group.add_connection_grid(self.connection_grip_cost)
+    def calculate_equipment_investment_costs(self):
+        """Calculation of investment costs"""
 
-    def getInvestmentCost(self):
-        """return  investment costs of all plant"""
-        return  self.plant.getInvestmentCost() + self.documentation_price
+        self.total_costs = (
+            self.connection_grip_cost +
+            self.documentation_price +
+            self.modules_in_group * self.groups_number * self.module_price +
+            self.transformer_present * self.transformer_price +
+            self.groups_number * self.inverter_price
+            )
+
+    def getEquipmentInvestmentCosts(self):
+        return  self.total_costs
+
+
 
     def print_equipment(self):
         """prints all equipment tree"""
-        for i, group in enumerate(self.plant.get_groups()):
+        for i, group in enumerate(self.equipment_groups.get_groups()):
             print "Group: %s" % (i + 1)
             print group
             #for eq in group.get_equipment():
@@ -165,21 +165,12 @@ class Equipment():
     def get_params(self):
         return  self.__dict__
 
-    def getInvestmentCost(self):
-        """return  investment cost (price) of eqipment"""
-        return self.invesment_price
 
 class EquipmentSolarModule(Equipment):
     """Class for holding special info about Solar Modules"""
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
         self.name = "Solar Module"
-
-class EquipmentConnectionGrid(Equipment):
-    """Class for holding special info about Solar Modules"""
-    def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
-        self.name = "Connection Grid"
 
 class EquipmentInverter(Equipment):
     """Class for holding special info about Inverters"""
@@ -201,25 +192,19 @@ class EquipmentGroup():
         self.inverters = 0
         self.solar_modules = 0
         self.transformers = 0
-        self.connection_grid = 0
 
-    def add_connection_grid(self, price):
-        eq = EquipmentConnectionGrid(reliability=1, price=price, power_efficiency=1, power=None, state=0, system_crucial=False, group_cruical=False)
-        self.add_equipment(eq)
-        self.connection_grid += 1
-
-    def add_solar_module(self, price, reliability, power_efficiency, power):
-        eq = EquipmentSolarModule(reliability, price, power_efficiency,power, state=0, system_crucial=False, group_cruical=False)
+    def add_solar_module(self, price, reliability, efficiency, power):
+        eq = EquipmentSolarModule(reliability, price, efficiency,power, state=0, system_crucial=False, group_cruical=False)
         self.add_equipment(eq)
         self.solar_modules += 1
 
-    def add_inverter(self, price, reliability, power_efficiency):
-        eq = EquipmentInverter(reliability, price, power_efficiency, power=None, state=0, system_crucial=False, group_cruical=True )
+    def add_inverter(self, price, reliability, efficiency):
+        eq = EquipmentInverter(reliability, price, efficiency, power=None, state=0, system_crucial=False, group_cruical=True )
         self.add_equipment(eq)
         self.inverters += 1
 
-    def add_transformer(self, price, reliability, power_efficiency):
-        eq = EquipmentTransformer(reliability, price, power_efficiency, power=None, state=0, system_crucial=False, group_cruical=True )
+    def add_transformer(self, price, reliability, efficiency):
+        eq = EquipmentTransformer(reliability, price, efficiency, power=None, state=0, system_crucial=False, group_cruical=True )
         self.add_equipment(eq)
         self.transformers += 1
 
@@ -263,21 +248,7 @@ class EquipmentGroup():
             t =  "{transformer_modules} x Transformer, Reliability: {reliability}, Effiency: {efficiency}".format(**transformer_params)
             description.append(t)
 
-        if self.connection_grid:
-            connection_grid_params = self.get_equipment_params(EquipmentConnectionGrid)
-            connection_grid_params['connection_grids'] = self.connection_grid
-            t =  "{connection_grids} x Connection grid".format(**connection_grid_params)
-            description.append(t)
-
         return "  " + "\n  ".join(description)
-
-    def getInvestmentCost(self):
-        """return  investment cost of group"""
-        total = 0
-        for eq in self.get_equipment():
-            total += eq.getInvestmentCost()
-        return total
-
 
 
 class EquipmentGroups():
@@ -310,14 +281,6 @@ class EquipmentGroups():
     def get_groups(self):
         return  self.groups
 
-    def getInvestmentCost(self):
-        """return  Investment costs of ALL equipment groups"""
-        total = 0
-        for group in self.get_groups():
-            total += group.getInvestmentCost()
-        return total
-
-
 if __name__ == '__main__':
     mainconfig = MainConfig()
     em = EnergyModule(mainconfig)
@@ -329,5 +292,5 @@ if __name__ == '__main__':
     end_date = datetime.date(2013, 12, 31)
     #tm.outputElectricityProduction(start_date, end_date)
 
-    tm.print_equipment()
-    print tm.getInvestmentCost()
+    #tm.print_equipment()
+    print tm.getEquipmentInvestmentCosts()

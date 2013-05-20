@@ -68,10 +68,9 @@ class Interface():
     def print_equipment(self):
         self.getMirr().technology_module.print_equipment()
 
-        equipment_price = self.getMirr().technology_module.getInvestmentCost()
-        print "\n Total equipnment price %s" % equipment_price
-
-
+        eqipment_price = self.getMirr().technology_module.getEquipmentInvestmentCosts()
+        print "\n Equipment investment cost - Total: %s" % eqipment_price
+       
     def get_inputs(self):
         def_start = self.getMirr().main_config.getStartDate()
         def_end = self.getMirr().main_config.getEndDate()
