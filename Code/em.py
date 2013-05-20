@@ -54,7 +54,7 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
     def getAccumulatedEnergy(self, start_date, end_date):
         """
         parameters: start date,end_date
-        return accumulated energy from start date(incl) till end date (incl)
+        return cumulative energy from start date(incl) till end date (incl)
         """
         result = 0
         while start_date <= end_date:
