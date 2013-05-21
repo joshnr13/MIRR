@@ -63,6 +63,16 @@ class OrderedDefaultdict(OrderedDict):
         args = self.default_factory if self.default_factory else tuple()
         return type(self), args, None, None, self.items()
 
+
+import time
+def timer(f):
+    def wrapper(*args, **kwargs):
+        t = time.time()
+        res = f(*args, **kwargs)
+        print ("Execution time: %f sec" % (time.time()-t))
+        return res
+    return wrapper
+
 class memoize(object):
     """cache the return value of a method
 
@@ -354,6 +364,42 @@ def csv2xlsx(inputfilename, outputfilename, listname='report'):
 
         ws = wb.worksheets[0]
         ws.title = listname
+
+        columns = []
+        for row_index, row in enumerate(reader):
+            for column_index, cell in enumerate(row):
+                column_letter = get_column_letter((column_index + 1))
+                if column_letter not in columns:
+                    columns.append(column_letter)
+                _ceil = ws.cell('%s%s'%(column_letter, (row_index + 1)))
+                _ceil.value = cell
+                #_ceil.style.font.bold = True
+
+        set_column_sizes(ws, columns)
+        wb.save(filename = outputfilename)
+
+
+def set_column_sizes(ws, columns, sizes=(40, 30), others=12):
+    """Sets column sizes for ws
+    @sizes - list of sizes since 0 column
+    others - size for all others columsn
+    """
+    for col_ind, size in enumerate(sizes):
+        col = columns[col_ind]
+        ws.column_dimensions[col].width = size
+
+    for column in columns[len(sizes):]:
+        ws.column_dimensions[column].width = others
+
+def add_source_to_excel_sheet(wb, source_file_name):
+    """add second sheet to excel,
+    @wb - object workbook
+    """
+    ws = wb.create_sheet(1, 'source')
+
+    with open(source_file_name) as fin:
+        reader = csv.reader(fin, delimiter=';')
+
         columns = []
         for row_index, row in enumerate(reader):
             for column_index, cell in enumerate(row):
@@ -363,18 +409,8 @@ def csv2xlsx(inputfilename, outputfilename, listname='report'):
                 _ceil = ws.cell('%s%s'%(column_letter, (row_index + 1)))
                 _ceil.value = cell
 
-                #_ceil.style.font.bold = True
+    set_column_sizes(ws, columns)
 
-        first_column = columns[0]
-        ws.column_dimensions[first_column].width = 40
-
-        second_column = columns[1]
-        ws.column_dimensions[second_column].width = 30
-
-        for column in columns[2:]:
-            ws.column_dimensions[column].width = 12
-
-        wb.save(filename = outputfilename)
 
 def combine_files(from_filenames, to_filename):
     """Combining several files to one
@@ -580,6 +616,13 @@ def invert_dict(d):
     for k, v in d.iteritems():
         newdict[v] = k
     return newdict
+
+
+def get_list_dates( date_start, date_end):
+    duration_days = (date_end - date_start).days
+    list_dates = list([(date_start+dt.timedelta(days=i)) for i in range(duration_days+1)])
+    return list_dates
+
 
 if __name__=="__main__":
     pmts=[-1000,	500,	100,	1000, -200, 100, 10, -222]

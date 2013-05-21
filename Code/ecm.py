@@ -91,20 +91,24 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def _getDayRevenue_electricity(self, cur_date, electricity_production=None):
         """Calc revenue per date part: electricity"""
-        if electricity_production is  None:
-            electricity_production = self.getElectricityProduction(cur_date)
 
         if self.isProductionElectricityStarted(cur_date):
+
+            if electricity_production is  None:
+                electricity_production = self.getElectricityProduction(cur_date)
+
             return electricity_production * self.getPriceKwh(cur_date)
         else:
             return 0
 
     def _getDayRevenue_subsidy(self, cur_date, electricity_production=None):
         """Calc revenue per date part: subsidy"""
-        if electricity_production is  None:
-            electricity_production = self.getElectricityProduction(cur_date)
 
         if self.isProductionElectricityStarted(cur_date):
+
+            if electricity_production is  None:
+                electricity_production = self.getElectricityProduction(cur_date)
+
             subside_kwh = self.subside_module.subsidyProduction(cur_date)
             return   electricity_production * subside_kwh
         else:

@@ -6,11 +6,14 @@ import pylab
 import datetime
 import random
 import ConfigParser
+
 import os
 from em import EnergyModule
 from config_readers import MainConfig, TechnologyModuleConfigReader
 from base_class import BaseClassConfig
-from annex import get_configs
+from annex import get_configs, memoize, get_list_dates, years_between_1Jan
+from tm_equipment import PlantEquipment
+from collections import OrderedDict
 
 
 class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
@@ -20,6 +23,8 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         self.energy_module = energy_module
         self.assembleSystem()
         self.getInvestmentCost()
+        self.calc_project_datelist()
+        self.calc_degradation_coefficients()
 
     def assembleSystem(self):
         """generates objects for each solarmodule """
@@ -27,32 +32,24 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
         self.buildPlant()
         self.addSolarModulesAndInverter()
-        self.addTrasformer()
-        self.addConnectiodGrid()
+        self.addACTransmission()
 
     def buildPlant(self):
-        self.plant = EquipmentGroups(self.network_available_probability)
+        self.plant = PlantEquipment(self.network_available_probability)
 
     def addSolarModulesAndInverter(self):
 
         for i in range(self.groups_number):
-            eq_group = EquipmentGroup(name="Solar Group")
-            self.plant.add_group(eq_group)
+            eq_group = self.plant.add_Solar_group()
             eq_group.add_inverter(self.inverter_price, self.inverter_reliability, self.inverter_power_efficiency)
             for j in range(self.modules_in_group):
                 eq_group.add_solar_module(self.module_price, self.module_reliability, self.module_power_efficiency, self.module_power)
 
-    def addTrasformer(self):
-
+    def addACTransmission(self):
+        actransmission_group = self.plant.add_AC_group()
+        actransmission_group.add_connection_grid(self.connection_grip_cost)
         if self.transformer_present:
-            transformer_group = EquipmentGroup(name="Transformet Group")
-            self.plant.add_group(transformer_group)
-            transformer_group.add_transformer(self.transformer_price, self.transformer_reliability, self.transformer_power_efficiency)
-
-    def addConnectiodGrid(self):
-        connection_grid_group = EquipmentGroup(name="Connection Group")
-        self.plant.add_group(connection_grid_group)
-        connection_grid_group.add_connection_grid(self.connection_grip_cost)
+            actransmission_group.add_transformer(self.transformer_price, self.transformer_reliability, self.transformer_power_efficiency)
 
     def getInvestmentCost(self):
         """return  investment costs of all plant"""
@@ -64,16 +61,35 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
             print "Group: %s" % (i + 1)
             print group_info
 
+    def calc_degradation_coefficients(self):
+        degradation_coefficients = OrderedDict()
+        for date in self.date_list:
+            degradation_coefficients[date] = (1-self.degradation_yearly)**years_between_1Jan(self.start_date_project, date)
+        self.degradation_coefficients = degradation_coefficients
+
+    def calc_project_datelist(self):
+        self.date_list = get_list_dates(self.start_date_project, self.end_date_project)
+
     def generateElectiricityProduction(self, date):
-        """based on insolation generates electricity production values for each day
-        produced electricity = insolation * energyConversionFactor"""
         insolation = self.energy_module.get_insolation(date)
-        return insolation * self.electr_conv_factor
+        degradation = self.degradation_coefficients[date]
+        sun_values = self.plant.getElectricityProductionPlant1Day(1)
+        return  insolation * sun_values * degradation
 
     def getElectricityProduction(self, date_start, date_end):
         """return sum of electricity in kWh for each day for the selected period"""
-        duration_days = (date_end - date_start).days
-        return sum([self.generateElectiricityProduction(date_start+datetime.timedelta(days=i)) for i in range(duration_days+1) ])
+        date_list = get_list_dates(date_start, date_end)
+        sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) for date in date_list])
+        insolations = numpy.array([self.energy_module.get_insolation(date) for date in date_list])
+        degrodations = numpy.array(self.degradation_coefficients.values())
+        return numpy.inner(sun_values, insolations, degrodations)
+
+    def getElectricityProductionLifeTime(self):
+        date_list = get_list_dates(self.start_date_project, self.end_date_project)
+        sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) for day in date_list])
+        insolations = self.energy_module.insolations.values()
+        degrodations = numpy.array(self.get_degradation_coefficients(date_list))
+        return numpy.sum(sun_values*degrodations*insolations)
 
     def get_xy_values_for_plot(self, start_date, end_date, resolution):
         """return x,y values for plotting step chart"""
@@ -110,213 +126,9 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         pylab.show()
 
 
-
-class Equipment():
-    """Is the principal class for all equipment. """
-    def __init__(self,reliability, price, power_efficiency, power, state, system_crucial, group_cruical):
-        """
-        @state - current state - working, maintance, failure
-        @system_crucial - if state is not working then the whole system does not work
-        @group_cruical - if crucial then if state is not working then the respective group to which belongs does not work
-        @reliability - % as of probability that it is working
-        @price - investments price in EUR
-        """
-        self.state = 0
-        self.crucial = True
-        self.group_cruical = False
-        self.efficiency = power_efficiency
-        self.invesment_price = price
-        self.reliability = reliability
-        self.power = power
-        self.name = ""
-
-    def isStateWorking(self):
-        if self.getState() == 1:
-            return  True
-        else :
-            return  False
-
-    def isStateFailure(self):
-        if self.getState() == 2:
-            return  True
-        else :
-            return  False
-
-    def isStateMaintenance(self):
-        if self.getState() == 0:
-            return  True
-        else :
-            return  False
-
-    def getState(self):
-        return  self.state
-
-    def isCrucialForSystem(self):
-        return  self.crucial
-
-    def isCrucialForGroup(self):
-        return  self.group_cruical
-
-    def __str__(self):
-        return "Name: %s  Price: %s  Reliability: %s  Effiency: %s" % (self.name,self.invesment_price, self.reliability, self.efficiency)
-
-    def get_params(self):
-        return  self.__dict__
-
-    def getInvestmentCost(self):
-        """return  investment cost (price) of eqipment"""
-        return self.invesment_price
-
-class EquipmentSolarModule(Equipment):
-    """Class for holding special info about Solar Modules"""
-    def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
-        self.name = "Solar Module"
-
-class EquipmentConnectionGrid(Equipment):
-    """Class for holding special info about Solar Modules"""
-    def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
-        self.name = "Connection Grid"
-
-class EquipmentInverter(Equipment):
-    """Class for holding special info about Inverters"""
-    def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
-        self.name = "Inverter"
-
-class EquipmentTransformer(Equipment):
-    """Class for holding special info about Transformers"""
-    def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
-        self.name = "Transformer"
-
-class EquipmentGroup():
-
-    def __init__(self, name="Base Group"):
-        self.name = name
-        self.group_equipment = []
-        self.inverters = 0
-        self.solar_modules = 0
-        self.transformers = 0
-        self.connection_grid = 0
-
-    def add_connection_grid(self, price):
-        eq = EquipmentConnectionGrid(reliability=1, price=price, power_efficiency=1, power=None, state=0, system_crucial=False, group_cruical=False)
-        self.add_equipment(eq)
-        self.connection_grid += 1
-
-    def add_solar_module(self, price, reliability, power_efficiency, power):
-        eq = EquipmentSolarModule(reliability, price, power_efficiency,power, state=0, system_crucial=False, group_cruical=False)
-        self.add_equipment(eq)
-        self.solar_modules += 1
-
-    def add_inverter(self, price, reliability, power_efficiency):
-        eq = EquipmentInverter(reliability, price, power_efficiency, power=None, state=0, system_crucial=False, group_cruical=True )
-        self.add_equipment(eq)
-        self.inverters += 1
-
-    def add_transformer(self, price, reliability, power_efficiency):
-        eq = EquipmentTransformer(reliability, price, power_efficiency, power=None, state=0, system_crucial=False, group_cruical=True )
-        self.add_equipment(eq)
-        self.transformers += 1
-
-    def add_equipment(self,  equipment):
-        """Base method to add new equipment - (equipment - class object)"""
-        self.group_equipment.append(equipment)
-
-    def isGroupUnderMaintenance(self):
-        for equipment in self.group_equipment:
-            if equipment.isStateMaintenance():
-                return  True
-        return False
-
-    def get_equipment(self):
-        return  self.group_equipment[:]
-
-    def get_equipment_params(self, cls):
-        for eq in self.get_equipment():
-            if isinstance(eq, cls):
-                return eq.get_params()
-        else:
-            return None
-
-    def __str__(self):
-        description = []
-        if self.solar_modules:
-            solar_params = self.get_equipment_params(EquipmentSolarModule)
-            solar_params['solar_modules'] = self.solar_modules
-            s =  "{solar_modules} x Solar Module {power}W, Reliability: {reliability}, Effiency: {efficiency}".format(**solar_params)
-            description.append(s)
-
-        if self.inverters:
-            inverter_params = self.get_equipment_params(EquipmentInverter)
-            inverter_params['inverter_modules'] = self.inverters
-            i =  "{inverter_modules} x Inverter, Reliability: {reliability}, Effiency: {efficiency}".format(**inverter_params)
-            description.append(i)
-
-        if self.transformers:
-            transformer_params = self.get_equipment_params(EquipmentTransformer)
-            transformer_params['transformer_modules'] = self.transformers
-            t =  "{transformer_modules} x Transformer, Reliability: {reliability}, Effiency: {efficiency}".format(**transformer_params)
-            description.append(t)
-
-        if self.connection_grid:
-            connection_grid_params = self.get_equipment_params(EquipmentConnectionGrid)
-            connection_grid_params['connection_grids'] = self.connection_grid
-            t =  "{connection_grids} x Connection grid".format(**connection_grid_params)
-            description.append(t)
-
-        return "  " + "\n  ".join(description)
-
-    def getInvestmentCost(self):
-        """return  investment cost of group"""
-        total = 0
-        for eq in self.get_equipment():
-            total += eq.getInvestmentCost()
-        return total
-
-
-
-class EquipmentGroups():
-    def __init__(self, network_available_probability ):
-        self.groups = []
-        self.network_available_probability = network_available_probability
-
-    def add_group(self, group):
-        self.groups.append(group)
-
-    def isSystemOperational(self):
-        """isSystemOperational = isNetworkAvailable * isSystemUnderMaintenance"""
-        return  self.isNetworkAvailable() * self.isSystemUnderMaintenance()
-
-    def isNetworkAvailable(self):
-        """Availability of system network - user input as % of availability e.g. 99,9%
-        return  False or True"""
-        if random.random() >= self.network_available_probability:
-            return  True
-        else:
-            return  False
-
-    def isSystemUnderMaintenance(self):
-        """check for maintenace of components (objects Equipment)"""
-        for group in self.groups:
-            if group.isGroupUnderMaintenance():
-                return  True
-        return False
-
-    def get_groups(self):
-        return  self.groups
-
-    def getInvestmentCost(self):
-        """return  Investment costs of ALL equipment groups"""
-        total = 0
-        for group in self.get_groups():
-            total += group.getInvestmentCost()
-        return total
-
-
 if __name__ == '__main__':
+    from annex import timer
+    import numpy
     mainconfig = MainConfig()
     em = EnergyModule(mainconfig)
     tm = TechnologyModule(mainconfig, em)
@@ -324,8 +136,28 @@ if __name__ == '__main__':
 
     #print em.generatePrimaryEnergyAvaialbilityLifetime()
     start_date = datetime.date(2013, 1, 1)
-    end_date = datetime.date(2013, 12, 31)
+    end_date = mainconfig.getEndDate()
+    end_date_1d = datetime.date(2013, 1, 2)
     #tm.outputElectricityProduction(start_date, end_date)
+
+    @timer
+    def test_time():
+        print  tm.getElectricityProduction(start_date, end_date)
+
+    @timer
+    def test_time2():
+        print tm.getElectricityProduction(start_date, end_date)
+
+
+    @timer
+    def test_time3():
+        print tm.getElectricityProductionLifeTime()
+
 
     tm.print_equipment()
     print tm.getInvestmentCost()
+    test_time3()
+    date_list = get_list_dates(start_date, end_date)
+    print [d.strftime('%Y-%m-%d') for d in date_list]
+    #print tm.get_degradation_coefficients(date_list)
+

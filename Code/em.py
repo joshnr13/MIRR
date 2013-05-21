@@ -11,7 +11,7 @@ from base_class import BaseClassConfig
 from config_readers import MainConfig, EnergyModuleConfigReader
 from constants import TESTMODE
 from collections import OrderedDict
-from annex import get_configs
+from annex import get_configs, memoize
 
 class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 
@@ -40,6 +40,7 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         """Returns average daily insolation in given date"""
         return self.inputs[date.month-1]['Hopt']
 
+    #@memoize
     def generatePrimaryEnergyAvaialbility(self, date):
         """Parameters: start date
         based on monthly averages creates daily data
@@ -51,7 +52,7 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         """return energy availability per each day in whole lifetime"""
         return self.insolations.values()
 
-    def getAccumulatedEnergy(self, start_date, end_date):
+    def getCumulativePrimaryEnergy(self, start_date, end_date):
         """
         parameters: start date,end_date
         return accumulated energy from start date(incl) till end date (incl)
@@ -83,7 +84,7 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         y = []
 
         for start_period, end_period in result:
-            y.append(self.getAccumulatedEnergy(start_period, end_period))
+            y.append(self.getCumulativePrimaryEnergy(start_period, end_period))
 
         x = []
         sm = 0

@@ -135,6 +135,7 @@ class TechnologyModuleConfigReader():
         self.module_power = _config.getint('Equipment', 'module_power')
         self.modules_in_group = _config.getint('Equipment', 'modules_in_group')
         self.transformer_present = _config.getboolean('Equipment', 'transformer_present')
+        self.degradation_yearly = _config.getfloat('Equipment', 'PV_degradation_rate') / 100
         self.network_available_probability = _config.getfloat('Network', 'network_available_probability') / 100
 
         ######################## PRICE ###################
