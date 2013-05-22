@@ -76,7 +76,7 @@ class EquipmentSolarModule(Equipment):
 
     def getElectricityProductionEquipment(self, insolation):
         """Gets electiricity production for SolarModule"""
-        return insolation * self.power*self.efficiency
+        return insolation * self.power*self.efficiency / 1000
 
     def getPower(self):
         return self.power
@@ -195,7 +195,7 @@ class EquipmentGroup():
             solar_params['group_power'] = self.solar_modules * solar_params['power']
             solar_params['group_power'] = self.get_group_power()
 
-            s =  "Group power {group_power}KW ({solar_modules} x Solar Module {power}KW), Reliability: {reliability}, Effiency: {efficiency}".format(**solar_params)
+            s =  "Group power {group_power}KW ({solar_modules} x Solar Module {power}kW), Reliability: {reliability}, Effiency: {efficiency}".format(**solar_params)
             description.append(s)
 
         if self.inverters:
