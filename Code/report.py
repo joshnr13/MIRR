@@ -61,7 +61,8 @@ class Report(BaseClassConfig):
 
     def init_attrs(self):
         """Creating attrs for monthly and yearly values"""
-        capital = self.economic_module.capital
+        capital = self.economic_module.initial_paid_in_capital
+
         self.sun_insolation = OrderedDict()
         self.eclectricity_production = OrderedDict()
 

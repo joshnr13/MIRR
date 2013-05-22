@@ -188,6 +188,8 @@ class EconomicModuleConfigReader():
         ######################### INVESTMENTS #############################################
 
         self.cost_capital = _config.getfloat('Investments', 'cost_capital') / 100
+        self.initial_paid_in_capital = _config.getfloat('Investments', 'initial_paid_in_capital')
+
         #self.investments = _config.getfloat('Investments', 'investment_value')
         #self.investmentEquipment = _config.getfloat('Investments', 'investmentEquipment')
 

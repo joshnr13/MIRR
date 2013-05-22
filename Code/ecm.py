@@ -136,37 +136,55 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
              20% - at the end of construction
         """
 
+        paid_in_rest = self.initial_paid_in_capital
+
         ####### FIRST - 30% 2 month before the start of construction
         part1 = 0.3
         start_date = last_day_month(add_x_months(self.first_day_construction, -2))
-        invest_value = self.debt*part1
-        self.investments_monthly[start_date] = invest_value
+        paid_in_rest, investment1 = self._calc_paid_in_investment(part1, paid_in_rest)
 
-        a1 = Annuitet(invest_value, self.debt_rate, self.debt_years, start_date)
+        self.investments_monthly[start_date] = investment1
+
+        a1 = Annuitet(investment1, self.debt_rate, self.debt_years, start_date)
         a1.calculate()
 
         ####### SECOND - 50% - at start of construction
         part2 = 0.5
         start_date = last_day_month(self.first_day_construction)
-        invest_value = self.debt*part2
-        self.investments_monthly[start_date] = invest_value
+        paid_in_rest, investment2 = self._calc_paid_in_investment(part2, paid_in_rest)
+        self.investments_monthly[start_date] = investment2
 
-        a2 = Annuitet(invest_value, self.debt_rate, self.debt_years, start_date)
+        a2 = Annuitet(investment2, self.debt_rate, self.debt_years, start_date)
         a2.calculate()
 
         ####### THIRD - 20% - at the end of construction
         part3 = 0.2
         start_date = last_day_month(self.last_day_construction)
-        invest_value = self.debt*part3
-        self.investments_monthly[start_date] = invest_value
+        paid_in_rest, investment3 = self._calc_paid_in_investment(part3, paid_in_rest)
 
-        a3 = Annuitet(invest_value, self.debt_rate, self.debt_years, start_date)
+        self.investments_monthly[start_date] = investment3
+
+        a3 = Annuitet(investment3, self.debt_rate, self.debt_years, start_date)
         a3.calculate()
 
         #######################################################################
 
         self.debt_percents = sum_attrs_per_date([a1, a2, a3], "percent_payments")
         self.debt_rest_payments_wo_percents = sum_attrs_per_date([a1, a2, a3], "rest_payments_wo_percents")
+
+    def _calc_paid_in_investment(self, part, first_paid_in):
+        investment_share = (1 - self.debt_share)
+        invest_value = investment_share*part *self.debt
+
+        if first_paid_in > 0:
+            if invest_value > first_paid_in:
+                first_paid_in = 0
+                invest_value = invest_value - first_paid_in
+            else:
+                first_paid_in -= invest_value
+                invest_value = first_paid_in
+
+        return  first_paid_in, invest_value
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""

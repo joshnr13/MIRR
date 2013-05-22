@@ -76,7 +76,7 @@ class EquipmentSolarModule(Equipment):
 
     def getElectricityProductionEquipment(self, insolation):
         """Gets electiricity production for SolarModule"""
-        return insolation * self.power*self.efficiency / 1000
+        return insolation * self.power * self.efficiency
 
     def getPower(self):
         return self.power
