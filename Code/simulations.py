@@ -16,22 +16,23 @@ from itertools import izip_longest
 
 class Simulation():
 
-    def __init__(self, connect=True):
+    def __init__(self):
 
-        if connect:
-            db =  get_connection()
-            self.collection = db['collection']
-            self.iterations = db['iteration']
+        db =  get_connection()
+        self.collection = db['collection']
+        self.iterations = db['iteration']
+        self.simulations = db['simulation']
+        self.get_simulation_no()
 
-    def get_next_iteration(self):
+    def get_simulation_no(self):
         """Get next iteration number
 
         TODO! Move it to database module !!!!!!!!!!!!!!!!!!
         TODO! Make database module as class !!!!!!!!!!!!!!!!!!!!!
 
         """
-        self.iterations.update({'_id':'seq'}, {'$inc':{'seq':1}}, upsert=True)
-        self.iteration_no = self.iterations.find_one()['seq']
+        self.simulations.update({'_id':'seq'}, {'$inc':{'seq':1}}, upsert=True)
+        self.simulation_no = self.simulations.find_one()['seq']
 
     def prepare_data(self):
         self.i = Mirr()
@@ -49,25 +50,21 @@ class Simulation():
         self.sm_configs = self.sm.getConfigsValues()
         self.em_configs = self.em.getConfigsValues()
 
-        print
-        #self.inputs = self.em.getInputs()
-
     def db_insert_results(self):
-        """Prepares and in"""
+        """Inserts iteration @iteration number to db"""
         self.collection.insert(self.line, safe=True)
-        print "Inserting new iteration %s" %self.iteration_no
 
-    def process_results(self):
+    def convert_results(self):
         """Processing results before inserting to DB"""
-        line = self.prepare_results()
-        line = convert_value(line)
-        self.line = line
+        self.line = convert_value(self.prepared_line)
 
-    def prepare_results(self):
+    def prepare_results(self, iteration, iteration_number):
         obj = self.r
         line = dict()
 
-        line["hash_iteration"] = self.iteration_no
+        line["simulation"] = self.simulation_no
+        line["iteration"] = iteration
+        line["iteration_number"] = iteration_number
         line["date"] = datetime.datetime.now()
 
         line["main_configs"] = self.main_configs
@@ -163,51 +160,49 @@ class Simulation():
         line["wacc"] = obj.wacc
         line["wacc_y"] = obj.wacc
 
+        self.prepared_line = line
 
-        return line
+    def run_iterations(self,  number):
+        """Run multiple iterations"""
+        print "%s - runing simulation %s with %s iterations\n" % ( datetime.datetime.now(), self.simulation_no, number)
+        self.irrs = []
+        for i in range(number):
+            print "\tRunning iteration %s from %s" % (i + 1, number)
+            self.run_one_iteration(i+1, number)
 
+    def get_irrs(self):
+        """return  filtered irrs"""
+        good_irrs = []
+        for irr in self.irrs:
+            if irr is not None:
+                if irr is not isnan(irr):
+                    good_irrs.append(irr)
+        return good_irrs
 
+    def add_result_irr(self):
+        self.irrs.append(self.o.r.irr_owners)
 
-
-def run_one_iteration(insert=True):
-    d = Simulation(connect=insert)
-    d.prepare_data()
-    if insert:
-        d.get_next_iteration()
-        d.process_results()
-    if insert:
-        d.db_insert_results()
-
-    return d.o  #report_output module
+    def run_one_iteration(self, iteration_no, total_iteration_number):
+        """runs 1 iteration, prepares new data and saves it to db"""
+        self.prepare_data()
+        self.prepare_results(iteration_no, total_iteration_number)
+        self.convert_results()
+        self.db_insert_results()
+        self.add_result_irr()
 
 def run_all_iterations(simulation_number=None):
-    """Runs multiple simulations , saves report of last iteration
+    """Runs multiple simulations
     plots histogram or IRR distribution
 
     return  IRR values"""
-    irrs = []
-    if simulation_number is  None:
-        simulation_number = MainConfig().getSimulationNumber()
+    s = Simulation()
+    s.run_iterations(simulation_number)
+    return s.get_irrs(), s.simulation_no
 
-    print "Runing %s number of simulations" % simulation_number
-    for i in range(simulation_number):
-        last_report = run_one_iteration()
-        irrs.append(last_report.r.irr_owners)
-
-    #last_report.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
-
-    good_irrs = []
-    for irr in irrs:
-        if irr is not None:
-            if irr is not isnan(irr):
-                good_irrs.append(irr)
-
-    return good_irrs
-
-def show_irr_charts(values):
+def show_irr_charts(values, simulation_no):
     """Shows irr distribution and charts , field used for title"""
     field = 'irr_owners'
-    title = " of %s using last %s values" %(field, len(values))
+    title = " - Simulation %s of %s using last %s values" %(simulation_no, field, len(values))
 
     fig= pylab.figure()
 
@@ -222,28 +217,28 @@ def show_irr_charts(values):
     ax2.set_title("Chart " + title)
     pylab.show()
 
-
-def save_irr_values(values):
+def save_irr_values(values, simulation_no):
     """Saves IRR values to excel file"""
     cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
     report_name = "%s_%s.%s" % (cur_date, 'irr_values', 'csv')
     report_full_name = os.path.join(report_directory, report_name)
     output_filename = uniquify_filename(report_full_name)
     numbers = ["Iteration number"] + list(range(1, len(values)+1 ))
+    simulation_info = ["Simulation number"] + [simulation_no]
 
     with open(output_filename,'ab') as f:
         values.insert(0, "IRR_values")
         w = csv.writer(f, delimiter=';')
+        w.writerow(simulation_info)
         w.writerow(numbers)
         w.writerow(values)
 
-    transponse_csv(output_filename)
+    #transponse_csv(output_filename)
     xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
     xls_output_filename = uniquify_filename(xls_output_filename)
 
     convert2excel(source=output_filename, output=xls_output_filename)
     print "CSV Report outputed to file %s" % (xls_output_filename)
-
 
 def get_limit_values(x, y):
     min_irr = min(x)
@@ -266,7 +261,6 @@ def get_limit_values(x, y):
 
     return ((min_irr, max_irr), (min_val, max_val))
 
-
 def get_correlation_values(main_field, number=30, yearly=False):
     """get correlation of main_field with CORRELLATION_FIELDS"""
 
@@ -284,7 +278,6 @@ def get_correlation_values(main_field, number=30, yearly=False):
         correllation_dict[k] = rounded_value
 
     return  correllation_dict, number_values_used
-
 
 def plot_correlation_tornado(field_dic, number=30, yearly=False):
     """Plot tornado chart with correlation of field and other stochastic variables"""
@@ -351,7 +344,6 @@ def plot_correlation_tornado(field_dic, number=30, yearly=False):
 
     show()
 
-
 def irr_scatter_charts(number=10, yearly=False):
     #title = " of %s using last %s values" %(field, len(values))
     """
@@ -394,16 +386,11 @@ def irr_scatter_charts(number=10, yearly=False):
 
     pylab.show()
 
-
-
 def get_pos_no(value, sorted_list, used):
     for i, v in enumerate(sorted_list):
         if v == value and i not in used:
             used.append(i)
             return i
-
-
-
 
 def plot_charts(yearly=False):
 
@@ -436,18 +423,14 @@ def plot_charts(yearly=False):
     pylab.show()
 
 
-def test_100_iters():
-    for i in range(100):
-        run_one_iteration(insert=False)
-
-
 if __name__ == '__main__':
-    #run_one_iteration()
     #run_all_iterations()
     #plot_correlation_tornado()
     #irr_scatter_charts(100)
     #plot_charts()
-    test_100_iters()
+    #test_100_iters()
     #irr_scatter_charts()
+    s = Simulation()
+    s.run_iterations(10)
 
 

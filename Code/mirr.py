@@ -7,7 +7,7 @@ import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
 from database import get_values_from_db
-from simulations import run_one_iteration, run_all_iterations, save_irr_values, show_irr_charts, plot_correlation_tornado, plot_charts, irr_scatter_charts
+from simulations import  run_all_iterations, save_irr_values, show_irr_charts, plot_correlation_tornado, plot_charts, irr_scatter_charts
 from config_readers import MainConfig
 from _mirr import Mirr
 from numpy import isnan
@@ -98,10 +98,10 @@ class Interface():
         """Running simulation and saving results"""
         default_simulations_number = MainConfig().getSimulationNumber()
         simulations_number = get_input_int(text="Please select number of iterations (or press enter to default %s): " %default_simulations_number, default=default_simulations_number)
-        irr_values =  run_all_iterations(simulations_number)
+        irr_values, simulation_no =  run_all_iterations(simulations_number)
         if irr_values:
-            save_irr_values(irr_values[:])
-            show_irr_charts(irr_values[:])
+            save_irr_values(irr_values[:], simulation_no)
+            show_irr_charts(irr_values[:], simulation_no)
 
     def report_irr(self, yearly=False):
         """Shows last N irrs distribution from database"""
@@ -113,8 +113,8 @@ class Interface():
         irr_values = filter(lambda x: not isnan(x), irr_values)
 
         if irr_values:
-            show_irr_charts(irr_values)
-            save_irr_values(irr_values)
+            show_irr_charts(irr_values, '')
+            save_irr_values(irr_values, '')
         else :
             print "All IRR values was Nan (can't be calculated, please check FCF , because IRR cannot be negative)"
             return []
