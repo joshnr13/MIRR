@@ -164,10 +164,10 @@ class Simulation():
 
     def run_iterations(self,  number):
         """Run multiple iterations"""
-        print "%s - runing simulation %s with %s iterations\n" % ( datetime.datetime.now(), self.simulation_no, number)
+        print "%s - Running simulation number %s with %s iterations\n" % ( datetime.datetime.now(), self.simulation_no, number)
         self.irrs = []
         for i in range(number):
-            print "\tRunning iteration %s from %s" % (i + 1, number)
+            print "\tRunning iteration %s of %s" % (i + 1, number)
             self.run_one_iteration(i+1, number)
 
     def get_irrs(self):
