@@ -17,7 +17,7 @@ class CashFlows():
         cf = self.cashflows[1:]
         total = 0.0
         for i, cashflow in enumerate(cf):
-            val = (-1 * (i + 1) * cashflow / ((1 + rate)** (i + 2)+SMALL))
+            val = (-1 * (i) * cashflow / ((1 + rate)** (i + 1)+SMALL))
             val = float(val)
             total += val
 
@@ -30,7 +30,7 @@ class CashFlows():
         total = 0.0
         if rate not in self.npvs:
             for i, cashflow in enumerate(self.cashflows):
-                stepen = (i + 1)
+                stepen = (i)
                 val = (cashflow / ((1 + rate)** (stepen) + SMALL))
                 val = float(val)
                 total += val
