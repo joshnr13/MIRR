@@ -371,8 +371,15 @@ class Report(BaseClassConfig):
         #self.irr_owners_y = irr(fcf_owners_values_y)
         #self.irr_project_y = irr(fcf_project_y)
 
-        self.irr_owners_y = ((1 + self.irr_owners) ** 12) - 1 if  not numpy.isnan(self.irr_owners) else float('Nan')   # FORMULA by Borut
-        self.irr_project_y = ((1 + self.irr_project) ** 12) - 1  if  not numpy.isnan(self.irr_project) else float('Nan')# FORMULA by Borut
+        if self.irr_owners is not None and not numpy.isnan(self.irr_owners):
+            self.irr_owners_y = ((1 + self.irr_owners) ** 12) - 1 # FORMULA by Borut
+        else:
+            self.irr_owners_y = float('Nan')
+
+        if self.irr_project is not None and not numpy.isnan(self.irr_project):
+            self.irr_project_y = ((1 + self.irr_project) ** 12) - 1 # FORMULA by Borut
+        else:
+            self.irr_project_y = float('Nan')
 
         self.fcf_owners[PROJECT_START] = "IRR = %s" % self.irr_owners_y #YEARLY IRR FOR MONTHLY REPORT
         self.fcf_project[PROJECT_START] = "IRR = %s" % self.irr_project_y  #YEARLY IRR FOR MONTHLY REPORT

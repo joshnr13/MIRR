@@ -16,10 +16,12 @@ from itertools import izip_longest
 
 class Simulation():
 
-    def __init__(self):
-        db =  get_connection()
-        self.collection = db['collection']
-        self.iterations = db['iteration']
+    def __init__(self, connect=True):
+
+        if connect:
+            db =  get_connection()
+            self.collection = db['collection']
+            self.iterations = db['iteration']
 
     def get_next_iteration(self):
         """Get next iteration number
@@ -168,10 +170,11 @@ class Simulation():
 
 
 def run_one_iteration(insert=True):
-    d = Simulation()
+    d = Simulation(connect=insert)
     d.prepare_data()
-    d.get_next_iteration()
-    d.process_results()
+    if insert:
+        d.get_next_iteration()
+        d.process_results()
     if insert:
         d.db_insert_results()
 
@@ -439,7 +442,7 @@ if __name__ == '__main__':
     #plot_correlation_tornado()
     #irr_scatter_charts(100)
     #plot_charts()
-    #test_100_iters()
-    irr_scatter_charts()
+    test_100_iters()
+    #irr_scatter_charts()
 
 

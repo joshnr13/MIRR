@@ -63,12 +63,17 @@ class CashFlows():
 
     def find_irr_newton(self, guess):
         stop = self.good_enough(guess)
+        iter_no = 0
         while(not stop):
+            iter_no += 1
             guess = self.improve(guess)
             if guess  != None:
                 #print "Try new", guess
                 stop = self.good_enough(guess)
             else:
+                stop = True
+            if iter_no > 100:
+                guest = None
                 stop = True
 
         return guess
