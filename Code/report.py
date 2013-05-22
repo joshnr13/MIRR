@@ -397,19 +397,20 @@ class Report(BaseClassConfig):
         fcf_project_y = get_only_digits(self.fcf_project_y)
 
         self.npv_owners, pv_owners_list = npv_pv(self.wacc, fcf_owners_values)
-        self.npv_owners_y, pv_owners_list_y = npv_pv(self.wacc, fcf_owners_values_y)
         self.npv_project, pv_project_list = npv_pv(self.wacc, fcf_project_values)
-        self.npv_project_y, pv_project_list_y = npv_pv(self.wacc, fcf_project_y)
+
+        self.npv_owners_y, pv_owners_list_y = npv_pv(self.wacc_y, fcf_owners_values_y)
+        self.npv_project_y, pv_project_list_y = npv_pv(self.wacc_y, fcf_project_y)
 
         self.pv_owners = self.map_pv_dates(pv_owners_list, [self.wacc, self.npv_owners])
-        self.pv_owners_y = self.map_pv_dates(pv_owners_list_y, [self.wacc,self.npv_owners_y], yearly=True)
+        self.pv_owners_y = self.map_pv_dates(pv_owners_list_y, [self.wacc_y,self.npv_owners_y], yearly=True)
         self.pv_project =  self.map_pv_dates(pv_owners_list, [self.wacc,self.npv_project])
-        self.pv_project_y = self.map_pv_dates(pv_project_list_y, [self.wacc,self.npv_project_y], yearly=True)
+        self.pv_project_y = self.map_pv_dates(pv_project_list_y, [self.wacc_y,self.npv_project_y], yearly=True)
 
     def map_pv_dates(self, values, initial_value="", yearly=False):
         """Maps list of values to report dates"""
         if yearly:
-            dates = self.report_dates_y
+            dates = self.report_dates_y.keys()
         else:
             dates = self.report_dates.values()
 
@@ -430,7 +431,8 @@ class Report(BaseClassConfig):
         tax_rate = self.economic_module.tax_rate
         cost_debt = self.economic_module.debt_rate
 
-        self.wacc =  share_debt * cost_debt * (1 - tax_rate) + cost_capital * share_capital
+        self.wacc_y =  share_debt * cost_debt * (1 - tax_rate) + cost_capital * share_capital  #Borut Formula
+        self.wacc =  (1 + self.wacc_y) ** (1 / 12.0) - 1
 
     def _calc_unallocated_earnings(self, date):
         """Calculating accumulated earnings = previous (net_earning+unallocated_earning) """
