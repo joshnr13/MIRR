@@ -67,28 +67,34 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
             degradation_coefficients[date] = (1-self.degradation_yearly)**years_between_1Jan(self.start_date_project, date)
         self.degradation_coefficients = degradation_coefficients
 
+    def get_module_degradation(self, date):
+        """return  module degradation coefficient at given @date"""
+        return  self.degradation_coefficients[date]
+
     def calc_project_datelist(self):
         self.date_list = get_list_dates(self.start_date_project, self.end_date_project)
 
     def generateElectiricityProduction(self, date):
         insolation = self.energy_module.get_insolation(date)
-        degradation = self.degradation_coefficients[date]
-        sun_values = self.plant.getElectricityProductionPlant1Day(1)
-        return  insolation * sun_values * degradation
+        degradation = self.get_module_degradation(date)
+        production = self.plant.getElectricityProductionPlant1Day(insolation)
+        return  production * degradation
 
     def getElectricityProduction(self, date_start, date_end):
         """return sum of electricity in kWh for each day for the selected period"""
+
         date_list = get_list_dates(date_start, date_end)
-        sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) for date in date_list])
-        insolations = numpy.array([self.energy_module.get_insolation(date) for date in date_list])
-        degrodations = numpy.array(self.degradation_coefficients.values())
-        return numpy.inner(sun_values, insolations, degrodations)
+        electricity = 0
+        for date in date_list:
+            electricity += self.generateElectiricityProduction(date)
+
+        return electricity
 
     def getElectricityProductionLifeTime(self):
         date_list = get_list_dates(self.start_date_project, self.end_date_project)
         sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) for day in date_list])
         insolations = self.energy_module.insolations.values()
-        degrodations = numpy.array(self.get_degradation_coefficients(date_list))
+        degrodations = numpy.array(self.degradation_coefficients.values())
         return numpy.sum(sun_values*degrodations*insolations)
 
     def get_xy_values_for_plot(self, start_date, end_date, resolution):
@@ -156,8 +162,9 @@ if __name__ == '__main__':
 
     tm.print_equipment()
     print tm.getInvestmentCost()
+    test_time2()
     test_time3()
-    date_list = get_list_dates(start_date, end_date)
-    print [d.strftime('%Y-%m-%d') for d in date_list]
+    #date_list = get_list_dates(start_date, end_date)
+    #print [d.strftime('%Y-%m-%d') for d in date_list]
     #print tm.get_degradation_coefficients(date_list)
 
