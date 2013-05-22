@@ -197,9 +197,9 @@ class Report(BaseClassConfig):
         self.inventory[M] = 0 #NOT IMPLEMENTED
         self.short_term_investment[M] = 0 #NOT IMPLEMENTED
         self.asset_bank_account[M] = 0 #NOT IMPLEMENTED
-        self.paid_in_capital[M] = self.paid_in_capital[PROJECT_START]
+        self.paid_in_capital[M] = self._calc_paid_in(M)
 
-        self.current_asset[M] = self._calc_current_assets(end_day)
+        self.current_asset[M] = self._calc_current_assets(M)
         self.retained_earning[M] = self.net_earning[M]
         self.unallocated_earning[M] = self._calc_unallocated_earnings(M)
         self.asset[M] = self._calc_assets(end_day)
@@ -536,6 +536,14 @@ class Report(BaseClassConfig):
                 return tax_rate * max(year_ebt/2.0, year_ebt - accumulated_earnings)
         else:
             return 0
+
+    def _calc_paid_in(self, date):
+        prev_month_date = last_day_previous_month(date)
+        if prev_month_date < self.start_date_project:
+            prev_month_date = PROJECT_START
+        prev_paid_in = self.paid_in_capital[prev_month_date]
+        return  prev_paid_in + self.economic_module.getPaidInDelta(date)
+
 
     def _calc_current_assets(self, date):
         """calculating current assests as sum"""

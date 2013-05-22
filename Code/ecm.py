@@ -8,9 +8,10 @@ from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
 from annex import Annuitet, getDaysNoInMonth, years_between_1Jan, months_between, last_day_month
-from annex import add_x_years,add_x_months, month_number_days, last_day_next_month, get_configs, sum_attrs_per_date, OrderedDefaultdict
+from annex import add_x_years,add_x_months, month_number_days, last_day_next_month, get_configs,  OrderedDefaultdict
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
+from collections import OrderedDict
 
 
 class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
@@ -136,55 +137,64 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
              20% - at the end of construction
         """
 
-        paid_in_rest = self.initial_paid_in_capital
+        self.paid_in_rest = self.initial_paid_in_capital
+        self.debt_rest_payments_wo_percents = OrderedDefaultdict(int)
+        self.debt_percents = OrderedDefaultdict(int)
+        self.paid_in_monthly = OrderedDefaultdict(int)
 
         ####### FIRST - 30% 2 month before the start of construction
         part1 = 0.3
-        start_date = last_day_month(add_x_months(self.first_day_construction, -2))
-        paid_in_rest, investment1 = self._calc_paid_in_investment(part1, paid_in_rest)
-
-        self.investments_monthly[start_date] = investment1
-
-        a1 = Annuitet(investment1, self.debt_rate, self.debt_years, start_date)
-        a1.calculate()
+        start_date1 = last_day_month(add_x_months(self.first_day_construction, -2))
+        self.calc_paidin_investment(start_date1, part1)
 
         ####### SECOND - 50% - at start of construction
         part2 = 0.5
-        start_date = last_day_month(self.first_day_construction)
-        paid_in_rest, investment2 = self._calc_paid_in_investment(part2, paid_in_rest)
-        self.investments_monthly[start_date] = investment2
-
-        a2 = Annuitet(investment2, self.debt_rate, self.debt_years, start_date)
-        a2.calculate()
+        start_date2 = last_day_month(self.first_day_construction)
+        self.calc_paidin_investment(start_date2, part2)
 
         ####### THIRD - 20% - at the end of construction
         part3 = 0.2
-        start_date = last_day_month(self.last_day_construction)
-        paid_in_rest, investment3 = self._calc_paid_in_investment(part3, paid_in_rest)
+        start_date3 = last_day_month(self.last_day_construction)
+        self.calc_paidin_investment(start_date3, part3)
 
-        self.investments_monthly[start_date] = investment3
+    def getPaidInDelta(self, date):
+        """return  current month delta of paid-in capital"""
+        return  self.paid_in_monthly[date]
 
-        a3 = Annuitet(investment3, self.debt_rate, self.debt_years, start_date)
-        a3.calculate()
+    def calc_paidin_investment(self, date, part):
+        investment_paid_in = self._calc_paid_investment_part(part)
+        debt_value = self.debt * part - investment_paid_in
 
-        #######################################################################
+        a = Annuitet(debt_value, self.debt_rate, self.debt_years, date)
+        a.calculate()
 
-        self.debt_percents = sum_attrs_per_date([a1, a2, a3], "percent_payments")
-        self.debt_rest_payments_wo_percents = sum_attrs_per_date([a1, a2, a3], "rest_payments_wo_percents")
+        self.investments_monthly[date] = investment_paid_in + debt_value
+        self.paid_in_monthly[date] = investment_paid_in
 
-    def _calc_paid_in_investment(self, part, first_paid_in):
+        for k, v in a.percent_payments.items():
+            self.debt_percents[k] += v
+
+        for k, v in a.rest_payments_wo_percents.items():
+            self.debt_rest_payments_wo_percents[k] += v
+
+
+        #self.debt_percents[date] += a.percent_payments.values()
+        #self.debt_rest_payments_wo_percents += a.rest_payments_wo_percents.values()
+
+
+    def _calc_paid_investment_part(self, part):
         investment_share = (1 - self.debt_share)
         invest_value = investment_share*part *self.debt
 
-        if first_paid_in > 0:
-            if invest_value > first_paid_in:
-                first_paid_in = 0
-                invest_value = invest_value - first_paid_in
+        if self.paid_in_rest > 0:
+            if invest_value > self.paid_in_rest:
+                self.paid_in_rest = 0
+                invest_value = invest_value - self.paid_in_rest
             else:
-                first_paid_in -= invest_value
-                invest_value = first_paid_in
+                self.paid_in_rest -= invest_value
+                invest_value = self.paid_in_rest
 
-        return  first_paid_in, invest_value
+        return  invest_value
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""

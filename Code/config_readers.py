@@ -130,13 +130,12 @@ class TechnologyModuleConfigReader():
         _config.read(_filepath)
 
         ######################## BASE ###################
-        self.electr_conv_factor = _config.getfloat('Electricity', 'ConversionFactor')
         self.groups_number = _config.getint('Equipment', 'groups_number')
-        self.module_power = _config.getfloat('Equipment', 'module_power')
         self.modules_in_group = _config.getint('Equipment', 'modules_in_group')
         self.transformer_present = _config.getboolean('Equipment', 'transformer_present')
-        self.degradation_yearly = _config.getfloat('Equipment', 'PV_degradation_rate') / 100
         self.network_available_probability = _config.getfloat('Network', 'network_available_probability') / 100
+        self.degradation_yearly = _config.getfloat('SolarModule', 'PV_degradation_rate') / 100
+        self.module_power = _config.getfloat('SolarModule', 'module_power')
 
         ######################## PRICE ###################
         self.module_price = _config.getfloat('SolarModule', 'module_price')

@@ -522,18 +522,18 @@ class Annuitet():
         self.rest_payments = rest_payments
         self.rest_payments_wo_percents = rest_payments_wo_percents
 
-def sum_attrs_per_date(list_annuitets, attr):
-    """Calculation sum of attrs for all annuitets per date
-    @list_annuitets - list [cls Annuitet]
-    @attr - string attr name of cls Annuitet
-    return OrderedDict
-    """
-    result = OrderedDefaultdict(int)
-    for a in list_annuitets:
-        for k, v in getattr(a, attr).items():
-            result[k] += v
+#def sum_attrs_per_date(list_annuitets, attr):
+    #"""Calculation sum of attrs for all annuitets per date
+    #@list_annuitets - list [cls Annuitet]
+    #@attr - string attr name of cls Annuitet
+    #return OrderedDict
+    #"""
+    #result = OrderedDefaultdict(int)
+    #for a in list_annuitets:
+        #for k, v in getattr(a, attr).items():
+            #result[k] += v
 
-    return  result
+    #return  result
 
 
 
