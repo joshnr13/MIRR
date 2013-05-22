@@ -1,7 +1,7 @@
 #import numpy
 
 BEST_GUESSES = [-0.1, -0.01, 0.01,  0.1]
-SMALL = 0.00001
+SMALL = 0.00000001
 
 class CashFlows():
     def __init__(self, cashflows):
@@ -31,7 +31,8 @@ class CashFlows():
         if rate not in self.npvs:
             for i, cashflow in enumerate(self.cashflows):
                 stepen = (i)
-                val = (cashflow / ((1 + rate)** (stepen) + SMALL))
+                small = SMALL if i > 0 else 0
+                val = (cashflow / ((1 + rate)** (stepen) + small))
                 val = float(val)
                 total += val
                 if save_pv:
@@ -128,6 +129,8 @@ if __name__ == '__main__':
     vals = [-75000, 25000, 25000, 25000, 25000, 25000, -10000]
     c = CashFlows(vals)
     print c.irr()
+    c.npv(0.111, save_pv=True)
+    print c.getPV()
 
 
     vals =[-135058400,-540178600,64463724.54,97045495.07,100783477.3,100968948.1,104441595,103025235.5,105645724.4,106890037.3,106759758.9,112114108.4,109985990.7,111547302.2,108697197.9,80079613.2,80517564.03,80579860.25,84190124.97,85843711.75,88112482.16,88717774.7,90455694.38,92140853.72,95184714.12]
