@@ -74,13 +74,13 @@ class EquipmentSolarModule(Equipment):
         Equipment.__init__(self, *args, **kwargs)
         self.name = "SolarModule Equipment"
 
-    #@profile
     def getElectricityProductionEquipment(self, insolation):
         """Gets electiricity production for SolarModule"""
-        return insolation * self.getPowerEfficiency(power=self.power, efficiency=self.efficiency)
+        return insolation * self.power*self.efficiency
 
-    def getPowerEfficiency(self, power, efficiency):
-        return  power  * efficiency / 1000.0
+    def getPower(self):
+        return self.power
+
 
 
 class EquipmentConnectionGrid(Equipment):
@@ -154,6 +154,10 @@ class EquipmentGroup():
                 return  True
         return False
 
+    def get_group_power(self):
+        """return  solar power of all solar modules in group"""
+        return sum([g.getPower() for g in self.get_solar_equipment()])
+
     def get_solar_equipment(self):
         """return  list of solar modules"""
         return  self.group_equipment['solar_module']
@@ -190,7 +194,10 @@ class EquipmentGroup():
         if self.solar_modules:
             solar_params = self.get_equipment_params(EquipmentSolarModule)
             solar_params['solar_modules'] = self.solar_modules
-            s =  "{solar_modules} x Solar Module {power}W, Reliability: {reliability}, Effiency: {efficiency}".format(**solar_params)
+            solar_params['group_power'] = self.solar_modules * solar_params['power']
+            solar_params['group_power'] = self.get_group_power()
+
+            s =  "Group power {group_power} KW ({solar_modules} x Solar Module {power}KW), Reliability: {reliability}, Effiency: {efficiency}".format(**solar_params)
             description.append(s)
 
         if self.inverters:
@@ -316,9 +323,20 @@ class PlantEquipment():
     def getElectricityProductionPlant1Day(self, insolation):
         """return  ElectiricityProduction for whole Plant"""
 
-        groups_production = sum([g.getElectricityProductionGroup(insolation) for g in self.get_Solar_groups()])
-        transformer_efficiency = self.getTransformerEffiency()
-        grid_available = self.isGridAvailable()
+        if self.isGridAvailable():
+            groups_production = sum([g.getElectricityProductionGroup(insolation) for g in self.get_Solar_groups()])
+            transformer_efficiency = self.getTransformerEffiency()
+            return  groups_production * transformer_efficiency
+        else:
+            return 0
 
-        return  groups_production * transformer_efficiency * grid_available
+    def getPlantPower(self):
+        """return  Total power of plant"""
+        return sum([gr.get_group_power() for gr in self.get_Solar_groups()])
+
+    def __str__(self):
+        return  "Plant Power %s KW" % self.getPlantPower()
+
+
+
 

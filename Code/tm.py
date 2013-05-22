@@ -57,6 +57,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def print_equipment(self):
         """prints all equipment tree"""
+        print self.plant
         for i, group_info in enumerate(self.plant.get_groups()):
             print "Group: %s" % (i + 1)
             print group_info
@@ -89,6 +90,13 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
             electricity += self.generateElectiricityProduction(date)
 
         return electricity
+
+    def getElectricityProduction(self, date_start, date_end):
+        date_list = get_list_dates(date_start, date_end)
+        sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) for day in date_list])
+        insolations = self.energy_module.insolations.values()
+        degrodations = numpy.array(self.degradation_coefficients.values())
+        return numpy.sum(sun_values*degrodations*insolations)
 
     def getElectricityProductionLifeTime(self):
         date_list = get_list_dates(self.start_date_project, self.end_date_project)
