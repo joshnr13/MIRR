@@ -81,8 +81,6 @@ class EquipmentSolarModule(Equipment):
     def getPower(self):
         return self.power
 
-
-
 class EquipmentConnectionGrid(Equipment):
     """Class for holding special info about Solar Modules"""
     def __init__(self, *args, **kwargs):

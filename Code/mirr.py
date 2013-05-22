@@ -116,7 +116,7 @@ class Interface():
             show_irr_charts(irr_values)
             save_irr_values(irr_values)
         else :
-            print "All IRR values was Nan (cant be calculated, please check FCF , because IRR cannot be negative)"
+            print "All IRR values was Nan (can't be calculated, please check FCF , because IRR cannot be negative)"
             return []
 
     def irr_correlations(self):
@@ -140,7 +140,7 @@ class Interface():
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")
     def no_such_method(self):
-        print "So such function. Try again from allowed %s" % commands.values()
+        print "No such function. Try again from allowed %s" % commands.values()
     def help(self):
         print "Alowed commands (Short name = full name) "
         for k, v in (commands.items()):
