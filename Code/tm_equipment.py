@@ -195,7 +195,7 @@ class EquipmentGroup():
             solar_params['group_power'] = self.solar_modules * solar_params['power']
             solar_params['group_power'] = self.get_group_power()
 
-            s =  "Group power {group_power} KW ({solar_modules} x Solar Module {power}KW), Reliability: {reliability}, Effiency: {efficiency}".format(**solar_params)
+            s =  "Group power {group_power}KW ({solar_modules} x Solar Module {power}KW), Reliability: {reliability}, Effiency: {efficiency}".format(**solar_params)
             description.append(s)
 
         if self.inverters:
@@ -260,7 +260,7 @@ class PlantEquipment():
         return  self.__add_group(group_type)
 
     def add_AC_group(self):
-        """adds new group ACT and returns link to it"""
+        """adds new group AC and returns link to it"""
         group_type = 'AC group'
         self.AC_group = self.__add_group(group_type)
         return self.AC_group
