@@ -1,7 +1,11 @@
+import os
 import random
-from annex import memoize
-from collections import defaultdict
+import numpy
 
+from annex import memoize, last_day_month
+from collections import defaultdict
+from em import  InputsReader
+from datetime import date
 ################################# Equipment ######################
 
 class Equipment():
@@ -332,9 +336,28 @@ class PlantEquipment():
         """return  Total power of plant"""
         return sum([gr.get_group_power() for gr in self.get_Solar_groups()])
 
+    def expectedYearProduction(self):
+        inputs = InputsReader()
+
+        av_insolations = []
+        days = []
+        for i in range(1, 13):
+            last_month_date = last_day_month(date(2000,  i, 1))
+            av_insolations.append(inputs.getAvMonthInsolation(last_month_date))
+            days.append(last_month_date.day)
+
+        one_day_production = numpy.array([self.getElectricityProductionPlant1Day(insolation) for insolation in av_insolations])
+        #print one_day_production
+        whole_year_production = numpy.sum(numpy.array(days) * one_day_production)
+
+        return  whole_year_production
+
+
     def __str__(self):
-        return  "Plant Power %s KW" % self.getPlantPower()
+        return  "Plant Power %s KW . Expected year power production %s KW" % (self.getPlantPower(), self.expectedYearProduction())
 
 
-
+if __name__ == '__main__':
+    p = PlantEquipment(1)
+    print p.expectedYearProduction()
 

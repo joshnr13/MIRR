@@ -87,9 +87,6 @@ class MainConfig():
         """
         return self.configs
 
-    def getIterationsNumver(self):
-        return self.configs["simulation_number"]
-
 class SubsidyModuleConfigReader():
     def __init__(self, _filename='sm_config.ini'):
         """Reads module config file"""

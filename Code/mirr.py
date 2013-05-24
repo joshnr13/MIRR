@@ -18,7 +18,7 @@ commands = OrderedDict()
 i = 0
 commands['0'] = 'stop'
 commands['1'] = 'run_simulations'
-commands['2'] = 'report_irr'
+commands['2'] = 'irr_distribution'
 commands['3'] = 'report_isbscf'
 commands['4'] = 'charts'
 commands['5'] = 'print_equipment'
@@ -27,14 +27,6 @@ commands['7'] = 'outputElectricityProduction'
 commands['8'] = 'irr_correlations'
 commands['9'] = 'irr_scatter_charts'
 commands['10'] = 'npv_correlations'
-
-#commands['99'] = 'read_db'
-
-"""run_simulations  - then it asks you how many
-report_irr - makes graphs about IRR distribution and saves data
-report_isbscf  - makes xls - yearly and monthly for last set written to the database
-charts - makes monthly and yearly charts for the last set written to the database
-"""
 
 class Interface():
     def __init__(self):
@@ -45,8 +37,9 @@ class Interface():
         return Mirr()
 
     def charts(self):
-        plot_charts(yearly=False)
-        plot_charts(yearly=True)
+        simulation_number =  self.get_input_simulation("for plotting revenue-costs charts ")
+        plot_charts(simulation_number, yearly=False)
+        plot_charts(simulation_number, yearly=True)
 
     def report_isbscf(self):
         self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
@@ -68,7 +61,7 @@ class Interface():
 
         start_date =  get_input_date(text="Start date" + memo, default=def_start)
         end_date =  get_input_date(text="End date" + memo, default=def_end)
-        resolution = get_input_int(text=memo_res, default=def_res)
+        resolution = get_input_int(memo_res, default=def_res)
 
         return (start_date, end_date, resolution)
 
@@ -82,18 +75,22 @@ class Interface():
 
     def run_simulations(self):
         """Running simulation and saving results"""
-        simulations_number = self.get_input(text="iterations to run", default=REPORT_DEFAULT_NUMBER_ITERATIONS)
-        irr_values, simulation_no =  run_all_simulations(simulations_number)
+        iterations_number = self.get_number_iterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)
+        irr_values, simulation_no =  run_all_simulations(iterations_number)
         if irr_values:
             save_irr_values(irr_values[:], simulation_no)
             show_irr_charts(irr_values[:], IRR, simulation_no)
 
-    def get_input(self, text="", default=""):
-        return  get_input_int(text="Please select number of %s (or press Enter to use default %s) : " %(text, default), default=default)
+    def get_number_iterations(self, text="", default=""):
+        return  get_input_int("Please select number of iterations to run (or press Enter to use default %s) : " %default, default)
 
-    def report_irr(self, yearly=False):
+    def get_input_simulation(self, text=""):
+        last_simulation = self.db.get_last_simulation_no()
+        return  get_input_int("Please input ID of simulation for %s (or press Enter to use last-run %s): " %(text, last_simulation), last_simulation)
+
+    def irr_distribution(self, yearly=False):
         """Shows last N irrs distribution from database"""
-        simulations_number =  self.get_input("previous simulations for plotting IRR distribution ", REPORT_DEFAULT_NUMBER_SIMULATIONS)
+        simulations_number =  self.get_input_simulation("for plotting IRR distribution ")
         show_save_irr_distribution(IRR, simulations_number, yearly)
 
     def irr_correlations(self):
@@ -104,12 +101,12 @@ class Interface():
 
     def _run_correlations(self, field):
         """field - dict [short_name] = database name"""
-        number = self.get_input("previous simulations for %s correlations charts: " %field.keys()[0], REPORT_DEFAULT_NUMBER_SIMULATIONS)
-        plot_correlation_tornado(field, number)
+        simulation_no = self.get_input_simulation("for %s correlations charts: " %field.keys()[0])
+        plot_correlation_tornado(field, simulation_no)
 
     def irr_scatter_charts(self):
-        number = self.get_input("previous simulations for IRR scatter_chart: ", REPORT_DEFAULT_NUMBER_SIMULATIONS)
-        irr_scatter_charts(number)
+        simulation_no = self.get_input_simulation("for IRR scatter_chart: ")
+        irr_scatter_charts(simulation_no)
 
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")

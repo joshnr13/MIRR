@@ -441,13 +441,15 @@ def get_input_date(default=None, text=''):
 
     return result
 
-def get_input_int(default=None, text=''):
+def get_input_int(text='', default=None, ):
     value = raw_input(text)
     try:
         result= int(value)
     except ValueError:
-        print "No value or value error. Return default value %s" % default
-        result = default
+        if default:
+            result = default
+        else:
+            raise ValueError("No value or value error")
 
     return result
 

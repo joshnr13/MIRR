@@ -109,9 +109,6 @@ class Database():
             get_values[field] = True
         return  select_by, get_values
 
-    def format_request_simulation_range(self,  range_values, dic):
-        dic['simulation'] =  { '$in' : list(range_values) }
-
     def get_results_find_limit_iterations(self, number, fields, select_by, get_values, yearly):
         try:
             sorted_order = [("$natural", -1)]
@@ -161,7 +158,7 @@ class Database():
             print "Unexpected error:", sys.exc_info()
             return {}
 
-    def get_simulations_values_from_db(self,  need_prev_simulations, fields, yearly, convert_to=None):
+    def get_simulations_values_from_db(self,  simulation_id, fields, yearly, convert_to=None):
         """Gets from DB and shows @fields from LAST @number of simulations
         - selected by list of @fields, any type - example ['irr_owners', 'irr_project', 'main_configs.lifetime']
         - using yearly suffix
@@ -170,23 +167,24 @@ class Database():
         """
 
         last_number_simulation = self.get_last_simulation_no()
-        if need_prev_simulations > last_number_simulation:
-            raise ValueError("Not enough number of simulations in Database")
-
-        simulation_range_numbers = range(last_number_simulation-need_prev_simulations+1, last_number_simulation+1)
-        simulation_range_numbers_short = "[%s-%s]" % (min(simulation_range_numbers), max(simulation_range_numbers))
+        if simulation_id > last_number_simulation:
+            print ValueError("Not such simulation in DB. Last simulation is %s" %last_number_simulation)
+            return  None
 
         select_by, get_values = self.format_request(fields, yearly)
-        self.format_request_simulation_range(simulation_range_numbers, select_by)
+        select_by['simulation'] =  simulation_id
         results = self._get_results_find_limit_simulations(fields, select_by, get_values, yearly, convert_to)
 
-        return  results, simulation_range_numbers_short
+        return  results
 
-    def get_correlation_values(self, main_field, number=30, yearly=False):
+    def get_correlation_values(self, main_field, simulation_id, yearly=False):
         """get correlation of main_field with CORRELLATION_FIELDS"""
 
         fields = [main_field] + CORRELLATION_FIELDS.values()
-        results, simulation_range_numbers = self.get_simulations_values_from_db(number, fields, yearly)
+        results = self.get_simulations_values_from_db(simulation_id, fields, yearly)
+        if not results:
+            print ValueError('No data in Database for simulation %s' %simulation_id)
+            return None
 
         main_list_values = results.pop(main_field)
         number_values_used = len(main_list_values)
@@ -197,7 +195,7 @@ class Database():
             rounded_value = round(cor, 3)
             correllation_dict[k] = rounded_value
 
-        return  correllation_dict, simulation_range_numbers, number_values_used
+        return  correllation_dict, number_values_used
 
     def get_rowvalue_from_db(self,  fields, yearly):
         """Gets 1 LAST ROW from DB

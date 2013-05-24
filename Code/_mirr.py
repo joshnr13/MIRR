@@ -5,6 +5,7 @@ from ecm import EconomicModule
 from report import Report
 from config_readers import MainConfig
 from report_output import ReportOutput
+from annex import cached_property
 
 class Mirr():
     def __init__(self):
@@ -15,8 +16,12 @@ class Mirr():
         self.subside_module = SubsidyModule(main_config)
         self.economic_module = EconomicModule(main_config, self.technology_module, self.subside_module)
         self.r = Report(main_config, self.economic_module)
+
+    @cached_property
+    def o(self):
+        """Cached output"""
         self.r.calc_report_values()
-        self.o = ReportOutput(self.r)
+        return  ReportOutput(self.r)
 
     def getMainConfig(self):
         return  self.main_config

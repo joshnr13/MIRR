@@ -13,12 +13,21 @@ from constants import TESTMODE
 from collections import OrderedDict
 from annex import get_configs, memoize
 
+class InputsReader():
+    def __init__(self):
+        """Loads inputs to memory"""
+        filepath = os.path.join(os.getcwd(), 'inputs', 'em_input.txt')
+        self.inputs = numpy.genfromtxt(filepath, dtype=None, delimiter=';',  names=True)
+    def getAvMonthInsolation(self, date):
+        """Returns average daily insolation in given date"""
+        return self.inputs[date.month - 1]['Hopt']
+
 class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 
     def __init__(self, config_module):
         BaseClassConfig.__init__(self, config_module)
         EnergyModuleConfigReader.__init__(self)
-        self.loadInputs()
+        self.inputs = InputsReader()
         self.calculateInsolations()
 
     def getRandomFactor(self):
@@ -28,17 +37,9 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         else:
             return random.gauss(self.mean, self.stdev)
 
-    def loadInputs(self):
-        """Loads inputs to memory"""
-        filepath = os.path.join(os.getcwd(), 'inputs', 'em_input.txt')
-        self.inputs = numpy.genfromtxt(filepath, dtype=None, delimiter=';',  names=True)
-
-    def getInputs(self):
-        return  self.inputs
-
     def getAvMonthInsolation(self, date):
         """Returns average daily insolation in given date"""
-        return self.inputs[date.month-1]['Hopt']
+        return self.inputs.getAvMonthInsolation(date)
 
     #@memoize
     def generatePrimaryEnergyAvaialbility(self, date):
