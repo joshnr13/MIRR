@@ -454,6 +454,12 @@ def get_input_int(default=None, text=''):
 def get_only_digits(obj):
     return  filter(lambda x :isinstance(x, Number), obj.values())
 
+def add_yearly_prefix(field, yearly):
+    if yearly:
+        if field.find('.') == -1:
+            field += '_y'
+            return field
+    return field
 
 class Annuitet():
     def __init__(self,summa,yrate,yperiods, start_date):

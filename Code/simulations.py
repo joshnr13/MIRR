@@ -6,10 +6,12 @@ import csv
 from _mirr import Mirr
 from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv, invert_dict
 from collections import OrderedDict
-from database import get_connection, get_values_from_db, get_rowvalue_from_db
+from database import Database
 from config_readers import MainConfig
 from report_output import ReportOutput
 from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD
+from numbers import Number
+
 from numpy import corrcoef, around, isnan
 from pylab import *
 from itertools import izip_longest
@@ -17,22 +19,11 @@ from itertools import izip_longest
 class Simulation():
 
     def __init__(self):
+        self.db =  Database()
+        self.simulation_no = self.get_next_simulation_no()
 
-        db =  get_connection()
-        self.collection = db['collection']
-        self.iterations = db['iteration']
-        self.simulations = db['simulation']
-        self.get_simulation_no()
-
-    def get_simulation_no(self):
-        """Get next iteration number
-
-        TODO! Move it to database module !!!!!!!!!!!!!!!!!!
-        TODO! Make database module as class !!!!!!!!!!!!!!!!!!!!!
-
-        """
-        self.simulations.update({'_id':'seq'}, {'$inc':{'seq':1}}, upsert=True)
-        self.simulation_no = self.simulations.find_one()['seq']
+    def get_next_simulation_no(self):
+        return  self.db.get_next_simulation_no()
 
     def prepare_data(self):
         self.i = Mirr()
@@ -52,7 +43,7 @@ class Simulation():
 
     def db_insert_results(self):
         """Inserts iteration @iteration number to db"""
-        self.collection.insert(self.line, safe=True)
+        self.db.insert(self.line)
 
     def convert_results(self):
         """Processing results before inserting to DB"""
@@ -199,13 +190,22 @@ def run_all_simulations(simulation_number=None):
     s.run_simulations(simulation_number)
     return s.get_irrs(), s.simulation_no
 
-def show_irr_charts(values, simulation_no):
+def show_save_irr_distribution(field, simulations_number, yearly):
+    irr_values, simulation_range_numbers = Database().get_simulations_values_from_db(need_prev_simulations=simulations_number, fields=[field], yearly=yearly)
+    irr_values = filter(lambda x :isinstance(x, Number), irr_values[field])
+
+    if irr_values:
+        show_irr_charts(irr_values, field, simulation_range_numbers)
+        save_irr_values(irr_values, '')
+    else :
+        print "All IRR values was Nan (can't be calculated, please check FCF , because IRR cannot be negative)"
+
+def show_irr_charts(values, field, simulation_no):
     """Shows irr distribution and charts , field used for title"""
-    field = 'irr_owners'
-    title = " - Simulation %s of %s using last %s values" %(simulation_no, field, len(values))
+
+    title = "%s simulations %s - using %s values" %(field, simulation_no, len(values))
 
     fig= pylab.figure()
-
     ax1 = fig.add_subplot(211)
     ax2 = fig.add_subplot(212)  # share ax1's xaxis
 
@@ -261,24 +261,6 @@ def get_limit_values(x, y):
 
     return ((min_irr, max_irr), (min_val, max_val))
 
-def get_correlation_values(main_field, number=30, yearly=False):
-    """get correlation of main_field with CORRELLATION_FIELDS"""
-
-    fields = [main_field] + CORRELLATION_FIELDS.values()
-    results = get_values_from_db(number, fields, yearly)
-    #print("results = %s" %(results,))  #debug-info-print
-
-    main_list_values = results.pop(main_field)
-    number_values_used = len(main_list_values)
-
-    correllation_dict = {}
-    for k, v in results.items():
-        cor = corrcoef([main_list_values, v] )[0][1]
-        rounded_value = round(cor, 3)
-        correllation_dict[k] = rounded_value
-
-    return  correllation_dict, number_values_used
-
 def plot_correlation_tornado(field_dic, number=30, yearly=False):
     """Plot tornado chart with correlation of field and other stochastic variables"""
 
@@ -287,7 +269,7 @@ def plot_correlation_tornado(field_dic, number=30, yearly=False):
     main_field_name = field_dic.keys()[0]
     main_field_db_name = field_dic.values()[0]
 
-    rounded_values_dict, number_values_used = get_correlation_values(main_field_db_name, number, yearly)
+    rounded_values_dict, simulations_numbers, number_values_used = Database().get_correlation_values(main_field_db_name, number, yearly)
 
     if number_values_used  ==  0:
         print "No needed values in Database. Please run simulations before!"
@@ -324,7 +306,7 @@ def plot_correlation_tornado(field_dic, number=30, yearly=False):
 
     yticks(list(reversed(range(len(y_names)))), y_names)
     xlabel('correlation coefficient')
-    title('Correlation between %s and stochastic values, using %s values' %(main_field_name, number_values_used))
+    title('Correlation between %s and stochastic values, using  simulations %s with %s values' %(main_field_name, simulations_numbers, number_values_used))
     grid(True)
     xlim(-1,1)
     ylim(-0.5, len(field_values)-0.5)
@@ -345,7 +327,6 @@ def plot_correlation_tornado(field_dic, number=30, yearly=False):
     show()
 
 def irr_scatter_charts(number=10, yearly=False):
-    #title = " of %s using last %s values" %(field, len(values))
     """
     figures : <title, figure> dictionary
     ncols : number of columns of subplots wanted in the display
@@ -354,8 +335,8 @@ def irr_scatter_charts(number=10, yearly=False):
     cols = 3
     rows = 2
     main = CORRELLATION_IRR_FIELD.values()[0]
-    figures = get_values_from_db(number, [main]+CORRELLATION_FIELDS.values(), yearly)
-    #print("figures = %s" %(figures,))  #debug-info-print figures
+    figures, simulations_number = Database().get_simulations_values_from_db(number, [main]+CORRELLATION_FIELDS.values(), yearly)
+
     irrs = figures.pop(main)
     titles = invert_dict(CORRELLATION_FIELDS)
 
@@ -384,6 +365,10 @@ def irr_scatter_charts(number=10, yearly=False):
         else:
             obj.set_axis_off()
 
+    title = "Scatter charts , using simulations %s" % simulations_number
+    fig = pylab.gcf()
+    fig.suptitle(title, fontsize=14)
+
     pylab.show()
 
 def get_pos_no(value, sorted_list, used):
@@ -395,18 +380,15 @@ def get_pos_no(value, sorted_list, used):
 def plot_charts(yearly=False):
 
     fields = ['revenue', 'cost', 'ebitda', 'deprication']
-    #results = get_values_from_db(1, fields, yearly)
+    results, _ = Database().get_simulations_values_from_db(1, fields, yearly, convert_to=float)
 
-    #revenue = get_only_digits2(results['revenue'][0])
-    #cost = get_only_digits2(results['cost'][0])
-    #ebitda = get_only_digits2(results['ebitda'][0])
-    #deprication = get_only_digits2(results['deprication'][0])
-    revenue, cost, ebitda, deprication = get_rowvalue_from_db(fields, yearly)
+    revenue, cost, ebitda, deprication =  results.values()
+    last_revenue, last_cost, last_ebitda, last_deprication =  revenue[-1][1:], cost[-1][1:], ebitda[-1][1:], deprication[-1][1:]
 
-    pylab.plot(revenue, label='REVENUE')
-    pylab.plot(cost, label='COST')
-    pylab.plot(ebitda, label='EBITDA')
-    pylab.plot(deprication, label='deprication')
+    pylab.plot(last_revenue, label='REVENUE')
+    pylab.plot(last_cost, label='COST')
+    pylab.plot(last_ebitda, label='EBITDA')
+    pylab.plot(last_deprication, label='deprication')
     #pylab.plot(net_earning, label='net_earning')
 
     pylab.xlabel("months")
@@ -427,10 +409,10 @@ if __name__ == '__main__':
     #run_all_iterations()
     #plot_correlation_tornado()
     #irr_scatter_charts(100)
-    #plot_charts()
+    plot_charts()
     #test_100_iters()
     #irr_scatter_charts()
-    s = Simulation()
-    s.run_simulations(10)
+    #s = Simulation()
+    #s.run_simulations(10)
 
 

@@ -6,13 +6,13 @@ import traceback
 import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
-from database import get_values_from_db
-from simulations import  run_all_simulations, save_irr_values, show_irr_charts, plot_correlation_tornado, plot_charts, irr_scatter_charts
+from database import Database
+from simulations import  run_all_simulations, save_irr_values, show_irr_charts, plot_correlation_tornado, plot_charts, irr_scatter_charts, show_save_irr_distribution
 from config_readers import MainConfig
 from _mirr import Mirr
 from numpy import isnan
 from numbers import Number
-from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD
+from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD, IRR, REPORT_DEFAULT_NUMBER_SIMULATIONS, REPORT_DEFAULT_NUMBER_ITERATIONS
 
 commands = OrderedDict()
 i = 0
@@ -38,28 +38,15 @@ charts - makes monthly and yearly charts for the last set written to the databas
 
 class Interface():
     def __init__(self):
-        pass
+        self.db = Database()
 
     @memoize
     def getMirr(self):
         return Mirr()
 
-    #def charts(self):
-        #self.getMirr().o.plot_charts_monthly()
-        #self.getMirr().o.plot_charts_yearly()
-
     def charts(self):
         plot_charts(yearly=False)
         plot_charts(yearly=True)
-
-    #def report_is(self):
-        #self.getMirr().o.prepare_report_IS()
-
-    #def report_bs(self):
-        #self.getMirr().o.prepare_report_BS()
-
-    #def report_isbscf(self, yearly=False):
-        #self.getMirr().o.prepare_report_IS_BS_CF_IRR(yearly)
 
     def report_isbscf(self):
         self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
@@ -70,7 +57,6 @@ class Interface():
 
         eqipment_price = self.getMirr().technology_module.getInvestmentCost()
         print "\n Equipment investment cost - Total: %s" % eqipment_price
-
 
     def get_inputs(self):
         def_start = self.getMirr().main_config.getStartDate()
@@ -96,45 +82,33 @@ class Interface():
 
     def run_simulations(self):
         """Running simulation and saving results"""
-        default_simulations_number = MainConfig().getSimulationNumber()
-        simulations_number = get_input_int(text="Please select number of simulations (or press enter to default %s): " %default_simulations_number, default=default_simulations_number)
+        simulations_number = self.get_input(text="iterations to run", default=REPORT_DEFAULT_NUMBER_ITERATIONS)
         irr_values, simulation_no =  run_all_simulations(simulations_number)
         if irr_values:
             save_irr_values(irr_values[:], simulation_no)
-            show_irr_charts(irr_values[:], simulation_no)
+            show_irr_charts(irr_values[:], IRR, simulation_no)
+
+    def get_input(self, text="", default=""):
+        return  get_input_int(text="Please select number of %s (or press Enter to use default %s) : " %(text, default), default=default)
 
     def report_irr(self, yearly=False):
         """Shows last N irrs distribution from database"""
-        field = 'irr_project'
-        default_simulations_number = MainConfig().getSimulationNumber()
-        simulations_number = get_input_int(text="Please select number of previous irrs for plotting distribution (default %s) :: " %default_simulations_number, default=default_simulations_number)
-        irr_values = get_values_from_db(number=simulations_number, fields=[field], yearly=yearly)[field]
-
-        irr_values = filter(lambda x: not isnan(x), irr_values)
-
-        if irr_values:
-            show_irr_charts(irr_values, '')
-            save_irr_values(irr_values, '')
-        else :
-            print "All IRR values was Nan (can't be calculated, please check FCF , because IRR cannot be negative)"
-            return []
+        simulations_number =  self.get_input("previous simulations for plotting IRR distribution ", REPORT_DEFAULT_NUMBER_SIMULATIONS)
+        show_save_irr_distribution(IRR, simulations_number, yearly)
 
     def irr_correlations(self):
-        field = CORRELLATION_IRR_FIELD
-        self._run_correlations(field)
+        self._run_correlations(CORRELLATION_IRR_FIELD)
 
     def npv_correlations(self):
-        field = CORRELLATION_NPV_FIELD
-        self._run_correlations(field)
+        self._run_correlations(CORRELLATION_NPV_FIELD)
 
     def _run_correlations(self, field):
-        default_number = 100
-        number = get_input_int(text="Please select last database records to use for correlation (or press enter to default %s): " %default_number, default=default_number)
+        """field - dict [short_name] = database name"""
+        number = self.get_input("previous simulations for %s correlations charts: " %field.keys()[0], REPORT_DEFAULT_NUMBER_SIMULATIONS)
         plot_correlation_tornado(field, number)
 
     def irr_scatter_charts(self):
-        default_number = 100
-        number = get_input_int(text="Please select last database records to use for scatter_chart (or press enter to default %s): " %default_number, default=default_number)
+        number = self.get_input("previous simulations for IRR scatter_chart: ", REPORT_DEFAULT_NUMBER_SIMULATIONS)
         irr_scatter_charts(number)
 
     def stop(self):
@@ -146,14 +120,11 @@ class Interface():
         for k, v in (commands.items()):
             print "%s = %s" % (k, v)
 
-
 def print_entered(line):
     if line in commands:
         print "Entered %s means %s" % (line, commands[line])
     else:
         print "Entered %s " % (line, )
-
-
 def run_method(obj, line):
     if line in commands:
         method = getattr(obj, commands[line])

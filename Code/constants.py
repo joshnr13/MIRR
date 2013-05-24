@@ -62,8 +62,9 @@ NPV["Dates"] = ""
 NPV["NPV project"] = "pv_project"
 NPV["NPV owners"] = "pv_owners"
 
-
-
+IRR = 'irr_project'
+REPORT_DEFAULT_NUMBER_SIMULATIONS = 10
+REPORT_DEFAULT_NUMBER_ITERATIONS = 20
 
 CORRELLATION_FIELDS = OrderedDict() # IRR ONE SHOULD HAVE NAME =IRR and be FIRST ONE
 CORRELLATION_FIELDS["permit_procurement_duration"] = "main_configs.real_permit_procurement_duration"

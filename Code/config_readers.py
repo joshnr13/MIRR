@@ -87,7 +87,7 @@ class MainConfig():
         """
         return self.configs
 
-    def getSimulationNumber(self):
+    def getIterationsNumver(self):
         return self.configs["simulation_number"]
 
 class SubsidyModuleConfigReader():
