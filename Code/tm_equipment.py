@@ -347,10 +347,9 @@ class PlantEquipment():
             days.append(last_month_date.day)
 
         one_day_production = numpy.array([self.getElectricityProductionPlant1Day(insolation) for insolation in av_insolations])
-        #print one_day_production
         whole_year_production = numpy.sum(numpy.array(days) * one_day_production)
 
-        return  whole_year_production
+        return  round(whole_year_production, 0)
 
 
     def __str__(self):

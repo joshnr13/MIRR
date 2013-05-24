@@ -46,10 +46,10 @@ class Interface():
         self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=True)
 
     def print_equipment(self):
-        self.getMirr().technology_module.print_equipment()
 
         eqipment_price = self.getMirr().technology_module.getInvestmentCost()
-        print "\n Equipment investment cost - Total: %s" % eqipment_price
+        print "\nEquipment investment cost - Total: %s" % eqipment_price
+        self.getMirr().technology_module.print_equipment()
 
     def get_inputs(self):
         def_start = self.getMirr().main_config.getStartDate()
