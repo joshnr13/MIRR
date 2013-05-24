@@ -7,7 +7,7 @@ import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize
 from database import get_values_from_db
-from simulations import  run_all_iterations, save_irr_values, show_irr_charts, plot_correlation_tornado, plot_charts, irr_scatter_charts
+from simulations import  run_all_simulations, save_irr_values, show_irr_charts, plot_correlation_tornado, plot_charts, irr_scatter_charts
 from config_readers import MainConfig
 from _mirr import Mirr
 from numpy import isnan
@@ -97,8 +97,8 @@ class Interface():
     def run_simulations(self):
         """Running simulation and saving results"""
         default_simulations_number = MainConfig().getSimulationNumber()
-        simulations_number = get_input_int(text="Please select number of iterations (or press enter to default %s): " %default_simulations_number, default=default_simulations_number)
-        irr_values, simulation_no =  run_all_iterations(simulations_number)
+        simulations_number = get_input_int(text="Please select number of simulations (or press enter to default %s): " %default_simulations_number, default=default_simulations_number)
+        irr_values, simulation_no =  run_all_simulations(simulations_number)
         if irr_values:
             save_irr_values(irr_values[:], simulation_no)
             show_irr_charts(irr_values[:], simulation_no)

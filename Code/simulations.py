@@ -190,7 +190,7 @@ class Simulation():
         self.db_insert_results()
         self.add_result_irr()
 
-def run_all_iterations(simulation_number=None):
+def run_all_simulations(simulation_number=None):
     """Runs multiple simulations
     plots histogram or IRR distribution
 
