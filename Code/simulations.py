@@ -162,9 +162,9 @@ class Simulation():
 
         self.prepared_line = line
 
-    def run_iterations(self,  number):
-        """Run multiple iterations"""
-        print "%s - Running simulation number %s with %s iterations\n" % ( datetime.datetime.now(), self.simulation_no, number)
+    def run_simulations(self,  number):
+        """Run multiple simulations"""
+        print "%s - runing simulation %s with %s iterations\n" % ( datetime.datetime.now(), self.simulation_no, number)
         self.irrs = []
         for i in range(number):
             print "\tRunning iteration %s of %s" % (i + 1, number)
@@ -196,7 +196,7 @@ def run_all_simulations(simulation_number=None):
 
     return  IRR values"""
     s = Simulation()
-    s.run_iterations(simulation_number)
+    s.run_simulations(simulation_number)
     return s.get_irrs(), s.simulation_no
 
 def show_irr_charts(values, simulation_no):
@@ -431,6 +431,6 @@ if __name__ == '__main__':
     #test_100_iters()
     #irr_scatter_charts()
     s = Simulation()
-    s.run_iterations(10)
+    s.run_simulations(10)
 
 
