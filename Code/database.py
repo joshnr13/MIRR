@@ -217,6 +217,33 @@ class Database():
 
         return result
 
+    def update_simulation_comment(self, simulation_no, comment):
+        """Updates comment in simulation"""
+        self.collection.update({'simulation': simulation_no,},{"$set":{'comment': comment}} , multi=True, safe=True)
+        print "Updated comment for simulation %s : %s" % (simulation_no, comment)
+
+
+    def get_last_simulations_log(self, last=10):
+        last_simulation_no = self.get_last_simulation_no()
+        min_s =  last_simulation_no - last
+        max_s = last_simulation_no
+
+        group_by =  {"_id" : "$simulation", "iterations":  {"$sum":1}, "date": {"$last": "$date"}, "comment" : {"$last": "$comment"},}
+
+        pipeline = [
+            { '$match': {'simulation': {'$lte': max_s, '$gte': min_s,}} },
+            #{ '$skip': ...some skip... },
+            #{ '$limit': ...some limit... }
+            {"$group" : group_by},
+            { '$sort': {'_id': 1},},
+            ]
+        results = self.collection.aggregate(pipeline)['result']
+        print results
+        for r in results:
+            print u"Simulation %s date %s - iterations %s - %s" % (r["_id"], r["date"], r["iterations"], r['comment'])
+
+
+
 
 #def test():
     #select_by =  {'irr_owners_y': {'$exists': True}, 'main_configs.lifetime_y': {'$exists': True}, 'irr_project_y': {'$exists': True}}
@@ -231,5 +258,23 @@ if __name__ == '__main__':
     fields = [ 'irr_owners']
     #print get_rowvalue_from_db( fields, True)
     d = Database()
+    d.updated_simulation_comment(35, "test")
+    d.get_last_simulations_log()
     #print d.get_rowvalue_from_db( fields, False)
-    print d.get_simulations_values_from_db( 1, fields, False)
+    #print d.get_simulations_values_from_db( 1, fields, False)
+
+
+    #group_by =  {"_id" : "$simulation", "iterations":  {"$sum":1}, "date": {"$last": "$date"}, "comment" : {"$last": "$comment"},}
+
+    #pipeline = [
+        #{ '$match': {'simulation': {'$lt': 32, '$gt': 25,}} },
+        #{ '$sort': {'simulation': -1},},
+        ##{ '$skip': ...some skip... },
+        ##{ '$limit': ...some limit... }
+        ##{"$project": {"asset":1, "equity":1}},
+        #{"$group" : group_by},
+        #]
+    #q = d.collection.aggregate(pipeline)['result']
+    #print q
+    #for qq in q:
+        #print qq

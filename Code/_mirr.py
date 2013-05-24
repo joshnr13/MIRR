@@ -17,11 +17,15 @@ class Mirr():
         self.economic_module = EconomicModule(main_config, self.technology_module, self.subside_module)
         self.r = Report(main_config, self.economic_module)
 
-    @cached_property
+    @property
     def o(self):
         """Cached output"""
-        self.r.calc_report_values()
-        return  ReportOutput(self.r)
+        if getattr(self, '_o', None)  == None:
+            self.r.calc_report_values()
+            self._o = ReportOutput(self.r)
+            return  self._o
+        else:
+            return  self._o
 
     def getMainConfig(self):
         return  self.main_config

@@ -453,6 +453,15 @@ def get_input_int(text='', default=None, ):
 
     return result
 
+
+def get_input_comment(text='Please input comment for current simulation: ', default='w/o comment' ):
+    value = raw_input(text)
+    result= str(value)
+    if not result:
+        result = default
+
+    return result
+
 def get_only_digits(obj):
     return  filter(lambda x :isinstance(x, Number), obj.values())
 

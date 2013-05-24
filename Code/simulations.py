@@ -40,6 +40,7 @@ class Simulation():
         self.tm_configs = self.tm.getConfigsValues()
         self.sm_configs = self.sm.getConfigsValues()
         self.em_configs = self.em.getConfigsValues()
+        self.simulation_date = datetime.datetime.now().date()
 
     def db_insert_results(self):
         """Inserts iteration @iteration number to db"""
@@ -56,7 +57,7 @@ class Simulation():
         line["simulation"] = self.simulation_no
         line["iteration"] = iteration
         line["iteration_number"] = iteration_number
-        line["date"] = datetime.datetime.now()
+        line["date"] = self.simulation_date
 
         line["main_configs"] = self.main_configs
         line["ecm_configs"] = self.ecm_configs
@@ -153,13 +154,13 @@ class Simulation():
 
         self.prepared_line = line
 
-    def run_simulations(self,  number):
+    def run_simulation(self,  iterations_number):
         """Run multiple simulations"""
-        print "%s - runing simulation %s with %s iterations\n" % ( datetime.datetime.now(), self.simulation_no, number)
+        print "%s - runing simulation %s with %s iterations\n" % ( datetime.datetime.now(), self.simulation_no, iterations_number)
         self.irrs = []
-        for i in range(number):
-            print "\tRunning iteration %s of %s" % (i + 1, number)
-            self.run_one_iteration(i+1, number)
+        for i in range(iterations_number):
+            print "\tRunning iteration %s of %s" % (i + 1, iterations_number)
+            self.run_one_iteration(i+1, iterations_number)
 
     def get_irrs(self):
         """return  filtered irrs"""
@@ -181,13 +182,13 @@ class Simulation():
         self.db_insert_results()
         self.add_result_irr()
 
-def run_all_simulations(simulation_number=None):
-    """Runs multiple simulations
+def run_all_simulations(iterations_number=None):
+    """Runs multiple iterations
     plots histogram or IRR distribution
 
     return  IRR values"""
     s = Simulation()
-    s.run_simulations(simulation_number)
+    s.run_simulation(iterations_number)
     return s.get_irrs(), s.simulation_no
 
 def show_save_irr_distribution(field, simulation_number, yearly):
