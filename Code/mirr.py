@@ -127,7 +127,7 @@ class Interface():
 
 def print_entered(line):
     if line in commands:
-        print "Entered %s means %s" % (line, commands[line])
+        print "Entered %s - %s" % (line, commands[line])
     else:
         print "Entered %s " % (line, )
 def run_method(obj, line):

@@ -353,7 +353,7 @@ class PlantEquipment():
 
 
     def __str__(self):
-        return  "Plant Power %s KW . Expected year power production %s KW" % (self.getPlantPower(), self.expectedYearProduction())
+        return  "Installed Power %s kW . Expected yearly energy production %s kWh" % (self.getPlantPower(), self.expectedYearProduction())
 
 
 if __name__ == '__main__':
