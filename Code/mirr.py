@@ -33,25 +33,68 @@ class Interface():
     def __init__(self):
         self.db = Database()
 
-    @memoize
-    def getMirr(self):
-        return Mirr()
+    def run_simulation(self):
+        """Running simulation and saving results"""
+        iterations_number = self.get_number_iterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)
+        comment = get_input_comment()
+
+        irr_values, simulation_no =  run_all_simulations(iterations_number, comment)
+        if irr_values:
+            save_irr_values(irr_values[:], simulation_no)
+            show_irr_charts(irr_values[:], IRR, simulation_no)
+
+    def irr_distribution(self, yearly=False):
+        """Shows last N irrs distribution from database"""
+        simulations_number =  self.get_input_simulation("for plotting IRR distribution ")
+        show_save_irr_distribution(IRR, simulations_number, yearly)
+
+    def report_isbscf(self):
+        self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
+        self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=True)
 
     def charts(self):
         simulation_number =  self.get_input_simulation("for plotting revenue-costs charts ")
         plot_charts(simulation_number, yearly=False)
         plot_charts(simulation_number, yearly=True)
 
-    def report_isbscf(self):
-        self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
-        self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=True)
-
     def print_equipment(self):
-
         eqipment_price = self.getMirr().technology_module.getInvestmentCost()
         print "\nEquipment investment cost - Total: %s" % eqipment_price
         self.getMirr().technology_module.print_equipment()
 
+    def outputPrimaryEnergy(self):
+        start_date, end_date, resolution = self.get_inputs()
+        self.getMirr().energy_module.outputPrimaryEnergy(start_date, end_date, resolution)
+
+    def outputElectricityProduction(self):
+        start_date, end_date, resolution = self.get_inputs()
+        self.getMirr().technology_module.outputElectricityProduction(start_date, end_date, resolution)
+
+    def irr_correlations(self):
+        self._run_correlations(CORRELLATION_IRR_FIELD)
+
+    def irr_scatter_charts(self):
+        simulation_no = self.get_input_simulation("for IRR scatter_chart: ")
+        irr_scatter_charts(simulation_no)
+
+    def npv_correlations(self):
+        self._run_correlations(CORRELLATION_NPV_FIELD)
+
+    def simulations_log(self, last=10):
+        self.db.get_last_simulations_log(last)
+
+    def _run_correlations(self, field):
+        """field - dict [short_name] = database name"""
+        simulation_no = self.get_input_simulation("for %s correlations charts: " %field.keys()[0])
+        plot_correlation_tornado(field, simulation_no)
+    @memoize
+    def getMirr(self):
+        return Mirr()
+    def get_number_iterations(self, text="", default=""):
+        return  get_input_int("Please select number of iterations to run (or press Enter to use default %s) : " %default, default)
+    def get_input_simulation(self, text=""):
+        last_simulation = self.db.get_last_simulation_no()
+        return  get_input_int("Please input ID of simulation for %s (or press Enter to use last-run %s): " %(text, last_simulation), last_simulation)
     def get_inputs(self):
         def_start = self.getMirr().main_config.getStartDate()
         def_end = self.getMirr().main_config.getEndDate()
@@ -65,57 +108,6 @@ class Interface():
         resolution = get_input_int(memo_res, default=def_res)
 
         return (start_date, end_date, resolution)
-
-    def outputPrimaryEnergy(self):
-        start_date, end_date, resolution = self.get_inputs()
-        self.getMirr().energy_module.outputPrimaryEnergy(start_date, end_date, resolution)
-
-    def outputElectricityProduction(self):
-        start_date, end_date, resolution = self.get_inputs()
-        self.getMirr().technology_module.outputElectricityProduction(start_date, end_date, resolution)
-
-    def run_simulation(self):
-        """Running simulation and saving results"""
-        iterations_number = self.get_number_iterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)
-        comment = get_input_comment()
-
-        irr_values, simulation_no =  run_all_simulations(iterations_number, comment)
-        if irr_values:
-            save_irr_values(irr_values[:], simulation_no)
-            show_irr_charts(irr_values[:], IRR, simulation_no)
-
-
-
-    def get_number_iterations(self, text="", default=""):
-        return  get_input_int("Please select number of iterations to run (or press Enter to use default %s) : " %default, default)
-
-    def get_input_simulation(self, text=""):
-        last_simulation = self.db.get_last_simulation_no()
-        return  get_input_int("Please input ID of simulation for %s (or press Enter to use last-run %s): " %(text, last_simulation), last_simulation)
-
-    def irr_distribution(self, yearly=False):
-        """Shows last N irrs distribution from database"""
-        simulations_number =  self.get_input_simulation("for plotting IRR distribution ")
-        show_save_irr_distribution(IRR, simulations_number, yearly)
-
-    def irr_correlations(self):
-        self._run_correlations(CORRELLATION_IRR_FIELD)
-
-    def npv_correlations(self):
-        self._run_correlations(CORRELLATION_NPV_FIELD)
-
-    def _run_correlations(self, field):
-        """field - dict [short_name] = database name"""
-        simulation_no = self.get_input_simulation("for %s correlations charts: " %field.keys()[0])
-        plot_correlation_tornado(field, simulation_no)
-
-    def irr_scatter_charts(self):
-        simulation_no = self.get_input_simulation("for IRR scatter_chart: ")
-        irr_scatter_charts(simulation_no)
-
-    def simulations_log(self, last=10):
-        self.db.get_last_simulations_log(last)
-
     def stop(self):
         raise KeyboardInterrupt("User selected command to exit")
     def no_such_method(self):

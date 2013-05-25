@@ -9,7 +9,7 @@ from collections import OrderedDict
 from database import Database
 from config_readers import MainConfig
 from report_output import ReportOutput
-from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD
+from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD, IRR
 from numbers import Number
 
 from numpy import corrcoef, around, isnan
@@ -174,7 +174,7 @@ class Simulation():
         return good_irrs
 
     def add_result_irr(self):
-        self.irrs.append(self.o.r.irr_owners)
+        self.irrs.append(getattr(self.o.r, IRR))
 
     def run_one_iteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""

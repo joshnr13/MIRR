@@ -62,7 +62,8 @@ NPV["Dates"] = ""
 NPV["NPV project"] = "pv_project"
 NPV["NPV owners"] = "pv_owners"
 
-IRR = 'irr_project'
+IRR = 'irr_project_y'
+
 REPORT_DEFAULT_NUMBER_SIMULATIONS = 10
 REPORT_DEFAULT_NUMBER_ITERATIONS = 20
 
