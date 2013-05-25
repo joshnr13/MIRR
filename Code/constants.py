@@ -62,7 +62,9 @@ NPV["Dates"] = ""
 NPV["NPV project"] = "pv_project"
 NPV["NPV owners"] = "pv_owners"
 
-IRR = 'irr_project_y'
+IRR_REPORT_FIELD = 'irr_project_y'
+NPV_REPORT_FIELD = 'npv_project_y'
+
 
 REPORT_DEFAULT_NUMBER_SIMULATIONS = 10
 REPORT_DEFAULT_NUMBER_ITERATIONS = 20
@@ -74,5 +76,5 @@ CORRELLATION_FIELDS["subsidy_Kw"] = "sm_configs.kWh_subsidy"
 CORRELLATION_FIELDS["subsidy_delay"] = "sm_configs.subsidy_delay"
 CORRELLATION_FIELDS["subsidy_duration"] = "sm_configs.subsidy_duration"
 
-CORRELLATION_IRR_FIELD = {"IRR": 'irr_project'}
-CORRELLATION_NPV_FIELD = {"NPV": 'npv_project'}
+CORRELLATION_IRR_FIELD = {"IRR": IRR_REPORT_FIELD}
+CORRELLATION_NPV_FIELD = {"NPV": NPV_REPORT_FIELD}

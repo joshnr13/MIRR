@@ -12,7 +12,7 @@ from config_readers import MainConfig
 from _mirr import Mirr
 from numpy import isnan
 from numbers import Number
-from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD, IRR, REPORT_DEFAULT_NUMBER_SIMULATIONS, REPORT_DEFAULT_NUMBER_ITERATIONS
+from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD, IRR_REPORT_FIELD, REPORT_DEFAULT_NUMBER_SIMULATIONS, REPORT_DEFAULT_NUMBER_ITERATIONS
 
 commands = OrderedDict()
 i = 0
@@ -41,12 +41,12 @@ class Interface():
         irr_values, simulation_no =  run_all_simulations(iterations_number, comment)
         if irr_values:
             save_irr_values(irr_values[:], simulation_no)
-            show_irr_charts(irr_values[:], IRR, simulation_no)
+            show_irr_charts(irr_values[:], IRR_REPORT_FIELD, simulation_no)
 
     def irr_distribution(self, yearly=False):
         """Shows last N irrs distribution from database"""
         simulations_number =  self.get_input_simulation("for plotting IRR distribution ")
-        show_save_irr_distribution(IRR, simulations_number, yearly)
+        show_save_irr_distribution(IRR_REPORT_FIELD, simulations_number, yearly)
 
     def report_isbscf(self):
         self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
