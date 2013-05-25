@@ -94,10 +94,16 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def getElectricityProduction(self, date_start, date_end):
         date_list = get_list_dates(date_start, date_end)
-        sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) for day in date_list])
-        insolations = self.energy_module.insolations.values()
-        degrodations = numpy.array(self.degradation_coefficients.values())
-        return numpy.sum(sun_values*degrodations*insolations)
+        s = self.plant.getElectricityProductionPlant1Day
+        i = self.energy_module.insolations
+        d = self.degradation_coefficients
+        return sum([s(1)*i[date]*d[date] for date in date_list])
+        #sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) for day in date_list])
+        #insolations = self.energy_module.insolations.values()
+        #degrodations = numpy.array([self.degradation_coefficients[day] for day in date_list])
+        #return numpy.sum(sun_values*degrodations*insolations)
+
+
 
     def getElectricityProductionLifeTime(self):
         date_list = get_list_dates(self.start_date_project, self.end_date_project)
@@ -171,6 +177,7 @@ if __name__ == '__main__':
 
     tm.print_equipment()
     print tm.getInvestmentCost()
+    test_time()
     test_time2()
     test_time3()
     #date_list = get_list_dates(start_date, end_date)
