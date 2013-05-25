@@ -18,9 +18,10 @@ from itertools import izip_longest
 
 class Simulation():
 
-    def __init__(self):
+    def __init__(self, comment=''):
         self.db =  Database()
         self.simulation_no = self.get_next_simulation_no()
+        self.comment = comment
 
     def get_next_simulation_no(self):
         return  self.db.get_next_simulation_no()
@@ -58,6 +59,7 @@ class Simulation():
         line["iteration"] = iteration
         line["iteration_number"] = iteration_number
         line["date"] = self.simulation_date
+        line["comment"] = self.comment
 
         line["main_configs"] = self.main_configs
         line["ecm_configs"] = self.ecm_configs
@@ -182,12 +184,11 @@ class Simulation():
         self.db_insert_results()
         self.add_result_irr()
 
-def run_all_simulations(iterations_number=None):
-    """Runs multiple iterations
-    plots histogram or IRR distribution
-
+def run_all_simulations(iterations_number, comment):
+    """Runs multiple iterations @iterations_number with @comment
     return  IRR values"""
-    s = Simulation()
+
+    s = Simulation(comment=comment)
     s.run_simulation(iterations_number)
     return s.get_irrs(), s.simulation_no
 

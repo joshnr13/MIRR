@@ -77,13 +77,13 @@ class Interface():
     def run_simulation(self):
         """Running simulation and saving results"""
         iterations_number = self.get_number_iterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)
-        irr_values, simulation_no =  run_all_simulations(iterations_number)
+        comment = get_input_comment()
+
+        irr_values, simulation_no =  run_all_simulations(iterations_number, comment)
         if irr_values:
             save_irr_values(irr_values[:], simulation_no)
             show_irr_charts(irr_values[:], IRR, simulation_no)
 
-        comment = get_input_comment()
-        self.db.update_simulation_comment(simulation_no, comment)
 
 
     def get_number_iterations(self, text="", default=""):
