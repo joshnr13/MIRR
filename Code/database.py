@@ -13,6 +13,7 @@ class Database():
         self.collection = self.db['collection']
         self.iterations = self.db['iteration']
         self.simulations = self.db['simulation']
+        self.add_simulation_index()
 
     def get_connection(self):
         """get connection to db"""
@@ -24,6 +25,9 @@ class Database():
 
         db = connection['MirrDatabase']
         return db
+
+    def add_simulation_index(self):
+        self.collection.ensure_index('simulation', background=True )
 
     def insert(self,  line):
         """Safe inserts line to DB"""
@@ -258,7 +262,7 @@ if __name__ == '__main__':
     fields = [ 'irr_owners']
     #print get_rowvalue_from_db( fields, True)
     d = Database()
-    d.updated_simulation_comment(35, "test")
+    d.update_simulation_comment(35, "test")
     d.get_last_simulations_log()
     #print d.get_rowvalue_from_db( fields, False)
     #print d.get_simulations_values_from_db( 1, fields, False)

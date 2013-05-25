@@ -156,7 +156,7 @@ class Simulation():
 
     def run_simulation(self,  iterations_number):
         """Run multiple simulations"""
-        print "%s - runing simulation %s with %s iterations\n" % ( datetime.datetime.now(), self.simulation_no, iterations_number)
+        print "%s - runing simulation %s with %s iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
         self.irrs = []
         for i in range(iterations_number):
             print "\tRunning iteration %s of %s" % (i + 1, iterations_number)

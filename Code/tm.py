@@ -6,6 +6,7 @@ import pylab
 import datetime
 import random
 import ConfigParser
+import numpy
 
 import os
 from em import EnergyModule
