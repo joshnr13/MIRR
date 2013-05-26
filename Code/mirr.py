@@ -38,16 +38,25 @@ class Interface():
         self.db = Database()
 
     def run_simulation(self):
-        """Running simulation and saving results"""
+        """Running simulation and saving results
+         display 4 charts:
+         1) +histogram for IRR project,
+         2) XY scatter graph of iRR project;
+         3) +histogram of IRR owners,
+         4) XY scatter of IRR owners (all dervied fro monthly data and annualized)
+        """
         iterations_number = self.get_number_iterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)
         comment = get_input_comment()
-        run_save_simulation(iterations_number, comment)
+        simulation_no = run_save_simulation(iterations_number, comment)
+        self.irr_distribution(simulation_no)
+        self.irr_scatter_charts(simulation_no)
 
-    def irr_distribution(self, yearly=False):
+    def irr_distribution(self, simulation_no=None):
         """Shows last N irrs distribution from database"""
-        simulations_number =  self.get_input_simulation("for plotting IRR distribution ")
-        #fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2]
-        show_save_irr_distribution(simulations_number)
+        if simulation_no is  None:
+            simulation_no =  self.get_input_simulation("for plotting IRR distribution ")
+
+        show_save_irr_distribution(simulation_no, yearly=True)
 
     def report_isbscf(self):
         self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
@@ -74,9 +83,14 @@ class Interface():
     def irr_correlations(self):
         self._run_correlations(CORRELLATION_IRR_FIELD)
 
-    def irr_scatter_charts(self):
-        simulation_no = self.get_input_simulation("for IRR scatter_chart: ")
-        irr_scatter_charts(simulation_no)
+    def irr_scatter_charts(self, simulation_no=None):
+        if simulation_no is None:
+            simulation_no = self.get_input_simulation("for IRR scatter_chart: ")
+
+        irr_scatter_charts(simulation_no, 'irr_project', yearly=True)
+        irr_scatter_charts(simulation_no, 'irr_owners', yearly=True)
+        #irr_scatter_charts(simulation_no, 'irr_project')
+        #irr_scatter_charts(simulation_no, 'irr_owners')
 
     def npv_correlations(self):
         self._run_correlations(CORRELLATION_NPV_FIELD)

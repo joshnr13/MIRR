@@ -138,11 +138,11 @@ class Database():
             sub_keys = []
             for field in fields:
 
-                field = field.split('.')
-                sub_keys += field[:-1]
+                splitted_field = field.split('.')
+                sub_keys += splitted_field[:-1]
 
-                field_name = field[-1]
-                if field_name not in not_changing_fields:
+                field_name = splitted_field[-1]
+                if field_name not in not_changing_fields and field not in not_changing_fields:
                     field_name = add_yearly_prefix(field_name, yearly)
                 fields_names.append(field_name)
 

@@ -12,7 +12,7 @@ from report_output import ReportOutput
 from numbers import Number
 from charts import show_irr_charts
 from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, report_directory
-from numpy import corrcoef, around, isnan, std
+from numpy import corrcoef, around, isnan, std, mean
 from  scipy.stats import skew, kurtosis
 
 
@@ -203,6 +203,7 @@ class Simulation():
             result['std'] = std(digit_irr)
             result['skew'] = skew(digit_irr)
             result['kurtosis'] = kurtosis(digit_irr)
+            result['mean'] = mean(digit_irr)
             results.append(result)
 
         return  results
@@ -230,33 +231,43 @@ def run_save_simulation(iterations_number, comment):
     1) Runs multiple iterations @iterations_number with @comment
     2) Shows charts
     3) Save results
+    return  simulation_no
     """
     s = Simulation(comment=comment)
     s.run_simulation(iterations_number)
-    process_irr_values(s.calc_irr_statistics(), s.get_simulation_no())
+    #process_irr_values(s.calc_irr_statistics(), s.get_simulation_no())
+    return  s.get_simulation_no()
 
-def process_irr_values(irr_values_lst, simulation_number):
-    save_irr_values_xls(irr_values_lst, simulation_number)  #was irr_values[:]
-    show_irr_charts(irr_values_lst, simulation_number) #was irr_values[:]
-    #print "All IRR values was Nan (can't be calculated, please check FCF , because IRR cannot be negative)"
-
-def show_save_irr_distribution(simulation_number):
+def show_save_irr_distribution(simulation_no, yearly=False):
     """
     1 Gets from DB yearly values of irr
     2 Saves in xls report & Charts
 
     """
     field = 'irr_stats'
-    irr_values_lst = Database().get_simulations_values_from_db(simulation_id=simulation_number, fields=[], yearly=False, not_changing_fields=[field])
+    irr_values_lst = Database().get_simulations_values_from_db(simulation_id=simulation_no, fields=[], yearly=yearly, not_changing_fields=[field])
     irr_values_lst = irr_values_lst[field][0]
-    process_irr_values(irr_values_lst, simulation_number)
 
-def save_irr_values_xls(irr_values_lst, simulation_number):
+    save_irr_values_xls(irr_values_lst, simulation_no, yearly)  #was irr_values[:]
+    show_irr_charts(irr_values_lst, simulation_no, yearly) #was irr_values[:]
+    print_irr_stats(irr_values_lst)
+
+def print_irr_stats(irr_values_lst):
+    """Prints statistics of irr values"""
+    for dic in irr_values_lst:
+        #dig_values = dic['digit_values']
+        print "Statistics for %s" % dic.get('field', None)
+        print "\tMean value %s" % dic.get('mean', None)
+        print "\tSt.deviation value %s" % dic.get('std', None)
+        print "\tSkew value %s" % dic.get('skew', None)
+        print "\tKurtosis value %s" % dic.get('kurtosis', None)
+
+def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
     """Saves IRR values to excel file
     @irr_values_lst - list  with 2 complicated dicts inside """
 
     cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    report_name = "%s_%s.%s" % (cur_date, 'irr_values', 'csv')
+    report_name = "%s_%s_%s.%s" % (cur_date, 'irr_values', '_yearly' * yearly, 'csv')
     report_full_name = os.path.join(report_directory, report_name)
     output_filename = uniquify_filename(report_full_name)
 
@@ -268,7 +279,7 @@ def save_irr_values_xls(irr_values_lst, simulation_number):
     irr_values2 = [field2] + irr_values_lst[1][field2]
 
     iterations = ["Iteration number"] + list(range(1, len(irr_values1)))
-    simulation_info = ["Simulation number"] + [simulation_number]
+    simulation_info = ["Simulation number"] + [simulation_no]
 
     stat_params = ['std','skew', 'kurtosis']
     stat_fields = ['field'] + stat_params

@@ -4,7 +4,7 @@ import numpy
 from collections import OrderedDict
 from database import Database
 from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD, IRR_REPORT_FIELD, IRR_REPORT_FIELD2, CORRELLATION_NPV_FIELD
-from annex import invert_dict
+from annex import invert_dict, add_yearly_prefix
 from itertools import izip_longest
 
 def plot_charts(simulation_id, yearly=False):
@@ -33,47 +33,28 @@ def plot_charts(simulation_id, yearly=False):
     pylab.axhline()
     pylab.axvline()
 
-    title = 'Simulation %s. ' % simulation_id
-    if yearly:
-        title += 'Yearly data'
-        pylab.xlabel("years")
-    else :
-        title += "Monthly data"
-        pylab.xlabel("months")
+    title_add = get_title_period(yearly)
+    x_axis_title = get_x_axis_title(yearly)
+
+    title = 'Simulation %s. %s' % (simulation_id, title_add)
+    pylab.xlabel(x_axis_title)
 
     pylab.title(title)
     pylab.show()
 
-def show_irr_charts(irr_values_lst, simulation_no):
-    """Shows irr distribution and charts , field used for title"""
-
-    values = []
-    fig= pylab.figure()
-    ax1 = fig.add_subplot(211)
-    ax2 = fig.add_subplot(212)  # share ax1's xaxis
-
-    # Plot
-    ax1.hist(values, bins=7)
-    ax2.plot(range(1, len(values)+1), values, 'o')
-
-    title_format = "Simulation %s. {0} of %s based on %s values" %(simulation_no, field, len(values))
-    ax1.set_title(title_format.format("Histogram"))
-    ax2.set_title(title_format.format("Chart"))
-    pylab.show()
-
-
-def show_irr_charts(irr_values_lst, simulation_no):
+def show_irr_charts(irr_values_lst, simulation_no, yearly):
     """
     figures : <title, figure> dictionary
     """
     figures = OrderedDict()
+    period_data = get_title_period(yearly)
     for dic in irr_values_lst:
         dig_values = dic['digit_values']
 
-        title1 = "Simulation %s - Histogram of %s, based on %s values" % (simulation_no, dic['field'], len(dig_values))
+        title1 = "Simulation %s. %s - Histogram of %s, based on %s values" % (simulation_no, period_data, dic['field'], len(dig_values))
         figures[title1] = dig_values
 
-        title2 = "Simulation %s - Chart of %s, based on %s values" % (simulation_no, dic['field'], len(dig_values))
+        title2 = "Simulation %s. %s - Chart of %s, based on %s values" % (simulation_no, period_data, dic['field'], len(dig_values))
         figures[title2] = dig_values
 
     fig, axeslist = pylab.subplots(ncols=2, nrows=2)
@@ -164,8 +145,9 @@ def plot_correlation_tornado(field_dic, simulation_id, yearly=False):
 
     pylab.show()
 
-def irr_scatter_charts(simulation_id, yearly=False):
+def irr_scatter_charts(simulation_no, field, yearly=False):
     """
+    Plots XY chart for correlation @field with CORRELLATION_FIELDS
     figures : <title, figure> dictionary
     ncols : number of columns of subplots wanted in the display
     nrows : number of rows of subplots wanted in the figure
@@ -173,15 +155,16 @@ def irr_scatter_charts(simulation_id, yearly=False):
     cols = 3
     rows = 2
     prefix = 'iterations.'
-    main = prefix + CORRELLATION_IRR_FIELD.values()[0]
-    figures = Database().get_simulations_values_from_db(simulation_id, [], yearly, not_changing_fields=[main]+CORRELLATION_FIELDS.values())
+    main = prefix + field
+    real_field_shortname = add_yearly_prefix(field, yearly)
+
+    figures = Database().get_simulations_values_from_db(simulation_no, [main], yearly, not_changing_fields=CORRELLATION_FIELDS.values())
+
     if not figures:
-            print ValueError('No data in Database for simulation %s' %simulation_id)
+            print ValueError('No data in Database for simulation %s' %simulation_no)
             return None
 
-    irrs = figures.pop(main.split('.')[-1])
-    titles = invert_dict(CORRELLATION_FIELDS)
-
+    irrs = figures.pop(real_field_shortname)
     fig, axeslist = pylab.subplots(ncols=cols, nrows=rows)
     left,bottom,width,height = 0.2,0.1,0.6,0.6 # margins as % of canvas size
 
@@ -195,7 +178,7 @@ def irr_scatter_charts(simulation_id, yearly=False):
 
             obj.plot(irrs, values, 'o')
             obj.set_title(plot_title)
-            obj.set_xlabel(main)
+            obj.set_xlabel(real_field_shortname)
 
             limx, limy = get_limit_values(irrs, values)
 
@@ -206,7 +189,8 @@ def irr_scatter_charts(simulation_id, yearly=False):
         else:
             obj.set_axis_off()
 
-    title = "Simulation %s. Scatter charts" % simulation_id
+
+    title = "Simulation %s. Scatter charts '%s'. %s" % (simulation_no, add_yearly_prefix(field, yearly), get_title_period(yearly))
     fig = pylab.gcf()
     fig.suptitle(title, fontsize=14)
 
@@ -240,7 +224,22 @@ def get_limit_values(x, y):
 
     return ((min_irr, max_irr), (min_val, max_val))
 
+
+def get_title_period(yearly):
+    if yearly:
+        title = 'Yearly data'
+    else :
+        title = "Monthly data"
+    return title
+
+def get_x_axis_title(yearly):
+    if yearly:
+        title = 'years'
+    else :
+        title = "months"
+    return title
+
 if __name__ == '__main__':
-    plot_charts(61, True)
-    #irr_scatter_charts(66, True)
+    #plot_charts(61, True)
+    irr_scatter_charts(67, 'irr_project', True)
     #plot_correlation_tornado(CORRELLATION_NPV_FIELD, 66)
