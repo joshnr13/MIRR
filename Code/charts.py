@@ -12,7 +12,13 @@ def plot_charts(simulation_id, yearly=False):
     fields = ['iterations.revenue', 'iterations.cost', 'iterations.ebitda', 'iterations.deprication']
     results = Database().get_simulations_values_from_db(simulation_id, fields, yearly, convert_to=float)
 
-    revenue, cost, ebitda, deprication =  results.values()
+    suffix = '_y' * yearly
+    #revenue, cost, ebitda, deprication =  results.values()
+    revenue = results['revenue'+suffix]
+    cost = results['cost'+suffix]
+    ebitda = results['ebitda'+suffix]
+    deprication = results['deprication'+suffix]
+    #print revenue, suffix, results
     last_revenue, last_cost, last_ebitda, last_deprication =  revenue[-1][1:], cost[-1][1:], ebitda[-1][1:], deprication[-1][1:]
 
     pylab.plot(last_revenue, label='REVENUE')
@@ -21,7 +27,6 @@ def plot_charts(simulation_id, yearly=False):
     pylab.plot(last_deprication, label='deprication')
     #pylab.plot(net_earning, label='net_earning')
 
-    pylab.xlabel("months")
     pylab.ylabel("EUROs")
     pylab.legend()
     pylab.grid(True, which="both",ls="-")
@@ -31,8 +36,11 @@ def plot_charts(simulation_id, yearly=False):
     title = 'Simulation %s. ' % simulation_id
     if yearly:
         title += 'Yearly data'
+        pylab.xlabel("years")
     else :
         title += "Monthly data"
+        pylab.xlabel("months")
+
     pylab.title(title)
     pylab.show()
 
