@@ -463,13 +463,24 @@ def get_input_comment(text='Please input comment for current simulation: ', defa
     return result
 
 def get_only_digits(obj):
-    return  filter(lambda x :isinstance(x, Number), obj.values())
+    new_obj = obj.values()
+    return  get_only_digits_list(new_obj)
+
+def get_only_digits_list(obj):
+    return  filter(lambda x :isinstance(x, Number), obj)
+
 
 def add_yearly_prefix(field, yearly):
     if yearly:
-        if field.find('.') == -1:
+        if field.startswith('iterations.'):
             field += '_y'
             return field
+        elif field.endswith('_y'):
+            return field
+        elif field.find('.') == -1:
+            field += '_y'
+            return field
+
     return field
 
 class Annuitet():

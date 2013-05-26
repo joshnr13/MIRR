@@ -63,6 +63,7 @@ NPV["NPV project"] = "pv_project"
 NPV["NPV owners"] = "pv_owners"
 
 IRR_REPORT_FIELD = 'irr_project_y'
+IRR_REPORT_FIELD2 = 'irr_owners_y'  #for statistics after simulation
 NPV_REPORT_FIELD = 'npv_project_y'
 
 
@@ -70,11 +71,11 @@ REPORT_DEFAULT_NUMBER_SIMULATIONS = 10
 REPORT_DEFAULT_NUMBER_ITERATIONS = 20
 
 CORRELLATION_FIELDS = OrderedDict() # IRR ONE SHOULD HAVE NAME =IRR and be FIRST ONE
-CORRELLATION_FIELDS["permit_procurement_duration"] = "main_configs.real_permit_procurement_duration"
-CORRELLATION_FIELDS["construction_duration"] = "main_configs.real_construction_duration"
-CORRELLATION_FIELDS["subsidy_Kw"] = "sm_configs.kWh_subsidy"
-CORRELLATION_FIELDS["subsidy_delay"] = "sm_configs.subsidy_delay"
-CORRELLATION_FIELDS["subsidy_duration"] = "sm_configs.subsidy_duration"
+CORRELLATION_FIELDS["permit_procurement_duration"] = "iterations.main_configs.real_permit_procurement_duration"
+CORRELLATION_FIELDS["construction_duration"] = "iterations.main_configs.real_construction_duration"
+CORRELLATION_FIELDS["subsidy_Kw"] = "iterations.sm_configs.kWh_subsidy"
+CORRELLATION_FIELDS["subsidy_delay"] = "iterations.sm_configs.subsidy_delay"
+CORRELLATION_FIELDS["subsidy_duration"] = "iterations.sm_configs.subsidy_duration"
 
 CORRELLATION_IRR_FIELD = {"IRR": IRR_REPORT_FIELD}
 CORRELLATION_NPV_FIELD = {"NPV": NPV_REPORT_FIELD}

@@ -102,70 +102,67 @@ class Database():
             print "Unexpected error:", sys.exc_info()
             return {}
 
-    def format_request(self,  fields, yearly):
+    def format_request(self,  fields, not_changing_fields, yearly):
         """formats request to database, returns dicts with select and get values"""
         select_by = {}
-        get_values = {}
+        get_values = {'_id': False}
 
         for field in fields:
-            field = add_yearly_prefix(field, yearly)
+            if field not in not_changing_fields:
+                field = add_yearly_prefix(field, yearly)
             select_by[field] = { '$exists' : True }
             get_values[field] = True
         return  select_by, get_values
 
-    def get_results_find_limit_iterations(self, number, fields, select_by, get_values, yearly):
-        try:
-            sorted_order = [("$natural", -1)]
-            results = self.collection.find(select_by, get_values).sort(sorted_order).limit(number)
-            values = defaultdict(list)
-            for doc in results:
-                for field in fields:
-                    field = add_yearly_prefix(field, yearly)
-                    if "." in field:
-                        names = field.split('.')[::-1]
-                        value = doc[names.pop()]
-                        while names:
-                            value = value[names.pop()]
-                    else:
-                        value = doc[field]
-
-                    values[field].append(value)
-
-            return values
-
-        except:
-            print "Unexpected error:", sys.exc_info()
-            return {}
-
-    def _get_results_find_limit_simulations(self, fields, select_by, get_values, yearly, convert_to=None):
+    def _get_results_find_limit_simulations(self, fields, select_by, get_values, yearly, convert_to=None, not_changing_fields=[]):
         """Internal method to get results from last simulations"""
+
+        def process_doc(doc):
+            if isinstance(doc, dict):
+                for k in fields_names:
+                    if doc.has_key(k):
+                        values[k].append(doc[k])
+                for k in sub_keys:
+                    if doc.has_key(k):
+                        process_doc(doc[k])
+            elif isinstance(doc, list):
+                for l in doc:
+                    process_doc(l)
+
         try:
             sorted_order = [("simulation", -1)]
             results = self.collection.find(select_by, get_values).sort(sorted_order)
             values = defaultdict(list)
-            for doc in results:
-                for field in fields:
-                    field = add_yearly_prefix(field, yearly)
-                    if "." in field:
-                        names = field.split('.')[::-1]
-                        value = doc[names.pop()]
-                        while names:
-                            value = value[names.pop()]
-                    else:
-                        value = doc[field]
 
-                    values[field].append(value)
+            fields_names = []
+            sub_keys = []
+            for field in fields:
+
+                field = field.split('.')
+                sub_keys += field[:-1]
+
+                field_name = field[-1]
+                if field_name not in not_changing_fields:
+                    field_name = add_yearly_prefix(field_name, yearly)
+                fields_names.append(field_name)
+
+            sub_keys = set(sub_keys)
+            for doc in results:
+                process_doc(doc)
 
             return values
 
         except:
             print "Unexpected error:", sys.exc_info()
+            raise
             return {}
 
-    def get_simulations_values_from_db(self,  simulation_id, fields, yearly, convert_to=None):
+    def get_simulations_values_from_db(self,  simulation_id, fields, yearly, convert_to=None, not_changing_fields=[]):
         """Gets from DB and shows @fields from LAST @number of simulations
+        - using not_changing_fields with out prefix and
         - selected by list of @fields, any type - example ['irr_owners', 'irr_project', 'main_configs.lifetime']
         - using yearly suffix
+
         - and limited to @number
         - SORTED in BACK order
         """
@@ -174,18 +171,20 @@ class Database():
         if simulation_id > last_number_simulation:
             print ValueError("Not such simulation in DB. Last simulation is %s" %last_number_simulation)
             return  None
-
-        select_by, get_values = self.format_request(fields, yearly)
+        fields = not_changing_fields + fields
+        select_by, get_values = self.format_request(fields, not_changing_fields, yearly)
         select_by['simulation'] =  simulation_id
-        results = self._get_results_find_limit_simulations(fields, select_by, get_values, yearly, convert_to)
+        results = self._get_results_find_limit_simulations(fields, select_by, get_values, yearly, convert_to, not_changing_fields)
 
         return  results
 
     def get_correlation_values(self, main_field, simulation_id, yearly=False):
         """get correlation of main_field with CORRELLATION_FIELDS"""
 
-        fields = [main_field] + CORRELLATION_FIELDS.values()
-        results = self.get_simulations_values_from_db(simulation_id, fields, yearly)
+        main_field_fordb = "iterations." + main_field
+
+        fields = CORRELLATION_FIELDS.values()
+        results = self.get_simulations_values_from_db(simulation_id, fields, yearly, not_changing_fields=[main_field_fordb])
         if not results:
             print ValueError('No data in Database for simulation %s' %simulation_id)
             return None
@@ -232,19 +231,36 @@ class Database():
         min_s =  last_simulation_no - last
         max_s = last_simulation_no
 
-        group_by =  {"_id" : "$simulation", "iterations":  {"$sum":1}, "date": {"$last": "$date"}, "comment" : {"$last": "$comment"},}
+        #group_by =  {"_id" : "$simulation",
+                     #"iterations":  {"$sum":1},
+                     #"date": {"$last": "$date"},
+                     #"comment" : {"$last": "$comment"},}
+        group_by =  {
+                     "_id" : "$simulation",
+                     "iterations_number": {'$last':"$iteration_number"},
+                     "date": {'$last': "$date"},
+                     "comment" : {'$last': "$comment"},
+                     }
+
+        project = {
+                  '_id': '$simulation',
+                  'simulation': '$simulation',
+                  "comment":True,
+                  #'len': {"$size": "$iterations",},
+                  "len": {"$sum": "$simulation.iterations"},
+                    }
 
         pipeline = [
-            { '$match': {'simulation': {'$lte': max_s, '$gte': min_s,}} },
+            #{'$project': project},
+            {'$match': {'simulation': {'$lte': max_s, '$gte': min_s,}} },
             #{ '$skip': ...some skip... },
             #{ '$limit': ...some limit... }
             {"$group" : group_by},
             { '$sort': {'_id': 1},},
             ]
         results = self.collection.aggregate(pipeline)['result']
-        print results
         for r in results:
-            print u"Simulation %s date %s - iterations %s - %s" % (r["_id"], r["date"], r["iterations"], r['comment'])
+            print u"Simulation %s date %s - iterations %s - %s" % (r["_id"], r["date"], r["iterations_number"], r['comment'])
 
 
 
@@ -263,22 +279,19 @@ if __name__ == '__main__':
     #print get_rowvalue_from_db( fields, True)
     d = Database()
     d.update_simulation_comment(35, "test")
-    d.get_last_simulations_log()
-    #print d.get_rowvalue_from_db( fields, False)
-    #print d.get_simulations_values_from_db( 1, fields, False)
-
-
-    #group_by =  {"_id" : "$simulation", "iterations":  {"$sum":1}, "date": {"$last": "$date"}, "comment" : {"$last": "$comment"},}
-
-    #pipeline = [
-        #{ '$match': {'simulation': {'$lt': 32, '$gt': 25,}} },
-        #{ '$sort': {'simulation': -1},},
-        ##{ '$skip': ...some skip... },
-        ##{ '$limit': ...some limit... }
-        ##{"$project": {"asset":1, "equity":1}},
-        #{"$group" : group_by},
-        #]
-    #q = d.collection.aggregate(pipeline)['result']
-    #print q
-    #for qq in q:
-        #print qq
+    #d.get_last_simulations_log()
+    select_by = {
+                 #'main_configs.real_construction_duration': {'$exists': True},
+                 #'sm_configs.subsidy_duration': {'$exists': True},
+                 #'sm_configs.subsidy_delay': {'$exists': True},
+                 'simulation': 66,
+                 #'iterations.npv_project_y': {'$exists': True},
+                 'iterations.sm_configs.kWh_subsidy': {'$exists': True},
+                 'iterations.main_configs.real_permit_procurement_duration': {'$exists': True},
+                 }
+    get_values = {'iterations.iteration': True, 'simulation': True,}
+    sorted_order = [("simulation", -1)]
+    r = d.collection.find(select_by, get_values).sort(sorted_order)
+    print "--"
+    for rr in r:
+        print rr

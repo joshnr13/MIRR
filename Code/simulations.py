@@ -4,24 +4,29 @@ import pylab
 import csv
 
 from _mirr import Mirr
-from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv, invert_dict
-from collections import OrderedDict
+from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv, get_only_digits_list
+from collections import OrderedDict, defaultdict
 from database import Database
 from config_readers import MainConfig
 from report_output import ReportOutput
-from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD, IRR_REPORT_FIELD
 from numbers import Number
+from charts import show_irr_charts
+from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, report_directory
+from numpy import corrcoef, around, isnan, std
+from  scipy.stats import skew, kurtosis
 
-from numpy import corrcoef, around, isnan
-from pylab import *
-from itertools import izip_longest
 
 class Simulation():
 
     def __init__(self, comment=''):
         self.db =  Database()
-        self.simulation_no = self.get_next_simulation_no()
         self.comment = comment
+        self.simulation_no = self.get_next_simulation_no()
+        self.irrs0 = []
+        self.irrs1 = []
+
+    def get_simulation_no(self):
+        return  self.simulation_no
 
     def get_next_simulation_no(self):
         return  self.db.get_next_simulation_no()
@@ -41,25 +46,23 @@ class Simulation():
         self.tm_configs = self.tm.getConfigsValues()
         self.sm_configs = self.sm.getConfigsValues()
         self.em_configs = self.em.getConfigsValues()
-        self.simulation_date = datetime.datetime.now().date()
 
     def db_insert_results(self):
-        """Inserts iteration @iteration number to db"""
-        self.db.insert(self.line)
+        """Inserts simulation to db"""
+        #import pprint
+        #pprint.pprint(dict(self.simulation_record))
+        self.db.insert(self.simulation_record)
 
     def convert_results(self):
         """Processing results before inserting to DB"""
         self.line = convert_value(self.prepared_line)
 
-    def prepare_results(self, iteration, iteration_number):
+    def prepare_iteration_results(self, iteration, iteration_number):
         obj = self.r
         line = dict()
 
         line["simulation"] = self.simulation_no
         line["iteration"] = iteration
-        line["iteration_number"] = iteration_number
-        line["date"] = self.simulation_date
-        line["comment"] = self.comment
 
         line["main_configs"] = self.main_configs
         line["ecm_configs"] = self.ecm_configs
@@ -158,272 +161,156 @@ class Simulation():
 
     def run_simulation(self,  iterations_number):
         """Run multiple simulations"""
-        print "%s - runing simulation %s with %s iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
-        self.irrs = []
+
+        self.init_simulation_record(iterations_number)
         for i in range(iterations_number):
-            print "\tRunning iteration %s of %s" % (i + 1, iterations_number)
             self.run_one_iteration(i+1, iterations_number)
+            self.add_result_to_simulations_record()
 
-    def get_irrs(self):
+        irr_stats = self.calc_irr_statistics()
+        self.add_irr_results_to_simulation(irr_stats)
+        self.db_insert_results()
+
+
+    def init_simulation_record(self, iterations_number):
+        print "%s - runing simulation %s with %s iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
+        self.simulation_record = defaultdict(list)
+        self.simulation_record["simulation"] = self.simulation_no
+        self.simulation_record["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.simulation_record["comment"] = self.comment
+        self.simulation_record["iteration_number"] = iterations_number
+
+    def add_result_to_simulations_record(self):
+        self.simulation_record['iterations'].append(self.line)
+
+    def add_irr_results_to_simulation(self, irr_results):
+        """Adding irr results to dict with simulation data"""
+        self.simulation_record['irr_stats'] = irr_results
+
+    def calc_irr_statistics(self):
+        """    for each simulation batch calculate, display and save the standard deviation of IRR (both of owners and project - separately)
+        - skweness : http://en.wikipedia.org/wiki/Skewness
+        - kurtosis: http://en.wikipedia.org/wiki/Kurtosis
+        """
+        results = []
+        for i, irr in enumerate([self.irrs0, self.irrs1]):
+            result = {}
+            digit_irr = self.get_filtered_irrs(irr)
+            field = IRR_REPORT_FIELD if i == 0 else IRR_REPORT_FIELD2
+            result['field'] = field
+            result['digit_values'] = digit_irr
+            result[field] = irr
+            result['std'] = std(digit_irr)
+            result['skew'] = skew(digit_irr)
+            result['kurtosis'] = kurtosis(digit_irr)
+            results.append(result)
+
+        return  results
+
+    def get_filtered_irrs(self, obj):
         """return  filtered irrs"""
-        good_irrs = []
-        for irr in self.irrs:
-            if irr is not None:
-                if irr is not isnan(irr):
-                    good_irrs.append(irr)
-        return good_irrs
+        return  get_only_digits_list(obj)
 
-    def add_result_irr(self):
-        self.irrs.append(getattr(self.o.r, IRR_REPORT_FIELD))
+    def add_result_irrs(self):
+        """Adds irr results to attrributes"""
+        self.irrs0.append(getattr(self.o.r, IRR_REPORT_FIELD))
+        self.irrs1.append(getattr(self.o.r, IRR_REPORT_FIELD2))
 
     def run_one_iteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""
+        print "\tRunning iteration %s of %s" % (iteration_no, total_iteration_number)
         self.prepare_data()
-        self.prepare_results(iteration_no, total_iteration_number)
+        self.prepare_iteration_results(iteration_no, total_iteration_number)
         self.convert_results()
-        self.db_insert_results()
-        self.add_result_irr()
+        self.add_result_irrs()
 
-def run_all_simulations(iterations_number, comment):
-    """Runs multiple iterations @iterations_number with @comment
-    return  IRR values"""
 
+def run_save_simulation(iterations_number, comment):
+    """
+    1) Runs multiple iterations @iterations_number with @comment
+    2) Shows charts
+    3) Save results
+    """
     s = Simulation(comment=comment)
     s.run_simulation(iterations_number)
-    return s.get_irrs(), s.simulation_no
+    process_irr_values(s.calc_irr_statistics(), s.get_simulation_no())
 
-def show_save_irr_distribution(field, simulation_number, yearly):
-    irr_values = Database().get_simulations_values_from_db(simulation_id=simulation_number, fields=[field], yearly=yearly)
-    irr_values = filter(lambda x :isinstance(x, Number), irr_values[field])
+def process_irr_values(irr_values_lst, simulation_number):
+    save_irr_values_xls(irr_values_lst, simulation_number)  #was irr_values[:]
+    show_irr_charts(irr_values_lst, simulation_number) #was irr_values[:]
+    #print "All IRR values was Nan (can't be calculated, please check FCF , because IRR cannot be negative)"
 
-    if irr_values:
-        show_irr_charts(irr_values, field, simulation_number)
-        save_irr_values(irr_values, '')
-    else :
-        print "All IRR values was Nan (can't be calculated, please check FCF , because IRR cannot be negative)"
+def show_save_irr_distribution(simulation_number):
+    """
+    1 Gets from DB yearly values of irr
+    2 Saves in xls report & Charts
 
-def show_irr_charts(values, field, simulation_no):
-    """Shows irr distribution and charts , field used for title"""
+    """
+    field = 'irr_stats'
+    irr_values_lst = Database().get_simulations_values_from_db(simulation_id=simulation_number, fields=[], yearly=False, not_changing_fields=[field])
+    irr_values_lst = irr_values_lst[field][0]
+    process_irr_values(irr_values_lst, simulation_number)
 
+def save_irr_values_xls(irr_values_lst, simulation_number):
+    """Saves IRR values to excel file
+    @irr_values_lst - list  with 2 complicated dicts inside """
 
-    fig= pylab.figure()
-    ax1 = fig.add_subplot(211)
-    ax2 = fig.add_subplot(212)  # share ax1's xaxis
-
-    # Plot
-    ax1.hist(values, bins=7)
-    ax2.plot(range(1, len(values)+1), values, 'o')
-
-    title_format = "Simulation %s. {0} of %s based on %s values" %(simulation_no, field, len(values))
-    ax1.set_title(title_format.format("Histogram"))
-    ax2.set_title(title_format.format("Chart"))
-    pylab.show()
-
-def save_irr_values(values, simulation_no):
-    """Saves IRR values to excel file"""
     cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
     report_name = "%s_%s.%s" % (cur_date, 'irr_values', 'csv')
     report_full_name = os.path.join(report_directory, report_name)
     output_filename = uniquify_filename(report_full_name)
-    numbers = ["Iteration number"] + list(range(1, len(values)+1 ))
-    simulation_info = ["Simulation number"] + [simulation_no]
+
+    blank_row = [""]
+    field1 = irr_values_lst[0]['field']
+    field2 = irr_values_lst[1]['field']
+
+    irr_values1 = [field1] + irr_values_lst[0][field1]
+    irr_values2 = [field2] + irr_values_lst[1][field2]
+
+    iterations = ["Iteration number"] + list(range(1, len(irr_values1)))
+    simulation_info = ["Simulation number"] + [simulation_number]
+
+    stat_params = ['std','skew', 'kurtosis']
+    stat_fields = ['field'] + stat_params
+
+    stat_info1 = [field1]
+    stat_info2 = [field2]
+
+    for key in stat_params:
+        stat_info1.append(irr_values_lst[0][key])
+        stat_info2.append(irr_values_lst[1][key])
 
     with open(output_filename,'ab') as f:
-        values.insert(0, "IRR_values")
+
         w = csv.writer(f, delimiter=';')
         w.writerow(simulation_info)
-        w.writerow(numbers)
-        w.writerow(values)
+        w.writerow(blank_row)
 
-    #transponse_csv(output_filename)
+        w.writerow(iterations)
+        w.writerow(irr_values1)
+        w.writerow(irr_values2)
+
+        w.writerow(blank_row)
+        w.writerow(stat_fields)
+        w.writerow(stat_info1)
+        w.writerow(stat_info2)
+
     xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
     xls_output_filename = uniquify_filename(xls_output_filename)
 
     convert2excel(source=output_filename, output=xls_output_filename)
     print "CSV Report outputed to file %s" % (xls_output_filename)
 
-def get_limit_values(x, y):
-    min_irr = min(x)
-    max_irr = max(x)
-    irr_range = max_irr - min_irr
-
-    min_val = min(y)
-    max_val = max(y)
-    val_range = max_val - min_irr
-
-    delta_x = 0.05
-    delta_y = 0.05
-
-    min_irr = min_irr - delta_x * irr_range
-    max_irr = max_irr + delta_x * irr_range
-
-    min_val = min_val - delta_y * val_range
-    max_val = max_val + delta_y * val_range
-
-
-    return ((min_irr, max_irr), (min_val, max_val))
-
-def plot_correlation_tornado(field_dic, simulation_id, yearly=False):
-    """Plot tornado chart with correlation of field and other stochastic variables"""
-
-    values = []
-    field_values = {}
-    main_field_name = field_dic.keys()[0]
-    main_field_db_name = field_dic.values()[0]
-
-    results = Database().get_correlation_values(main_field_db_name, simulation_id, yearly)
-
-    if not results:
-        return  None
-    else:
-        rounded_values_dict, number_values_used = results
-
-    if number_values_used  ==  0:
-        print "No needed values in Database. Please run simulations before!"
-        return
-    else:
-        print ("Corellation using simulation %s with %s values from DB" % (simulation_id, number_values_used))
-
-    for i, (field_short_name, main_field_db_name) in enumerate(CORRELLATION_FIELDS.items()):
-        value = rounded_values_dict[main_field_db_name]
-        print "Correllation between %s and %s = %s" % (main_field_name, field_short_name, value)
-        if isnan(value):
-            value = 0
-        values.append(value)
-        field_values[field_short_name] = value
-
-    fig = figure(1)
-    ax = fig.add_subplot(111)
-
-    v1 = list(filter(lambda x : x>0, values))
-    v2 = list(filter(lambda x : x<=0, values))
-    v1.sort(key=abs, reverse=True)
-    v2.sort(key=abs, reverse=True)
-
-    sorted_list = sorted(values, key=abs)
-    used = []
-    pos1 = [get_pos_no(value, sorted_list, used) for value in v1]
-    pos2 = [get_pos_no(value, sorted_list, used) for value in v2]
-
-    ax.barh(pos1,v1, align='center', color='g')
-    ax.barh(pos2,v2, align='center', color='r')
-
-    y_names = sorted(field_values.items(), key=lambda x: abs(x[1]), reverse=True)
-    y_names = [g[0] for g in y_names]
-
-    yticks(list(reversed(range(len(y_names)))), y_names)
-    xlabel('correlation coefficient')
-    title('Simulation %s. Correlation between %s and stochastic values, based on %s values' %(simulation_id, main_field_name, number_values_used))
-    grid(True)
-    xlim(-1,1)
-    ylim(-0.5, len(field_values)-0.5)
-    #setp(ax.get_yticklabels(), fontsize=12,)
-
-    fig.subplots_adjust(left=0.35)
-
-    for (i,j) in zip(v1,pos1):
-        value = i
-        rel_position = len(str(value))
-        annotate(value, xy=(i,j), color='green', weight='bold', size=12,xytext=(rel_position, 00), textcoords='offset points',)
-
-    for (i,j) in zip(v2,pos2):
-        value = i
-        rel_position = -len(str(value)) * 8
-        annotate(value, xy=(i,j), color='red', weight='bold', size=12,xytext=(rel_position, 00), textcoords='offset points',)
-
-    show()
-
-def irr_scatter_charts(simulation_id, yearly=False):
-    """
-    figures : <title, figure> dictionary
-    ncols : number of columns of subplots wanted in the display
-    nrows : number of rows of subplots wanted in the figure
-    """
-    cols = 3
-    rows = 2
-    main = CORRELLATION_IRR_FIELD.values()[0]
-    figures = Database().get_simulations_values_from_db(simulation_id, [main]+CORRELLATION_FIELDS.values(), yearly)
-    if not figures:
-            print ValueError('No data in Database for simulation %s' %simulation_id)
-            return None
-
-    irrs = figures.pop(main)
-    titles = invert_dict(CORRELLATION_FIELDS)
-
-    fig, axeslist = pylab.subplots(ncols=cols, nrows=rows)
-    left,bottom,width,height = 0.2,0.1,0.6,0.6 # margins as % of canvas size
-
-    for ind,title in izip_longest(range(cols*rows), figures):
-        obj = axeslist.ravel()[ind]
-        if title is not None:
-            values = figures[title]
-            plot_title = titles[title]
-
-            axes = pylab.Axes(obj.figure, [1,1,1,1]) # [left, bottom, width, height] where each value is between 0 and 1
-
-            obj.plot(irrs, values, 'o')
-            obj.set_title(plot_title)
-            obj.set_xlabel(main)
-
-            limx, limy = get_limit_values(irrs, values)
-
-            obj.set_xlim(limx)
-            obj.set_ylim(limy)
-
-            obj.figure.add_axes([12,12,12,12], frameon=False)
-        else:
-            obj.set_axis_off()
-
-    title = "Simulation %s. Scatter charts" % simulation_id
-    fig = pylab.gcf()
-    fig.suptitle(title, fontsize=14)
-
-    pylab.show()
-
-def get_pos_no(value, sorted_list, used):
-    for i, v in enumerate(sorted_list):
-        if v == value and i not in used:
-            used.append(i)
-            return i
-
-def plot_charts(simulation_id, yearly=False):
-
-    fields = ['revenue', 'cost', 'ebitda', 'deprication']
-    results = Database().get_simulations_values_from_db(simulation_id, fields, yearly, convert_to=float)
-
-    revenue, cost, ebitda, deprication =  results.values()
-    last_revenue, last_cost, last_ebitda, last_deprication =  revenue[-1][1:], cost[-1][1:], ebitda[-1][1:], deprication[-1][1:]
-
-    pylab.plot(last_revenue, label='REVENUE')
-    pylab.plot(last_cost, label='COST')
-    pylab.plot(last_ebitda, label='EBITDA')
-    pylab.plot(last_deprication, label='deprication')
-    #pylab.plot(net_earning, label='net_earning')
-
-    pylab.xlabel("months")
-    pylab.ylabel("EUROs")
-    pylab.legend()
-    pylab.grid(True, which="both",ls="-")
-    pylab.axhline()
-    pylab.axvline()
-
-    title = 'Simulation %s. ' % simulation_id
-    if yearly:
-        title += 'Yearly data'
-    else :
-        title += "Monthly data"
-    pylab.title(title)
-    pylab.show()
-
 
 if __name__ == '__main__':
     #run_all_iterations()
     #plot_correlation_tornado()
     #irr_scatter_charts(100)
-    plot_charts(20)
+    #plot_charts(20)
     #test_100_iters()
     #irr_scatter_charts()
-    #s = Simulation()
     #s.run_simulations(10)
+
+    show_save_irr_distribution(66)
 
 

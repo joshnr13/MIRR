@@ -7,12 +7,16 @@ import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize, get_input_comment
 from database import Database
-from simulations import  run_all_simulations, save_irr_values, show_irr_charts, plot_correlation_tornado, plot_charts, irr_scatter_charts, show_save_irr_distribution
+
+from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution
+from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts
+
 from config_readers import MainConfig
 from _mirr import Mirr
 from numpy import isnan
 from numbers import Number
-from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD, IRR_REPORT_FIELD, REPORT_DEFAULT_NUMBER_SIMULATIONS, REPORT_DEFAULT_NUMBER_ITERATIONS
+from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD,  REPORT_DEFAULT_NUMBER_SIMULATIONS, REPORT_DEFAULT_NUMBER_ITERATIONS
+from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2
 
 commands = OrderedDict()
 i = 0
@@ -37,16 +41,13 @@ class Interface():
         """Running simulation and saving results"""
         iterations_number = self.get_number_iterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)
         comment = get_input_comment()
-
-        irr_values, simulation_no =  run_all_simulations(iterations_number, comment)
-        if irr_values:
-            save_irr_values(irr_values[:], simulation_no)
-            show_irr_charts(irr_values[:], IRR_REPORT_FIELD, simulation_no)
+        run_save_simulation(iterations_number, comment)
 
     def irr_distribution(self, yearly=False):
         """Shows last N irrs distribution from database"""
         simulations_number =  self.get_input_simulation("for plotting IRR distribution ")
-        show_save_irr_distribution(IRR_REPORT_FIELD, simulations_number, yearly)
+        #fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2]
+        show_save_irr_distribution(simulations_number)
 
     def report_isbscf(self):
         self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
