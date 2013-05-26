@@ -32,6 +32,7 @@ commands['8'] = 'irr_correlations'
 commands['9'] = 'irr_scatter_charts'
 commands['10'] = 'npv_correlations'
 commands['11'] = 'simulations_log'
+commands['12'] = 'delete_simulation'
 
 class Interface():
     def __init__(self):
@@ -97,6 +98,12 @@ class Interface():
 
     def simulations_log(self, last=10):
         self.db.get_last_simulations_log(last)
+
+    def delete_simulation(self, simulation_no=None):
+        if simulation_no is  None:
+            simulation_no = self.get_input_simulation("for DELETING: ")
+        self.db.delete_simulation(simulation_no)
+
 
     def _run_correlations(self, field):
         """field - dict [short_name] = database name"""

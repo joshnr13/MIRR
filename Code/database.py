@@ -29,6 +29,13 @@ class Database():
     def add_simulation_index(self):
         self.collection.ensure_index('simulation', background=True )
 
+    def delete_simulation(self, simulation_no ):
+        """Deletes selected simulation with @simulation_no"""
+        self.collection.remove({"simulation":simulation_no})
+        print "Succesfully deleted simulation %s" % simulation_no
+        if simulation_no == self.get_last_simulation_no():
+            self.simulations.update({'_id':'seq'}, {'$inc':{'seq':-1}}, upsert=True)
+
     def insert(self,  line):
         """Safe inserts line to DB"""
         self.collection.insert(line, safe=True)
