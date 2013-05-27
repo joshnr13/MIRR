@@ -47,12 +47,6 @@ class Simulation():
         self.sm_configs = self.sm.getConfigsValues()
         self.em_configs = self.em.getConfigsValues()
 
-    def db_insert_results(self):
-        """Inserts simulation to db"""
-        #import pprint
-        #pprint.pprint(dict(self.simulation_record))
-        self.db.insert(self.simulation_record)
-
     def convert_results(self):
         """Processing results before inserting to DB"""
         self.line = convert_value(self.prepared_line)
@@ -165,12 +159,11 @@ class Simulation():
         self.init_simulation_record(iterations_number)
         for i in range(iterations_number):
             self.run_one_iteration(i+1, iterations_number)
-            self.add_result_to_simulations_record()
+            self.db.insert_iteration(self.line)
 
         irr_stats = self.calc_irr_statistics()
         self.add_irr_results_to_simulation(irr_stats)
-        self.db_insert_results()
-
+        self.db.insert_simulation(self.simulation_record)
 
     def init_simulation_record(self, iterations_number):
         print "%s - runing simulation %s with %s iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
@@ -178,9 +171,9 @@ class Simulation():
         self.simulation_record["simulation"] = self.simulation_no
         self.simulation_record["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
         self.simulation_record["comment"] = self.comment
-        self.simulation_record["iteration_number"] = iterations_number
+        self.simulation_record["iterations_number"] = iterations_number
 
-    def add_result_to_simulations_record(self):
+    def write_iteration_to_db(self):
         self.simulation_record['iterations'].append(self.line)
 
     def add_irr_results_to_simulation(self, irr_results):
@@ -226,6 +219,7 @@ class Simulation():
         self.add_result_irrs()
 
 
+
 def run_save_simulation(iterations_number, comment):
     """
     1) Runs multiple iterations @iterations_number with @comment
@@ -245,7 +239,7 @@ def show_save_irr_distribution(simulation_no, yearly=False):
 
     """
     field = 'irr_stats'
-    irr_values_lst = Database().get_simulations_values_from_db(simulation_id=simulation_no, fields=[], yearly=yearly, not_changing_fields=[field])
+    irr_values_lst = Database().get_simulation_values_from_db(simulation_no, [field])
     irr_values_lst = irr_values_lst[field][0]
 
     save_irr_values_xls(irr_values_lst, simulation_no, yearly)  #was irr_values[:]
@@ -322,6 +316,6 @@ if __name__ == '__main__':
     #irr_scatter_charts()
     #s.run_simulations(10)
 
-    show_save_irr_distribution(66)
+    show_save_irr_distribution(2)
 
 
