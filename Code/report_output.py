@@ -34,7 +34,6 @@ class ReportOutput():
         is_filename = output_filename + "_IS"
         cf_filename = output_filename + "_CF"
         npv_filename = output_filename +  "_NPV"
-
         ss_filename = output_filename +  "_SS"
 
         bs_rows = self.prepare_rows(BS.values(), yearly)
@@ -58,14 +57,13 @@ class ReportOutput():
         self.write_report(npv_rows, npv_header, npv_filename)
         self.write_report(ss_rows, ss_header, ss_filename)
 
-        combine_list = [bs_filename, is_filename, cf_filename, npv_filename]
+        combine_list = [bs_filename, is_filename, ss_filename, cf_filename, npv_filename]
         combine_files(combine_list, output_filename)
-
 
         if excel:
             xls_output_filename = self.get_report_filename(report_name, 'xlsx', yearly=yearly)
             output_filename = convert2excel(source=output_filename, output=xls_output_filename)
-            add_second_sheet_excel(output_filename, ss_filename)
+            #add_second_sheet_excel(output_filename, ss_filename)
 
         print "%s Report outputed to file %s" % (report_name, output_filename)
 
