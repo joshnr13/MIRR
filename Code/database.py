@@ -50,6 +50,19 @@ class Database():
         """Get last simulation number"""
         return  self.simulation_numbers.find_one()['seq']
 
+    def get_iterations_number(self, simulation_no):
+        """return  number of iterations of current @simulation_no"""
+        field = 'simulation'
+        return  self.get_simulation_field(simulation_no, field)
+
+    def get_simulation_field(self, simulation_no, field):
+        """return  1 field from db collection simulations limited by @simulation_no"""
+        return  self.simulations.find_one({'simulation': simulation_no}, {field: 1}).get(field, "no-result or error")
+
+    def get_iteration_field(self, simulation_no, iteration_no, field):
+        """return  1 field from db collection simulations limited by @simulation_no and @iteration_no"""
+        return  self.iterations.find_one({'simulation': simulation_no, 'iteration': iteration_no}, {field: 1}).get(field, "no-result or error")
+
     def get_next_simulation_no(self):
         """Get next simulation number
         """
@@ -281,20 +294,21 @@ if __name__ == '__main__':
     fields = [ 'irr_owners']
     #print get_rowvalue_from_db( fields, True)
     d = Database()
-    d.update_simulation_comment(35, "test")
-    #d.get_last_simulations_log()
-    select_by = {
-                 #'main_configs.real_construction_duration': {'$exists': True},
-                 #'sm_configs.subsidy_duration': {'$exists': True},
-                 #'sm_configs.subsidy_delay': {'$exists': True},
-                 'simulation': 66,
-                 #'iterations.npv_project_y': {'$exists': True},
-                 'iterations.sm_configs.kWh_subsidy': {'$exists': True},
-                 'iterations.main_configs.real_permit_procurement_duration': {'$exists': True},
-                 }
-    get_values = {'iterations.iteration': True, 'simulation': True,}
-    sorted_order = [("simulation", -1)]
-    r = d.simulations.find(select_by, get_values).sort(sorted_order)
-    print "--"
-    for rr in r:
-        print rr
+    print d.get_iteration_field(4, 1, 'equipment_description')
+    #d.update_simulation_comment(35, "test")
+    ##d.get_last_simulations_log()
+    #select_by = {
+                 ##'main_configs.real_construction_duration': {'$exists': True},
+                 ##'sm_configs.subsidy_duration': {'$exists': True},
+                 ##'sm_configs.subsidy_delay': {'$exists': True},
+                 #'simulation': 66,
+                 ##'iterations.npv_project_y': {'$exists': True},
+                 #'iterations.sm_configs.kWh_subsidy': {'$exists': True},
+                 #'iterations.main_configs.real_permit_procurement_duration': {'$exists': True},
+                 #}
+    #get_values = {'iterations.iteration': True, 'simulation': True,}
+    #sorted_order = [("simulation", -1)]
+    #r = d.simulations.find(select_by, get_values).sort(sorted_order)
+    #print "--"
+    #for rr in r:
+        #print rr

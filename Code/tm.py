@@ -56,12 +56,20 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         """return  investment costs of all plant"""
         return  self.plant.getInvestmentCost() + self.documentation_price
 
-    def print_equipment(self):
-        """prints all equipment tree"""
-        print self.plant
+    def get_equipment_description(self):
+        """Returns string with description of eqipment"""
+        description = []
+        eqipment_price = self.getInvestmentCost()
+        description.append("\nEquipment investment cost - Total: %s" % eqipment_price)
+        description.append(str(self.plant))
         for i, group_info in enumerate(self.plant.get_groups()):
-            print "Group: %s" % (i + 1)
-            print group_info
+            description.append("Group: %s" % (i + 1))
+            description.append(str(group_info))
+        return "\n".join(description)
+
+    def print_equipment(self, ):
+        """prints all equipment tree"""
+        print self.get_equipment_description()
 
     def calc_degradation_coefficients(self):
         degradation_coefficients = OrderedDict()

@@ -8,7 +8,7 @@ from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize, get_input_comment
 from database import Database
 
-from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution
+from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution, print_equipment_db
 from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts
 
 from config_readers import MainConfig
@@ -64,14 +64,14 @@ class Interface():
         self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=True)
 
     def charts(self):
-        simulation_number =  self.get_input_simulation("for plotting revenue-costs charts ")
-        plot_charts(simulation_number, yearly=False)
-        plot_charts(simulation_number, yearly=True)
+        simulation_no =  self.get_input_simulation("for plotting revenue-costs charts ")
+        plot_charts(simulation_no, yearly=False)
+        plot_charts(simulation_no, yearly=True)
 
     def print_equipment(self):
-        eqipment_price = self.getMirr().technology_module.getInvestmentCost()
-        print "\nEquipment investment cost - Total: %s" % eqipment_price
-        self.getMirr().technology_module.print_equipment()
+        simulation_no =  self.get_input_simulation("for printing equipment ")
+        iteration_no =  self.get_input_iteration("for printing equipment", simulation_no )
+        print self.db.get_iteration_field(simulation_no, iteration_no, 'equipment_description')
 
     def outputPrimaryEnergy(self):
         start_date, end_date, resolution = self.get_inputs()
@@ -117,6 +117,9 @@ class Interface():
     def get_input_simulation(self, text=""):
         last_simulation = self.db.get_last_simulation_no()
         return  get_input_int("Please input ID of simulation for %s (or press Enter to use last-run %s): " %(text, last_simulation), last_simulation)
+    def get_input_iteration(self, text, simulation_no):
+        iterations = range(1, self.db.get_iterations_number(simulation_no)+1)
+        return  get_input_int("Please enter iteration of Simulation %s for %s from %s (or press Enter to use first): " %(simulation_no, text, iterations), 1)
     def get_inputs(self):
         def_start = self.getMirr().main_config.getStartDate()
         def_end = self.getMirr().main_config.getEndDate()

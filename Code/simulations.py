@@ -64,7 +64,7 @@ class Simulation():
         line["sm_configs"] = self.sm_configs
         line["em_configs"] = self.em_configs
 
-        #line["inputs"] = self.inputs
+        line["equipment_description"] = self.tm.get_equipment_description()
 
         line["insolations_daily"] = self.em.get_insolations_lifetime().values()
         line["electricity_production_daily"] = self.ecm.electricity_prices.values()
@@ -221,6 +221,9 @@ class Simulation():
         self.convert_results()
         self.add_result_irrs()
 
+
+def print_equipment_db(simulation_no, iteration_no):
+    pass
 
 
 def run_save_simulation(iterations_number, comment):
