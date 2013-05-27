@@ -60,8 +60,8 @@ class Interface():
         show_save_irr_distribution(simulation_no, yearly=True)
 
     def report_isbscf(self):
-        self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=False)
-        self.getMirr().o.prepare_report_IS_BS_CF_IRR(excel=True, yearly=True)
+        self.getMirr().o.prepare_report_IS_BS_CF_IRR(yearly=False)
+        self.getMirr().o.prepare_report_IS_BS_CF_IRR(yearly=True)
 
     def charts(self):
         simulation_no =  self.get_input_simulation("for plotting revenue-costs charts ")

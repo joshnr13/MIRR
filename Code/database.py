@@ -87,7 +87,7 @@ class Database():
 
         try:
             sorted_order = [("$natural", -1)]
-            results = self.collection.find(select_by, get_values).sort(sorted_order).limit(number)
+            results = self.iterations.find(select_by, get_values).sort(sorted_order).limit(number)
             values = defaultdict(list)
             for doc in results:
                 for field in fields:

@@ -15,57 +15,61 @@ class ReportOutput():
     def __init__(self, report_data):
         self.r = report_data
 
-    def prepare_report_BS_db(self, excel=False, yearly=False):
-        report_name = 'IS_db'
-        report_dic = BS
+    def prepare_report_filenames(self, yearly):
+        self.report_name = 'IS-BS-CF'
+        self.output_filename = self.get_report_filename(self.report_name, yearly=yearly)
 
-        output_filename = self.get_report_filename(report_name)
-        rows = self.prepare_rows(report_dic.values(), yearly)
-        header = report_dic.keys()
+        self.bs_filename = self.output_filename + "_BS"
+        self.is_filename = self.output_filename + "_IS"
+        self.cf_filename = self.output_filename + "_CF"
+        self.npv_filename = self.output_filename +  "_NPV"
+        self.ss_filename = self.output_filename +  "_SS"
 
-        self.write_report(rows, header, output_filename, BS)
-        print "%s Report outputed to file %s" % (report_name, output_filename)
+    def prepare_report_headers(self):
+        self.bs_header = BS.keys()
+        self.is_header = IS.keys()
+        self.cf_header = CF.keys()
+        self.npv_header = NPV.keys()
+        self.ss_header = SECOND_SHEET.keys()
 
-    def prepare_report_IS_BS_CF_IRR(self, excel=False, yearly=False):
-        report_name = 'IS-BS-CF'
-        output_filename = self.get_report_filename(report_name, yearly=yearly)
+    def prepare_report_values(self, yearly, from_db):
+        if from_db:
+            self.prepare_report_values_db(yearly, from_db)
+        else :
+            self.prepare_report_values_local(yearly)
 
-        bs_filename = output_filename + "_BS"
-        is_filename = output_filename + "_IS"
-        cf_filename = output_filename + "_CF"
-        npv_filename = output_filename +  "_NPV"
-        ss_filename = output_filename +  "_SS"
+    def prepare_report_values_db(self, yearly, from_db):
+        """prepares rows values from database based on dict @from_db
+        with simulation and iteration keys limitations"""
 
-        bs_rows = self.prepare_rows(BS.values(), yearly)
-        bs_header = BS.keys()
 
-        is_rows = self.prepare_rows(IS.values(), yearly)
-        is_header = IS.keys()
+    def prepare_report_values_local(self, yearly):
+        self.bs_rows = self.prepare_rows(BS.values(), yearly)
+        self.is_rows = self.prepare_rows(IS.values(), yearly)
+        self.cf_rows = self.prepare_rows(CF.values(), yearly)
+        self.npv_rows = self.prepare_rows(NPV.values(), yearly)
+        self.ss_rows = self.prepare_rows(SECOND_SHEET.values(), yearly)
 
-        cf_rows = self.prepare_rows(CF.values(), yearly)
-        cf_header = CF.keys()
+    def write_report_values(self, yearly):
+        self.write_report(self.bs_rows, self.bs_header, self.bs_filename)
+        self.write_report(self.is_rows, self.is_header, self.is_filename)
+        self.write_report(self.cf_rows, self.cf_header, self.cf_filename)
+        self.write_report(self.npv_rows, self.npv_header, self.npv_filename)
+        self.write_report(self.ss_rows, self.ss_header, self.ss_filename)
 
-        npv_rows = self.prepare_rows(NPV.values(), yearly)
-        npv_header = NPV.keys()
+        combine_list = [self.bs_filename, self.is_filename, self.ss_filename, self.cf_filename, self.npv_filename]
+        combine_files(combine_list, self.output_filename)
 
-        ss_rows = self.prepare_rows(SECOND_SHEET.values(), yearly)
-        ss_header = SECOND_SHEET.keys()
+        xls_output_filename = self.get_report_filename(self.report_name, 'xlsx', yearly=yearly)
+        self.output_filename = convert2excel(source=self.output_filename, output=xls_output_filename)
+        #add_second_sheet_excel(output_filename, ss_filename)
 
-        self.write_report(bs_rows, bs_header, bs_filename)
-        self.write_report(is_rows, is_header, is_filename)
-        self.write_report(cf_rows, cf_header, cf_filename)
-        self.write_report(npv_rows, npv_header, npv_filename)
-        self.write_report(ss_rows, ss_header, ss_filename)
-
-        combine_list = [bs_filename, is_filename, ss_filename, cf_filename, npv_filename]
-        combine_files(combine_list, output_filename)
-
-        if excel:
-            xls_output_filename = self.get_report_filename(report_name, 'xlsx', yearly=yearly)
-            output_filename = convert2excel(source=output_filename, output=xls_output_filename)
-            #add_second_sheet_excel(output_filename, ss_filename)
-
-        print "%s Report outputed to file %s" % (report_name, output_filename)
+    def prepare_report_IS_BS_CF_IRR(self, yearly=False, from_db=False):
+        self.prepare_report_filenames(yearly)
+        self.prepare_report_headers()
+        self.prepare_report_values(yearly, from_db)
+        self.write_report_values(yearly)
+        print "%s Report outputed to file %s" % (self.report_name, self.output_filename)
 
     def get_report_fields(self, rows_str, yearly):
         postfix = "" if not yearly else "_y"
