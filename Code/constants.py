@@ -79,3 +79,9 @@ CORRELLATION_FIELDS["subsidy_duration"] = "sm_configs.subsidy_duration"
 
 CORRELLATION_IRR_FIELD = {"IRR": IRR_REPORT_FIELD}
 CORRELLATION_NPV_FIELD = {"NPV": NPV_REPORT_FIELD}
+
+SECOND_SHEET = OrderedDict()
+SECOND_SHEET["Dates"] = ""
+SECOND_SHEET["Solar insolation"] = "sun_insolation"
+SECOND_SHEET["Production of electricity"] = "electricity_production"
+SECOND_SHEET["Electricity prices"] = "electricity_prices"

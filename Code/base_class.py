@@ -47,4 +47,9 @@ class BaseClassConfig():
     def report_dates_y(self):
         return  self._config_module.getReportDatesY()
 
+    @property
+    def all_dates(self):
+        return  self._config_module.getAllDates()
+
+
 

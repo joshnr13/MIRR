@@ -8,7 +8,7 @@ import os.path
 from collections import  OrderedDict
 from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, add_header_csv, last_day_previous_month
 from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, OrderedDefaultdict
-from annex import add_start_project_values, get_months_range,  month_number_days, get_only_digits, last_year
+from annex import add_start_project_values, get_months_range,  month_number_days, get_only_digits, last_year, get_list_dates
 from financial_analysis import irr, npv, npv_pv
 
 from constants import PROJECT_START, REPORT_ROUNDING
@@ -63,8 +63,13 @@ class Report(BaseClassConfig):
         """Creating attrs for monthly and yearly values"""
         capital = self.economic_module.initial_paid_in_capital
 
-        self.sun_insolation = OrderedDict()
-        self.eclectricity_production = OrderedDict()
+        ################## SECOND SHEET ###############################
+        self.sun_insolation = self.start_project_OrderedDict(name="",value="")
+        self.electricity_production = self.start_project_OrderedDict(name="",value="")
+        self.electricity_prices = self.start_project_OrderedDict(name="",value="")
+        self.sun_insolation_y = self.start_project_OrderedDefaultdict(name="",value="")
+        self.electricity_production_y = self.start_project_OrderedDefaultdict(name="",value="")
+        self.electricity_prices_y = self.start_project_OrderedDefaultdict(name="",value="")
 
         ################### IS ########################################
         self.revenue = self.start_project_OrderedDict(name=PROJECT_START,value="")
@@ -162,13 +167,13 @@ class Report(BaseClassConfig):
         """Main function to calc montly value for reports P1"""
         M = end_day
 
-        #self.sun_insolation[M] = self.energy_module.
-        #self.eclectricity_production[M] = self.economic_module.technology_module.getElectricityProduction(start_day, end_day)
+        rev_electricity, rev_subside = self.economic_module.getRevenue(start_day, end_day)
+        self.revenue_electricity[M], self.revenue_subsides[M] = rev_electricity, rev_subside
+        self.revenue[M] = rev_electricity + rev_subside
 
-        self.revenue_electricity[M] = self.economic_module.getRevenue_elecricity(start_day, end_day)
-        self.revenue_subsides[M] = self.economic_module.getRevenue_subside(start_day, end_day)
-        #self.revenue[M] = self.economic_module.getRevenue(start_day, end_day)
-        self.revenue[M] = self.revenue_electricity[M] + self.revenue_subsides[M]
+        self.electricity_production[M] = self.electricity_monthly[M]
+        self.sun_insolation[M] = self.solar_insolations_monthly[M]
+        self.electricity_prices[M] = self.electricity_prices_monthly[M]
 
         self.deprication[M] = self.economic_module.calcDepricationMonthly(end_day)
         self.iterest_paid[M] = self.economic_module.calculateDebtInterests(end_day)
@@ -251,6 +256,9 @@ class Report(BaseClassConfig):
             self.fcf_owners_y[Y] += self.fcf_owners[M]
             self.fcf_project_y[Y] += self.fcf_project[M]
 
+            self.electricity_production_y[Y] += self.electricity_production[M]
+            self.sun_insolation_y[Y] += self.sun_insolation[M]
+
             ############### NOT USED
             self.inventory_y[Y] += self.inventory[M]
             self.investment_y[Y] += self.investment[M]
@@ -263,6 +271,7 @@ class Report(BaseClassConfig):
         Y1 =  last_year(end_day_y)#previous_year
 
         ########### LAST MONTH ###############
+        self.electricity_prices_y[Y] = self.electricity_prices[Y]
         self.fixed_asset_y[Y] = self.fixed_asset[Y]
         self.current_asset_y[Y] = self.current_asset[Y]
         self.operating_receivable_y[Y] =  self.operating_receivable[Y]
@@ -454,13 +463,23 @@ class Report(BaseClassConfig):
 
     @cached_property
     def price(self):
-        """return kwh price for electricity MONTHLY"""
+        """return kwh price for price of electricity MONTHLY"""
         return self.calc_report_monthly_values1(self.economic_module.getPriceKwh)
 
     @cached_property
-    def electricity(self):
+    def electricity_monthly(self):
         """return volume of for electricity MONTHLY"""
-        return self.calc_report_monthly_values2(self.economic_module.technology_module.getElectricityProduction)
+        return self.calc_report_monthly_values3(self.economic_module.get_electricity_production_lifetime())
+
+    @cached_property
+    def electricity_prices_monthly(self):
+        """return volume of for electricity MONTHLY"""
+        return self.calc_report_monthly_values4(self.economic_module.electricity_prices)
+
+    @cached_property
+    def solar_insolations_monthly(self):
+        """return volume of for insolations MONTHLY"""
+        return self.calc_report_monthly_values3(self.energy_module.get_insolations_lifetime())
 
     def _calc_lt_loans(self, end_day):
         """Monthly calculation of  Long-Term Loans"""
@@ -599,6 +618,24 @@ class Report(BaseClassConfig):
             cur_value = self.cost[date]
 
         return  prev1_value + cur_value
+
+    def calc_report_monthly_values3(self, dic):
+        """Calculates monthly values using 2 dates -first_day and last_day in month
+        return  dict[end_day] = value base on dict with all dates
+        """
+        results = OrderedDict()
+        for start_day, end_day in self.report_dates.items():
+            results[end_day] = sum([dic[date] for date in get_list_dates(start_day, end_day)])
+        return results
+
+    def calc_report_monthly_values4(self, dic):
+        """Calculates monthly values using 2 dates -first_day and last_day in month
+        return  dict[end_day] = value base on dict with all dates
+        """
+        results = OrderedDict()
+        for start_day, end_day in self.report_dates.items():
+            results[end_day] = dic[end_day]
+        return results
 
     def calc_report_monthly_values2(self, func):
         """Calculates monthly values using 2 dates -first_day and last_day in month

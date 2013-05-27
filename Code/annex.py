@@ -21,12 +21,8 @@ from numbers import Number
 from decimal import Decimal
 from scipy.optimize import newton
 
-
-try:
-    from openpyxl import Workbook
-    from openpyxl.cell import get_column_letter
-except ImportError:
-    print "No Excel support for reports"
+from openpyxl import Workbook, load_workbook
+from openpyxl.cell import get_column_letter
 
 class NullDevice():
     def write(self, s):
@@ -353,17 +349,25 @@ def mkdir_p(path):
         #sheet.column_dimensions[colLetter].width = w
         #idx += 1
 
-def csv2xlsx(inputfilename, outputfilename, listname='report'):
+def csv2xlsx(inputfilename, outputfilename, sheet_no=0, sheet_name='report'):
     """Converts csv 2 excel"""
 
     with open(inputfilename) as fin:
         reader = csv.reader(fin, delimiter=';')
-        wb = Workbook()
 
-        open(outputfilename, 'wb').close()
+        try:
+            wb = load_workbook(outputfilename)
+        except:
+            open(outputfilename, 'ab').close()
+            wb = Workbook()
 
-        ws = wb.worksheets[0]
-        ws.title = listname
+        try:
+            ws = wb.worksheets[sheet_no]
+            ws.title = sheet_name
+        except IndexError:
+            ws = wb.create_sheet(sheet_no, sheet_name)
+
+
 
         columns = []
         for row_index, row in enumerate(reader):
@@ -424,6 +428,11 @@ def combine_files(from_filenames, to_filename):
     with open(to_filename,'wb') as output:
         output.write(content)
 
+
+def add_second_sheet_excel(filename, secondsheet_csv):
+
+    csv2xlsx(secondsheet_csv, filename, sheet_name='Source', sheet_no=1)
+    os.remove(secondsheet_csv)
 
 def convert2excel(source, output):
     """Converts souce file to excel file with name = @output"""

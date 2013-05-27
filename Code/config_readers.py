@@ -5,7 +5,7 @@ import os
 import random
 import datetime
 import ConfigParser
-from annex import add_x_months, add_x_years, get_report_dates, get_configs, float_range
+from annex import add_x_months, add_x_years, get_report_dates, get_configs, float_range, get_list_dates
 from constants import TESTMODE
 
 class ModuleConfigReader():
@@ -80,6 +80,9 @@ class MainConfig():
 
     def getReportDatesY(self):
         return self.configs["report_dates_y"]
+
+    def getAllDates(self):
+        return  get_list_dates(self.getStartDate(), self.getEndDate())
 
     def getConfigsValues(self):
         """return  dict with config names and values

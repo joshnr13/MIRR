@@ -6,9 +6,9 @@ import csv
 import pylab
 import datetime
 
-from constants import report_directory, BS, IS, CF, NPV, REPORT_ROUNDING
+from constants import report_directory, BS, IS, CF, NPV, REPORT_ROUNDING, SECOND_SHEET
 from annex import uniquify_filename, transponse_csv, add_header_csv
-from annex import convert2excel, combine_files, get_only_digits
+from annex import convert2excel, combine_files, get_only_digits, add_second_sheet_excel
 from collections import OrderedDict
 
 class ReportOutput():
@@ -33,7 +33,9 @@ class ReportOutput():
         bs_filename = output_filename + "_BS"
         is_filename = output_filename + "_IS"
         cf_filename = output_filename + "_CF"
-        npv_filename = output_filename + "_NPV"
+        npv_filename = output_filename +  "_NPV"
+
+        ss_filename = output_filename +  "_SS"
 
         bs_rows = self.prepare_rows(BS.values(), yearly)
         bs_header = BS.keys()
@@ -47,17 +49,23 @@ class ReportOutput():
         npv_rows = self.prepare_rows(NPV.values(), yearly)
         npv_header = NPV.keys()
 
+        ss_rows = self.prepare_rows(SECOND_SHEET.values(), yearly)
+        ss_header = SECOND_SHEET.keys()
+
         self.write_report(bs_rows, bs_header, bs_filename)
         self.write_report(is_rows, is_header, is_filename)
         self.write_report(cf_rows, cf_header, cf_filename)
         self.write_report(npv_rows, npv_header, npv_filename)
+        self.write_report(ss_rows, ss_header, ss_filename)
 
         combine_list = [bs_filename, is_filename, cf_filename, npv_filename]
         combine_files(combine_list, output_filename)
 
+
         if excel:
             xls_output_filename = self.get_report_filename(report_name, 'xlsx', yearly=yearly)
             output_filename = convert2excel(source=output_filename, output=xls_output_filename)
+            add_second_sheet_excel(output_filename, ss_filename)
 
         print "%s Report outputed to file %s" % (report_name, output_filename)
 
@@ -78,7 +86,10 @@ class ReportOutput():
             result = OrderedDict()
             for k, v in row.items():
                 if isinstance(v, (float, int)):
-                    result[k] = round(v, REPORT_ROUNDING)
+                    if v <= 5:
+                        result[k] = round(v, REPORT_ROUNDING*2)
+                    else:
+                        result[k] = round(v, REPORT_ROUNDING)
                 else:
                     result[k] = v
             new_rows.append(result)
@@ -163,7 +174,7 @@ class ReportOutput():
         pylab.show()
 
     def plot_electricity(self):
-        pylab.plot(get_only_digits(self.r.electricity))
+        pylab.plot(get_only_digits(self.r.electricity_monthly))
         pylab.show()
 
 

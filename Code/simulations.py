@@ -67,7 +67,7 @@ class Simulation():
         #line["inputs"] = self.inputs
 
         line["insolations"] = self.em.generatePrimaryEnergyAvaialbilityLifetime()
-        #line["electricity_production"] = self.tm.electricity_production
+        line["electricity_production"] = obj.electricity_production.values()
 
         line["revenue"] = obj.revenue.values()
         line["revenue_electricity"] = obj.revenue_electricity.values()

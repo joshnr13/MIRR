@@ -84,33 +84,21 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def getElectricityProduction(self, date_start, date_end):
         """return sum of electricity in kWh for each day for the selected period"""
-
-        date_list = get_list_dates(date_start, date_end)
-        electricity = 0
-        for date in date_list:
-            electricity += self.generateElectiricityProduction(date)
-
-        return electricity
-
-    def getElectricityProduction(self, date_start, date_end):
         date_list = get_list_dates(date_start, date_end)
         s = self.plant.getElectricityProductionPlant1Day
         i = self.energy_module.insolations
         d = self.degradation_coefficients
         return sum([s(1)*i[date]*d[date] for date in date_list])
-        #sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) for day in date_list])
-        #insolations = self.energy_module.insolations.values()
-        #degrodations = numpy.array([self.degradation_coefficients[day] for day in date_list])
-        #return numpy.sum(sun_values*degrodations*insolations)
 
-
-
-    def getElectricityProductionLifeTime(self):
-        date_list = get_list_dates(self.start_date_project, self.end_date_project)
-        sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) for day in date_list])
+    def generateElectricityProductionLifeTime(self):
+        dates = self.all_dates
+        sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) if day > self.last_day_construction else 0 for day in dates ])
         insolations = self.energy_module.insolations.values()
         degrodations = numpy.array(self.degradation_coefficients.values())
-        return numpy.sum(sun_values*degrodations*insolations)
+        total_values = sun_values*degrodations*insolations
+        dic_result = OrderedDict((date, value) for date, value in zip(dates, total_values))
+
+        return dic_result
 
     def get_xy_values_for_plot(self, start_date, end_date, resolution):
         """return x,y values for plotting step chart"""
@@ -172,14 +160,20 @@ if __name__ == '__main__':
 
     @timer
     def test_time3():
-        print tm.getElectricityProductionLifeTime()
+        print tm.generateElectricityProductionLifeTime()
+
+    @timer
+    def test_time4():
+        r = tm.generateElectricityProductionLifeTime()
 
 
     tm.print_equipment()
     print tm.getInvestmentCost()
-    test_time()
-    test_time2()
-    test_time3()
+    #test_time()
+    #test_time2()
+    #test_time3()
+    test_time4()
+    print
     #date_list = get_list_dates(start_date, end_date)
     #print [d.strftime('%Y-%m-%d') for d in date_list]
     #print tm.get_degradation_coefficients(date_list)

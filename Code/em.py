@@ -103,11 +103,18 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         while True:
             if cur_date > self.end_date_project:
                 break
-            self.insolations[cur_date] = self.generatePrimaryEnergyAvaialbility(cur_date)
+            elif cur_date > self.last_day_construction:
+                self.insolations[cur_date] = self.generatePrimaryEnergyAvaialbility(cur_date)
+            else:
+                self.insolations[cur_date] = 0
+
             cur_date += datetime.timedelta(days=1)
 
     def get_insolation(self,  date):
         return  self.insolations[date]
+
+    def get_insolations_lifetime(self):
+        return  self.insolations
 
     def outputPrimaryEnergy(self, start_date=None, end_date=None, resolution=None):
         """Parameters: start_date; end_date; resolution
