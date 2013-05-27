@@ -66,6 +66,9 @@ class Simulation():
 
         #line["inputs"] = self.inputs
 
+        line["insolations_daily"] = self.em.get_insolations_lifetime().values()
+        line["electricity_production_daily"] = self.ecm.electricity_prices.values()
+
         line["insolations"] = self.em.generatePrimaryEnergyAvaialbilityLifetime()
         line["electricity_production"] = obj.electricity_production.values()
 

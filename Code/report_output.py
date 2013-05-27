@@ -120,64 +120,6 @@ class ReportOutput():
         output_filename = uniquify_filename(report_name)
         return output_filename
 
-    def plot_charts_monthly(self):
-        x = self.r.revenue.keys()
-        revenue = get_only_digits(self.r.revenue)
-        cost = get_only_digits(self.r.cost)
-        ebitda = get_only_digits(self.r.ebitda)
-        deprication = get_only_digits(self.r.deprication)
-        #net_earning = get_only_digits(self.net_earning)
-
-        pylab.plot(revenue, label='REVENUE')
-        pylab.plot(cost, label='COST')
-        pylab.plot(ebitda, label='EBITDA')
-        pylab.plot(deprication, label='deprication')
-        #pylab.plot(net_earning, label='net_earning')
-
-        pylab.xlabel("months")
-        pylab.ylabel("EUROs")
-        pylab.legend()
-        pylab.grid(True, which="both",ls="-")
-        pylab.axhline()
-        pylab.axvline()
-        pylab.title("Monthly data")
-        pylab.show()
-
-        #print deprication
-        #print sum(deprication)
-
-    def plot_charts_yearly(self):
-
-        revenue = get_only_digits(self.r.revenue_y)
-        cost = get_only_digits(self.r.cost_y)
-        ebitda = get_only_digits(self.r.ebitda_y)
-        deprication = get_only_digits(self.r.deprication_y)
-        #net_earning = get_only_digits(self.net_earning_y)
-
-        pylab.plot(revenue, label='REVENUE')
-        pylab.plot(cost, label='COST')
-        pylab.plot(ebitda, label='EBITDA')
-        pylab.plot(deprication, label='deprication')
-        #pylab.plot(net_earning, label='net_earning')
-
-        pylab.xlabel("years")
-        pylab.ylabel("EUROs")
-        pylab.legend()
-        pylab.grid(True, which="both",ls="-")
-        pylab.axhline()
-        pylab.axvline()
-        pylab.title("Yearly data")
-        pylab.show()
-
-    def plot_price(self):
-        pylab.plot(get_only_digits(self.r.price))
-        pylab.show()
-
-    def plot_electricity(self):
-        pylab.plot(get_only_digits(self.r.electricity_monthly))
-        pylab.show()
-
-
 if __name__ == '__main__':
     import os.path
 

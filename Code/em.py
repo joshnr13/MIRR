@@ -98,17 +98,9 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 
     def calculateInsolations(self):
         """Calculating insolations for whole project"""
-        self.insolations = OrderedDict()
-        cur_date = self.start_date_project
-        while True:
-            if cur_date > self.end_date_project:
-                break
-            elif cur_date > self.last_day_construction:
-                self.insolations[cur_date] = self.generatePrimaryEnergyAvaialbility(cur_date)
-            else:
-                self.insolations[cur_date] = 0
-
-            cur_date += datetime.timedelta(days=1)
+        last_day_construction = self.last_day_construction
+        date_list = self.all_dates
+        self.insolations = OrderedDict((date, self.generatePrimaryEnergyAvaialbility(date) if date > last_day_construction else 0) for date in date_list)
 
     def get_insolation(self,  date):
         return  self.insolations[date]
@@ -140,7 +132,7 @@ if __name__ == '__main__':
 
     #print em.generatePrimaryEnergyAvaialbilityLifetime()
     start_date = datetime.date(2013, 1, 1)
-    end_date = datetime.date(2013, 12, 31)
+    end_date = datetime.date(2023, 12, 31)
     em.outputPrimaryEnergy(start_date, end_date)
     #print (end_date - start_date).days
 
