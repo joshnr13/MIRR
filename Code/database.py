@@ -216,7 +216,7 @@ class Database():
             select_by['iteration'] =  iteration_no
             one_result = True
 
-        results = self._get_results_find_limit_simulation(fields, select_by, get_values, yearly, not_changing_fields, one_result=one_result)
+        results = self._get_results_find_limit_simulation(fields, select_by, get_values, yearly, not_changing_fields=not_changing_fields, one_result=one_result)
 
         return  results
 
@@ -332,10 +332,10 @@ if __name__ == '__main__':
                  #}
     #get_values = {'iterations.iteration': True, 'simulation': True,}
     sorted_order = [("simulation", -1)]
+    select_by =    {'main_configs.real_construction_duration': {'$exists': True}, 'sm_configs.subsidy_duration': {'$exists': True}, 'sm_configs.subsidy_delay': {'$exists': True}, 'irr_project_y': {'$exists': True}, 'simulation': 11, 'sm_configs.kWh_subsidy': {'$exists': True}, 'main_configs.real_permit_procurement_duration': {'$exists': True}}
 
-    select_by =  {'short_term_debt_suppliers_y': {'$exists': True}, 'control_y': {'$exists': True}, 'retained_earning_y': {'$exists': True}, 'fixed_asset_y': {'$exists': True}, 'current_asset_y': {'$exists': True}, 'short_term_loan_y': {'$exists': True}, 'liability_y': {'$exists': True}, 'unallocated_earning_y': {'$exists': True}, 'asset_y': {'$exists': True}, 'operating_receivable_y': {'$exists': True}, 'equity_y': {'$exists': True}, 'long_term_loan_y': {'$exists': True}, 'financial_operating_obligation_y': {'$exists': True}, 'paid_in_capital_y': {'$exists': True}, 'asset_bank_account_y': {'$exists': True}}
+    get_values = {'sm_configs.subsidy_duration': True, 'main_configs.real_construction_duration': True, 'sm_configs.subsidy_delay': True, 'irr_project_y': True, 'sm_configs.kWh_subsidy': True, 'main_configs.real_permit_procurement_duration': True, '_id': False}
 
-    get_values =     {'short_term_debt_suppliers_y': True, 'control_y': True, 'retained_earning_y': True, 'fixed_asset_y': True, 'current_asset_y': True, 'short_term_loan_y': True, 'liability_y': True, 'unallocated_earning_y': True, 'asset_y': True, 'operating_receivable_y': True, 'equity_y': True, 'long_term_loan_y': True, 'financial_operating_obligation_y': True, '_id': False, 'paid_in_capital_y': True, 'asset_bank_account_y': True}
     r = d.iterations.find(select_by, get_values)  #.sort(sorted_order)
     print "--"
     for rr in r:

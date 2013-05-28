@@ -216,7 +216,7 @@ class EnergyModuleConfigReader():
         _config.read(_filepath)
 
         self.mean = _config.getfloat('NormalDistribution', 'mean')
-        self.stdev = _config.getfloat('NormalDistribution', 'stdev_percent') * self.mean
+        self.stdev = _config.getfloat('NormalDistribution', 'stdev_percent') * self.mean / 100
 
         self.configs = get_configs(self.__dict__)
 

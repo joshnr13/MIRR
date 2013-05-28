@@ -158,8 +158,7 @@ def irr_scatter_charts(simulation_no, field, yearly=False):
     main = prefix + field
     real_field_shortname = add_yearly_prefix(field, yearly)
 
-    figures = Database().get_iteration_values_from_db(simulation_no, [main], yearly,
-                                                      not_changing_fields=CORRELLATION_FIELDS.values())
+    figures = Database().get_iteration_values_from_db(simulation_no, [main], yearly, not_changing_fields=CORRELLATION_FIELDS.values())
 
     if not figures:
             print ValueError('No data in Database for simulation %s' %simulation_no)
@@ -242,5 +241,5 @@ def get_x_axis_title(yearly):
 
 if __name__ == '__main__':
     #plot_charts(61, True)
-    irr_scatter_charts(67, 'irr_project', True)
+    irr_scatter_charts(11, 'irr_project', True)
     #plot_correlation_tornado(CORRELLATION_NPV_FIELD, 66)
