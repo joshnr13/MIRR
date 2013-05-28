@@ -65,9 +65,9 @@ class Interface():
         ReportOutput(0).prepare_report_IS_BS_CF_IRR(params, yearly=True)
 
     def charts(self):
-        simulation_no =  self.get_input_simulation("for plotting revenue-costs charts ")
-        plot_charts(simulation_no, yearly=False)
-        plot_charts(simulation_no, yearly=True)
+        simulation_no, iteration_no =  self.get_simulation_iteration_nums("for plotting revenue-costs charts ")
+        plot_charts(simulation_no, iteration_no, yearly=False)
+        plot_charts(simulation_no, iteration_no, yearly=True)
 
     def print_equipment(self):
         simulation_no, iteration_no =  self.get_simulation_iteration_nums("for printing equipment ")

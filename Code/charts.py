@@ -7,10 +7,10 @@ from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FI
 from annex import invert_dict, add_yearly_prefix
 from itertools import izip_longest
 
-def plot_charts(simulation_id, yearly=False):
+def plot_charts(simulation_no, iteration_no=1, yearly=False):
 
     fields = ['revenue', 'cost', 'ebitda', 'deprication']
-    results = Database().get_iteration_values_from_db(simulation_id, fields, yearly)
+    results = Database().get_iteration_values_from_db(simulation_no, fields, yearly, iteration_no=iteration_no)
 
     suffix = '_y' * yearly
     #revenue, cost, ebitda, deprication =  results.values()
@@ -19,7 +19,7 @@ def plot_charts(simulation_id, yearly=False):
     ebitda = results['ebitda'+suffix]
     deprication = results['deprication'+suffix]
     #print revenue, suffix, results
-    last_revenue, last_cost, last_ebitda, last_deprication =  revenue[-1][1:], cost[-1][1:], ebitda[-1][1:], deprication[-1][1:]
+    last_revenue, last_cost, last_ebitda, last_deprication =  revenue[1:], cost[1:], ebitda[1:], deprication[1:]
 
     pylab.plot(last_revenue, label='REVENUE')
     pylab.plot(last_cost, label='COST')
@@ -36,7 +36,7 @@ def plot_charts(simulation_id, yearly=False):
     title_add = get_title_period(yearly)
     x_axis_title = get_x_axis_title(yearly)
 
-    title = 'Simulation %s. %s' % (simulation_id, title_add)
+    title = 'Simulation %s - iteration %s . %s' % (simulation_no, iteration_no, title_add)
     pylab.xlabel(x_axis_title)
 
     pylab.title(title)
