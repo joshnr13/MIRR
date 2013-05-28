@@ -10,7 +10,7 @@ from itertools import izip_longest
 def plot_charts(simulation_id, yearly=False):
 
     fields = ['revenue', 'cost', 'ebitda', 'deprication']
-    results = Database().get_iteration_values_from_db(simulation_id, fields, yearly, convert_to=float)
+    results = Database().get_iteration_values_from_db(simulation_id, fields, yearly)
 
     suffix = '_y' * yearly
     #revenue, cost, ebitda, deprication =  results.values()
@@ -158,7 +158,8 @@ def irr_scatter_charts(simulation_no, field, yearly=False):
     main = prefix + field
     real_field_shortname = add_yearly_prefix(field, yearly)
 
-    figures = Database().get_iteration_values_from_db(simulation_no, [main], yearly, not_changing_fields=CORRELLATION_FIELDS.values())
+    figures = Database().get_iteration_values_from_db(simulation_no, [main], yearly,
+                                                      not_changing_fields=CORRELLATION_FIELDS.values())
 
     if not figures:
             print ValueError('No data in Database for simulation %s' %simulation_no)

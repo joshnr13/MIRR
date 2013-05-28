@@ -52,7 +52,7 @@ class Database():
 
     def get_iterations_number(self, simulation_no):
         """return  number of iterations of current @simulation_no"""
-        field = 'simulation'
+        field = 'iterations_number'
         return  self.get_simulation_field(simulation_no, field)
 
     def get_simulation_field(self, simulation_no, field):
@@ -114,6 +114,8 @@ class Database():
         get_values = {'_id': False}
 
         for field in fields:
+            if not field:
+                continue
             if field not in not_changing_fields:
                 field = add_yearly_prefix(field, yearly)
             select_by[field] = { '$exists' : True }
@@ -121,7 +123,7 @@ class Database():
         return  select_by, get_values
 
     def _get_results_find_limit_simulation(self, fields, select_by, get_values, yearly, convert_to=None, not_changing_fields=[],
-                                           collection='iterations'):
+                                           collection='iterations', one_result=False):
         """Internal method to get results from last iterations"""
 
         def process_doc(doc):
@@ -129,6 +131,18 @@ class Database():
                 for k in fields_names:
                     if doc.has_key(k):
                         values[k].append(doc[k])
+                for k in sub_keys:
+                    if doc.has_key(k):
+                        process_doc(doc[k])
+            elif isinstance(doc, list):
+                for l in doc:
+                    process_doc(l)
+
+        def process_doc_1result(doc):
+            if isinstance(doc, dict):
+                for k in fields_names:
+                    if doc.has_key(k):
+                        values[k]=doc[k]
                 for k in sub_keys:
                     if doc.has_key(k):
                         process_doc(doc[k])
@@ -154,14 +168,19 @@ class Database():
                 fields_names.append(field_name)
 
             sub_keys = set(sub_keys)
-            for doc in results:
-                process_doc(doc)
+
+            if one_result:
+                for doc in results:
+                    process_doc_1result(doc)
+            else:
+                for doc in results:
+                    process_doc(doc)
 
             return values
 
         except:
             print "Unexpected error:", sys.exc_info()
-            raise
+            #raise
             return {}
 
     def get_simulation_values_from_db(self,  simulation_no, fields):
@@ -179,8 +198,9 @@ class Database():
         if simulation_no > last_number_simulation:
             print ValueError("Not such simulation in DB. Last simulation is %s" %last_number_simulation)
 
-    def get_iteration_values_from_db(self,  simulation_no, fields, yearly, convert_to=None, not_changing_fields=[]):
+    def get_iteration_values_from_db(self,  simulation_no, fields, yearly, not_changing_fields=[], iteration_no=None, one_result=False):
         """Gets from DB and shows @fields from LAST @number of simulations
+        if iteration_no is not None, also filters by iteration no
         - using not_changing_fields with out prefix and
         - selected by list of @fields, any type - example ['irr_owners', 'irr_project', 'main_configs.lifetime']
         - using yearly suffix
@@ -192,7 +212,11 @@ class Database():
         fields = not_changing_fields + fields
         select_by, get_values = self.format_request(fields, not_changing_fields, yearly)
         select_by['simulation'] =  simulation_no
-        results = self._get_results_find_limit_simulation(fields, select_by, get_values, yearly, convert_to, not_changing_fields)
+        if iteration_no:
+            select_by['iteration'] =  iteration_no
+            one_result = True
+
+        results = self._get_results_find_limit_simulation(fields, select_by, get_values, yearly, not_changing_fields, one_result=one_result)
 
         return  results
 
@@ -294,7 +318,7 @@ if __name__ == '__main__':
     fields = [ 'irr_owners']
     #print get_rowvalue_from_db( fields, True)
     d = Database()
-    print d.get_iteration_field(4, 1, 'equipment_description')
+    #print d.get_iteration_field(4, 1, 'equipment_description')
     #d.update_simulation_comment(35, "test")
     ##d.get_last_simulations_log()
     #select_by = {
@@ -307,8 +331,12 @@ if __name__ == '__main__':
                  #'iterations.main_configs.real_permit_procurement_duration': {'$exists': True},
                  #}
     #get_values = {'iterations.iteration': True, 'simulation': True,}
-    #sorted_order = [("simulation", -1)]
-    #r = d.simulations.find(select_by, get_values).sort(sorted_order)
-    #print "--"
-    #for rr in r:
-        #print rr
+    sorted_order = [("simulation", -1)]
+
+    select_by =  {'short_term_debt_suppliers_y': {'$exists': True}, 'control_y': {'$exists': True}, 'retained_earning_y': {'$exists': True}, 'fixed_asset_y': {'$exists': True}, 'current_asset_y': {'$exists': True}, 'short_term_loan_y': {'$exists': True}, 'liability_y': {'$exists': True}, 'unallocated_earning_y': {'$exists': True}, 'asset_y': {'$exists': True}, 'operating_receivable_y': {'$exists': True}, 'equity_y': {'$exists': True}, 'long_term_loan_y': {'$exists': True}, 'financial_operating_obligation_y': {'$exists': True}, 'paid_in_capital_y': {'$exists': True}, 'asset_bank_account_y': {'$exists': True}}
+
+    get_values =     {'short_term_debt_suppliers_y': True, 'control_y': True, 'retained_earning_y': True, 'fixed_asset_y': True, 'current_asset_y': True, 'short_term_loan_y': True, 'liability_y': True, 'unallocated_earning_y': True, 'asset_y': True, 'operating_receivable_y': True, 'equity_y': True, 'long_term_loan_y': True, 'financial_operating_obligation_y': True, '_id': False, 'paid_in_capital_y': True, 'asset_bank_account_y': True}
+    r = d.iterations.find(select_by, get_values)  #.sort(sorted_order)
+    print "--"
+    for rr in r:
+        print rr

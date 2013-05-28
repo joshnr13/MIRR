@@ -7,9 +7,12 @@ import pylab
 import datetime
 
 from constants import report_directory, BS, IS, CF, NPV, REPORT_ROUNDING, SECOND_SHEET
-from annex import uniquify_filename, transponse_csv, add_header_csv
+from annex import uniquify_filename, transponse_csv, add_header_csv, add_yearly_prefix
 from annex import convert2excel, combine_files, get_only_digits, add_second_sheet_excel
 from collections import OrderedDict
+from database import Database
+
+db = Database()
 
 class ReportOutput():
     def __init__(self, report_data):
@@ -35,13 +38,44 @@ class ReportOutput():
     def prepare_report_values(self, yearly, from_db):
         if from_db:
             self.prepare_report_values_db(yearly, from_db)
-        else :
+        else:
             self.prepare_report_values_local(yearly)
 
     def prepare_report_values_db(self, yearly, from_db):
         """prepares rows values from database based on dict @from_db
         with simulation and iteration keys limitations"""
 
+        simulation_no, iteration_no = from_db
+        report_header = db.get_iteration_field(simulation_no, iteration_no, add_yearly_prefix('report_header', yearly))
+
+        self.bs_rows = self.get_and_process_report_values_db(simulation_no, BS.values(),  yearly, iteration_no, report_header)
+        self.is_rows = self.get_and_process_report_values_db(simulation_no, IS.values(),  yearly, iteration_no, report_header)
+        self.cf_rows = self.get_and_process_report_values_db(simulation_no, CF.values(),  yearly, iteration_no, report_header)
+        self.npv_rows = self.get_and_process_report_values_db(simulation_no, NPV.values(),  yearly, iteration_no, report_header)
+        self.ss_rows = self.get_and_process_report_values_db(simulation_no, SECOND_SHEET.values(),  yearly, iteration_no, report_header)
+
+    def get_and_process_report_values_db(self, simulation_no, fields, yearly, iteration_no, report_header):
+        double_round = REPORT_ROUNDING*2
+        single_round = REPORT_ROUNDING
+        def round_value(v):
+            if isinstance(v, float):
+                if  v > 5 or v < -5:
+                    return   round(v, single_round)
+                else:
+                    return   round(v, double_round)
+            else:
+                return v
+
+        db_values = db.get_iteration_values_from_db(simulation_no, fields, yearly, iteration_no=iteration_no)
+        result = []
+        for field in fields:
+            if not field:
+                continue
+            field = add_yearly_prefix(field, yearly)
+            d = OrderedDict( (date,round_value(value)) for date,value in zip(report_header,db_values[field]) )
+            result.append(d)
+
+        return result
 
     def prepare_report_values_local(self, yearly):
         self.bs_rows = self.prepare_rows(BS.values(), yearly)
@@ -64,7 +98,7 @@ class ReportOutput():
         self.output_filename = convert2excel(source=self.output_filename, output=xls_output_filename)
         #add_second_sheet_excel(output_filename, ss_filename)
 
-    def prepare_report_IS_BS_CF_IRR(self, yearly=False, from_db=False):
+    def prepare_report_IS_BS_CF_IRR(self, from_db=False,  yearly=False, ):
         self.prepare_report_filenames(yearly)
         self.prepare_report_headers()
         self.prepare_report_values(yearly, from_db)
@@ -73,8 +107,21 @@ class ReportOutput():
 
     def get_report_fields(self, rows_str, yearly):
         postfix = "" if not yearly else "_y"
-        rows = [getattr(self.r, attr+postfix) for attr in rows_str if attr]
+        obj = self.r
+
+        rows = [getattr(obj, attr+postfix) for attr in rows_str if attr]
         return rows
+
+    def round_rows_dicts(self, rows):
+        double_round = REPORT_ROUNDING*2
+        single_round = REPORT_ROUNDING
+        for row in rows:
+            for k, v in row.items():
+                if isinstance(v, float):
+                    if  v > 5 or v < -5:
+                        row[k] = round(v, single_round)
+                    else:
+                        row[k] = round(v, double_round)
 
     def prepare_rows(self, rows_str, yearly):
         """Prepares rows for outputing to report
@@ -82,21 +129,9 @@ class ReportOutput():
         + Can output monthly (without change) and yearly (+_y) values ---> postfix
         """
         rows = self.get_report_fields(rows_str, yearly)
+        self.round_rows_dicts(rows)
+        return rows
 
-        new_rows = []
-        for row in rows:
-            result = OrderedDict()
-            for k, v in row.items():
-                if isinstance(v, (float, int)):
-                    if v <= 5:
-                        result[k] = round(v, REPORT_ROUNDING*2)
-                    else:
-                        result[k] = round(v, REPORT_ROUNDING)
-                else:
-                    result[k] = v
-            new_rows.append(result)
-
-        return new_rows
 
     def write_report(self, rows, header, output_filename ):
         """write report to file
@@ -128,7 +163,7 @@ if __name__ == '__main__':
     from collections import OrderedDict
     from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
     from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, OrderedDefaultdict
-    from annex import add_start_project_values, get_months_range, csv2xlsx, month_number_days
+    from annex import add_start_project_values, get_months_range, csv2xlsx, month_number_days, timer
 
     from constants import PROJECT_START, report_directory, REPORT_ROUNDING
     from tm import TechnologyModule
@@ -144,7 +179,13 @@ if __name__ == '__main__':
     subside_module = SubsidyModule(mainconfig)
     economic_module = EconomicModule(mainconfig, technology_module, subside_module)
 
-    r = Report(mainconfig, economic_module)
-    r.calc_report_values()
-    o = ReportOutput(r)
-    o.prepare_report_IS_BS_CF_IRR()
+    @timer
+    def test_speed():
+        r = Report(mainconfig, economic_module)
+        r.calc_report_values()
+        o = ReportOutput(r)
+        o.prepare_report_IS_BS_CF_IRR(from_db=(9, 1), yearly=True)
+        #o.prepare_report_IS_BS_CF_IRR()
+
+
+    test_speed()

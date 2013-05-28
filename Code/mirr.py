@@ -10,7 +10,7 @@ from database import Database
 
 from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution, print_equipment_db
 from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts
-
+from report_output import ReportOutput
 from config_readers import MainConfig
 from _mirr import Mirr
 from numpy import isnan
@@ -60,8 +60,9 @@ class Interface():
         show_save_irr_distribution(simulation_no, yearly=True)
 
     def report_isbscf(self):
-        self.getMirr().o.prepare_report_IS_BS_CF_IRR(yearly=False)
-        self.getMirr().o.prepare_report_IS_BS_CF_IRR(yearly=True)
+        params = self.get_simulation_iteration_nums("for getting ISBS excel report ")
+        ReportOutput(0).prepare_report_IS_BS_CF_IRR(params, yearly=False)
+        ReportOutput(0).prepare_report_IS_BS_CF_IRR(params, yearly=True)
 
     def charts(self):
         simulation_no =  self.get_input_simulation("for plotting revenue-costs charts ")
@@ -69,8 +70,7 @@ class Interface():
         plot_charts(simulation_no, yearly=True)
 
     def print_equipment(self):
-        simulation_no =  self.get_input_simulation("for printing equipment ")
-        iteration_no =  self.get_input_iteration("for printing equipment", simulation_no )
+        simulation_no, iteration_no =  self.get_simulation_iteration_nums("for printing equipment ")
         print self.db.get_iteration_field(simulation_no, iteration_no, 'equipment_description')
 
     def outputPrimaryEnergy(self):
@@ -120,6 +120,10 @@ class Interface():
     def get_input_iteration(self, text, simulation_no):
         iterations = range(1, self.db.get_iterations_number(simulation_no)+1)
         return  get_input_int("Please enter iteration of Simulation %s for %s from %s (or press Enter to use first): " %(simulation_no, text, iterations), 1)
+    def get_simulation_iteration_nums(self, text):
+        simulation_no =  self.get_input_simulation(text)
+        iteration_no =  self.get_input_iteration(text, simulation_no )
+        return (simulation_no, iteration_no)
     def get_inputs(self):
         def_start = self.getMirr().main_config.getStartDate()
         def_end = self.getMirr().main_config.getEndDate()

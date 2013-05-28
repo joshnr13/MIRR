@@ -64,13 +64,7 @@ class Simulation():
         line["sm_configs"] = self.sm_configs
         line["em_configs"] = self.em_configs
 
-        line["equipment_description"] = self.tm.get_equipment_description()
-
-        line["insolations_daily"] = self.em.get_insolations_lifetime().values()
-        line["electricity_production_daily"] = self.ecm.electricity_prices.values()
-
-        line["insolations"] = self.em.generatePrimaryEnergyAvaialbilityLifetime()
-        line["electricity_production"] = obj.electricity_production.values()
+        #####################################
 
         line["revenue"] = obj.revenue.values()
         line["revenue_electricity"] = obj.revenue_electricity.values()
@@ -94,7 +88,6 @@ class Simulation():
         line["asset_bank_account"] = obj.asset_bank_account.values()
         line["paid_in_capital"] = obj.paid_in_capital.values()
         line["current_asset"] = obj.current_asset.values()
-        line["retained_earning"] = obj.retained_earning.values()
         line["unallocated_earning"] = obj.unallocated_earning.values()
         line["retained_earning"] = obj.retained_earning.values()
         line["financial_operating_obligation"] = obj.financial_operating_obligation.values()
@@ -104,6 +97,10 @@ class Simulation():
         line["short_term_debt_suppliers"] = obj.short_term_debt_suppliers.values()
         line["liability"] = obj.liability.values()
         line["equity"] = obj.equity.values()
+        line["control"] = obj.control.values()
+        line["report_header"] = obj.control.keys()
+
+        ###############################
         line["revenue_y"] = obj.revenue_y.values()
         line["revenue_electricity_y"] = obj.revenue_electricity_y.values()
         line["revenue_subsides_y"] = obj.revenue_subsides_y.values()
@@ -126,7 +123,6 @@ class Simulation():
         line["asset_bank_account_y"] = obj.asset_bank_account_y.values()
         line["paid_in_capital_y"] = obj.paid_in_capital_y.values()
         line["current_asset_y"] = obj.current_asset_y.values()
-        line["retained_earning_y"] = obj.retained_earning_y.values()
         line["unallocated_earning_y"] = obj.unallocated_earning_y.values()
         line["retained_earning_y"] = obj.retained_earning_y.values()
         line["financial_operating_obligation_y"] = obj.financial_operating_obligation_y.values()
@@ -136,6 +132,10 @@ class Simulation():
         line["short_term_debt_suppliers_y"] = obj.short_term_debt_suppliers_y.values()
         line["liability_y"] = obj.liability_y.values()
         line["equity_y"] = obj.equity_y.values()
+        line["control_y"] = obj.control_y.values()
+        line["report_header_y"] = obj.control_y.keys()
+
+        ##################################
         line["fcf_project"] = obj.fcf_project.values()
         line["fcf_owners"] = obj.fcf_owners.values()
         line["fcf_project_y"] = obj.fcf_project_y.values()
@@ -153,6 +153,28 @@ class Simulation():
 
         line["wacc"] = obj.wacc
         line["wacc_y"] = obj.wacc
+
+        #########################################
+
+        line["equipment_description"] = self.tm.get_equipment_description()
+
+        line["insolations_daily"] = self.em.get_insolations_lifetime().values()
+        line["electricity_production_daily"] = self.ecm.electricity_prices.values()
+
+        line["sun_insolation"] = obj.sun_insolation.values()
+        line["sun_insolation_y"] = obj.sun_insolation_y.values()
+
+        line["electricity_production"] = obj.electricity_production.values()
+        line["electricity_production_y"] = obj.electricity_production_y.values()
+
+        line["electricity_prices"] = obj.electricity_prices.values()
+        line["electricity_prices_y"] = obj.electricity_prices_y.values()
+
+        line["pv_owners"] = obj.pv_owners.values()
+        line["pv_project"] = obj.pv_project.values()
+
+        line["pv_owners_y"] = obj.pv_owners_y.values()
+        line["pv_project_y"] = obj.pv_project_y.values()
 
         self.prepared_line = line
 
