@@ -11,7 +11,7 @@ from base_class import BaseClassConfig
 from config_readers import MainConfig, EnergyModuleConfigReader
 from constants import TESTMODE
 from collections import OrderedDict
-from annex import get_configs, memoize
+from annex import get_configs, memoize, getResolutionStartEnd
 
 class InputsReader():
     def __init__(self):
@@ -64,23 +64,10 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
             start_date += datetime.timedelta(days=1)
         return result
 
-    def getResolutionStartEnd(self, start_date, end_date, resolution):
-        """Returns list [start , start_date + resolution] using resolution (days interval)"""
-        result = []
-        while start_date < end_date:
-            next_step_date = start_date + datetime.timedelta(days=resolution)
-            if next_step_date <= end_date:
-                result.append((start_date, next_step_date))
-                start_date = next_step_date
-            elif next_step_date > end_date:
-                result.append((start_date, end_date))
-            start_date = next_step_date
-        return result
-
     def get_xy_values_for_plot(self, start_date, end_date, resolution):
         """return x,y values for plotting step chart"""
 
-        result = self.getResolutionStartEnd(start_date, end_date, resolution)
+        result = getResolutionStartEnd(start_date, end_date, resolution)
         result.insert(0, (start_date, start_date))
         y = []
 

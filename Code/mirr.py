@@ -9,7 +9,7 @@ from annex import get_input_date, get_input_int, cached_property, memoize, get_i
 from database import Database
 
 from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution, print_equipment_db
-from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts
+from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts, chart_outputElectricityProduction
 from report_output import ReportOutput
 from config_readers import MainConfig
 from _mirr import Mirr
@@ -78,8 +78,10 @@ class Interface():
         self.getMirr().energy_module.outputPrimaryEnergy(start_date, end_date, resolution)
 
     def outputElectricityProduction(self):
+        simulation_no, iteration_no =  self.get_simulation_iteration_nums("for printing equipment ")
         start_date, end_date, resolution = self.get_inputs()
-        self.getMirr().technology_module.outputElectricityProduction(start_date, end_date, resolution)
+        chart_outputElectricityProduction(simulation_no, iteration_no, start_date, end_date, resolution)
+        #self.getMirr().technology_module.outputElectricityProduction(start_date, end_date, resolution)
 
     def irr_correlations(self):
         self._run_correlations(CORRELLATION_IRR_FIELD)
@@ -130,7 +132,7 @@ class Interface():
         def_res = self.getMirr().main_config.getResolution()
 
         memo = " (from %s to %s)" % (def_start,def_end)
-        memo_res = " Enter resolution or press ENTER to use default %s" % (def_res, )
+        memo_res = "Please select resolution in days  (or press Enter to use default %s) : " % def_res
 
         start_date =  get_input_date(text="Start date" + memo, default=def_start)
         end_date =  get_input_date(text="End date" + memo, default=def_end)

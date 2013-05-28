@@ -12,7 +12,7 @@ import os
 from em import EnergyModule
 from config_readers import MainConfig, TechnologyModuleConfigReader
 from base_class import BaseClassConfig
-from annex import get_configs, memoize, get_list_dates, years_between_1Jan
+from annex import get_configs, memoize, get_list_dates, years_between_1Jan, getResolutionStartEnd
 from tm_equipment import PlantEquipment
 from collections import OrderedDict
 
@@ -111,7 +111,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def get_xy_values_for_plot(self, start_date, end_date, resolution):
         """return x,y values for plotting step chart"""
 
-        result = self.energy_module.getResolutionStartEnd(start_date, end_date, resolution)
+        result = getResolutionStartEnd(start_date, end_date, resolution)
         y = []
 
         for start_period, end_period in result:

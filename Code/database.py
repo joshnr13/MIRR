@@ -63,6 +63,9 @@ class Database():
         """return  1 field from db collection simulations limited by @simulation_no and @iteration_no"""
         return  self.iterations.find_one({'simulation': simulation_no, 'iteration': iteration_no}, {field: 1}).get(field, "no-result or error")
 
+    def get_report_header(self,simulation_no, iteration_no, yearly=False ):
+        return  self.get_iteration_field(simulation_no, iteration_no, add_yearly_prefix('report_header', yearly))
+
     def get_next_simulation_no(self):
         """Get next simulation number
         """

@@ -46,7 +46,7 @@ class ReportOutput():
         with simulation and iteration keys limitations"""
 
         simulation_no, iteration_no = from_db
-        report_header = db.get_iteration_field(simulation_no, iteration_no, add_yearly_prefix('report_header', yearly))
+        report_header = db.get_report_header(simulation_no, iteration_no, yearly)
 
         self.bs_rows = self.get_and_process_report_values_db(simulation_no, BS.values(),  yearly, iteration_no, report_header)
         self.is_rows = self.get_and_process_report_values_db(simulation_no, IS.values(),  yearly, iteration_no, report_header)

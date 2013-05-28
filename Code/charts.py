@@ -1,11 +1,14 @@
 import pylab
 import numpy
+import datetime
 
 from collections import OrderedDict
 from database import Database
 from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD, IRR_REPORT_FIELD, IRR_REPORT_FIELD2, CORRELLATION_NPV_FIELD
-from annex import invert_dict, add_yearly_prefix
+from annex import invert_dict, add_yearly_prefix, getResolutionStartEnd
 from itertools import izip_longest
+
+db = Database()
 
 def plot_charts(simulation_no, iteration_no=1, yearly=False):
 
@@ -239,7 +242,40 @@ def get_x_axis_title(yearly):
         title = "months"
     return title
 
+def chart_outputElectricityProduction(simulation_no, iteration_no, start_date, end_date, resolution):
+
+    dates_range = getResolutionStartEnd(start_date, end_date, resolution)
+
+    field = 'electricity_production_daily'
+    y_all_values = db.get_iteration_field(simulation_no, iteration_no, field)
+    keys = db.get_iteration_field(simulation_no, iteration_no, 'project_days')
+
+    keys = map(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').date(), keys)
+    y_all_values = dict((x, y) for x, y in zip(keys, y_all_values[1:]))
+
+    def sum_period(start, days):
+        return sum([y_all_values[start+datetime.timedelta(days=days)] for days in range(days)])
+
+    x_values = []
+    y_values = []
+    sm = 0
+
+    for day_from, day_to in dates_range:
+        delta = (day_to - day_from).days
+        y_values.append(sum_period(day_from, delta))
+        x_values.append(sm+delta)
+        sm += delta
+
+    pylab.step(x_values, y_values)
+    title = "Simulation {simulation_no} - iteration {iteration_no}. Electricity Production from {start_date} to {end_date} with resolution {resolution} days".format(**locals())
+    pylab.title(title, fontsize=12)
+    pylab.show()
+
 if __name__ == '__main__':
+    import datetime as dt
+    start_date = dt.date(2013, 1, 1)
+    end_date = dt.date(2017, 12, 31)
     #plot_charts(61, True)
-    irr_scatter_charts(11, 'irr_project', True)
+    #irr_scatter_charts(11, 'irr_project', True)
+    chart_outputElectricityProduction(15, 1, start_date, end_date, 10)
     #plot_correlation_tornado(CORRELLATION_NPV_FIELD, 66)

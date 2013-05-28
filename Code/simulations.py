@@ -155,11 +155,13 @@ class Simulation():
         line["wacc_y"] = obj.wacc
 
         #########################################
+        line["project_days"] = self.ecm.electricity_prices.keys()
 
         line["equipment_description"] = self.tm.get_equipment_description()
 
         line["insolations_daily"] = self.em.get_insolations_lifetime().values()
-        line["electricity_production_daily"] = self.ecm.electricity_prices.values()
+        line["electricity_production_daily"] = self.ecm.electricity_production.values()
+
 
         line["sun_insolation"] = obj.sun_insolation.values()
         line["sun_insolation_y"] = obj.sun_insolation_y.values()
