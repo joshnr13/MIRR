@@ -120,7 +120,7 @@ class Interface():
         last_simulation = self.db.get_last_simulation_no()
         return  get_input_int("Please input ID of simulation for %s (or press Enter to use last-run %s): " %(text, last_simulation), last_simulation)
     def get_input_iteration(self, text, simulation_no):
-        iterations = range(1, self.db.get_iterations_number(simulation_no)+1)
+        iterations = "[1-%s]" % (self.db.get_iterations_number(simulation_no)+1)
         return  get_input_int("Please enter iteration of Simulation %s for %s from %s (or press Enter to use first): " %(simulation_no, text, iterations), 1)
     def get_simulation_iteration_nums(self, text):
         simulation_no =  self.get_input_simulation(text)

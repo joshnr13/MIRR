@@ -1,4 +1,4 @@
-import os
+import os, sys
 import datetime
 import pylab
 import csv
@@ -185,8 +185,11 @@ class Simulation():
 
         self.init_simulation_record(iterations_number)
         for i in range(iterations_number):
+            percent = i * 100 / float(iterations_number)
             self.run_one_iteration(i+1, iterations_number)
             self.db.insert_iteration(self.line)
+            sys.stdout.write("\r%d%%" %percent)    # or print >> sys.stdout, "\r%d%%" %i,
+            sys.stdout.flush()
         print "\n"
 
         irr_stats = self.calc_irr_statistics()
@@ -241,7 +244,6 @@ class Simulation():
     def run_one_iteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""
         #print "\tRunning iteration %s of %s" % (iteration_no, total_iteration_number)
-        print ".",
         self.prepare_data()
         self.prepare_iteration_results(iteration_no, total_iteration_number)
         self.convert_results()
