@@ -431,7 +431,7 @@ def combine_files(from_filenames, to_filename):
 
 def add_second_sheet_excel(filename, secondsheet_csv):
 
-    csv2xlsx(secondsheet_csv, filename, sheet_name='Source', sheet_no=1)
+    csv2xlsx(secondsheet_csv, filename, sheet_name='source', sheet_no=1)
     os.remove(secondsheet_csv)
 
 def convert2excel(source, output):

@@ -6,8 +6,8 @@ import csv
 import pylab
 import datetime
 
-from constants import report_directory, BS, IS, CF, NPV, REPORT_ROUNDING, SECOND_SHEET
-from annex import uniquify_filename, transponse_csv, add_header_csv, add_yearly_prefix
+from constants import report_directory, BS, IS, CF, NPV, REPORT_ROUNDING, ELPROD, SOURCE
+from annex import uniquify_filename, transponse_csv, add_header_csv, add_yearly_prefix, invert_dict
 from annex import convert2excel, combine_files, get_only_digits, add_second_sheet_excel
 from collections import OrderedDict
 from database import Database
@@ -17,6 +17,7 @@ db = Database()
 class ReportOutput():
     def __init__(self, report_data):
         self.r = report_data
+
 
     def prepare_report_filenames(self, yearly, from_db):
         self.report_name = 'IS-BS-CF'
@@ -29,15 +30,18 @@ class ReportOutput():
         self.cf_filename = self.output_filename + "_CF"
         self.npv_filename = self.output_filename +  "_NPV"
         self.ss_filename = self.output_filename +  "_SS"
+        self.source_filename = self.output_filename + "_SOURCE"
 
     def prepare_report_headers(self):
         self.bs_header = BS.keys()
         self.is_header = IS.keys()
         self.cf_header = CF.keys()
         self.npv_header = NPV.keys()
-        self.ss_header = SECOND_SHEET.keys()
+        self.ss_header = ELPROD.keys()
 
     def prepare_report_values(self, yearly, from_db):
+
+        self.prepare_source(*from_db)
         if from_db:
             self.prepare_report_values_db(yearly, from_db)
         else:
@@ -54,7 +58,7 @@ class ReportOutput():
         self.is_rows = self.get_and_process_report_values_db(simulation_no, IS.values(),  yearly, iteration_no, report_header)
         self.cf_rows = self.get_and_process_report_values_db(simulation_no, CF.values(),  yearly, iteration_no, report_header)
         self.npv_rows = self.get_and_process_report_values_db(simulation_no, NPV.values(),  yearly, iteration_no, report_header)
-        self.ss_rows = self.get_and_process_report_values_db(simulation_no, SECOND_SHEET.values(),  yearly, iteration_no, report_header)
+        self.ss_rows = self.get_and_process_report_values_db(simulation_no, ELPROD.values(),  yearly, iteration_no, report_header)
 
     def get_and_process_report_values_db(self, simulation_no, fields, yearly, iteration_no, report_header):
         double_round = REPORT_ROUNDING*2
@@ -84,7 +88,7 @@ class ReportOutput():
         self.is_rows = self.prepare_rows(IS.values(), yearly)
         self.cf_rows = self.prepare_rows(CF.values(), yearly)
         self.npv_rows = self.prepare_rows(NPV.values(), yearly)
-        self.ss_rows = self.prepare_rows(SECOND_SHEET.values(), yearly)
+        self.ss_rows = self.prepare_rows(ELPROD.values(), yearly)
 
     def write_report_values(self, yearly):
         self.write_report(self.bs_rows, self.bs_header, self.bs_filename)
@@ -98,7 +102,7 @@ class ReportOutput():
 
         xls_output_filename = self.get_report_filename(self.report_name, 'xlsx', yearly=yearly)
         self.output_filename = convert2excel(source=self.output_filename, output=xls_output_filename)
-        #add_second_sheet_excel(output_filename, ss_filename)
+        add_second_sheet_excel(self.output_filename, self.source_filename )
 
     def prepare_report_IS_BS_CF_IRR(self, from_db=False,  yearly=False, ):
         self.prepare_report_filenames(yearly, from_db)
@@ -159,6 +163,25 @@ class ReportOutput():
         output_filename = uniquify_filename(report_name)
         return output_filename
 
+
+    def prepare_source(self, simulation_no, iteration_no):
+        """Prepares second sheet date for excel
+        saves data to csv file
+        """
+        source = db.get_iteration_values_from_db(simulation_no, SOURCE.values(), False, iteration_no=iteration_no)
+
+        with open(self.source_filename,'wb') as f:
+            w = csv.writer(f, delimiter=';')
+            for title,source_key  in SOURCE.items():
+                dic_values = source[source_key]
+                header = dic_values.keys()
+                values = dic_values.values()
+                w.writerow([title])
+                for name, value in dic_values.items():
+                    if isinstance(value, (str, int, float)):
+                        w.writerow([name, value])
+                w.writerow('')
+
 if __name__ == '__main__':
     import os.path
 
@@ -190,4 +213,7 @@ if __name__ == '__main__':
         #o.prepare_report_IS_BS_CF_IRR()
 
 
-    test_speed()
+    #test_speed()
+    o = ReportOutput(None)
+    o.source_filename = r"C:\temp2.csv"
+    print o.prepare_source(20, 1)
