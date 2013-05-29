@@ -295,7 +295,7 @@ def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
     @irr_values_lst - list  with 2 complicated dicts inside """
 
     cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    report_name = "%s_%s_%s.%s" % (cur_date, 'irr_values', '_yearly' * yearly, 'csv')
+    report_name = "{cur_date}_irr_values_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
     output_filename = uniquify_filename(report_full_name)
 
