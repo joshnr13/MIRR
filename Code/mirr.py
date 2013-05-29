@@ -106,7 +106,6 @@ class Interface():
             simulation_no = self.get_input_simulation("for DELETING: ")
         self.db.delete_simulation(simulation_no)
 
-
     def _run_correlations(self, field):
         """field - dict [short_name] = database name"""
         simulation_no = self.get_input_simulation("for %s correlations charts: " %field.keys()[0])

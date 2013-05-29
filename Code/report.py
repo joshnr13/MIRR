@@ -31,7 +31,6 @@ class Report(BaseClassConfig):
 
     def calc_report_values(self):
         """Main function to cacl all values for reports"""
-        print "\tCalulation of report values"
         self.init_attrs()
         self.init_helper_attrs()
         self.init_fcf_args()

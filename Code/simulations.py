@@ -187,6 +187,7 @@ class Simulation():
         for i in range(iterations_number):
             self.run_one_iteration(i+1, iterations_number)
             self.db.insert_iteration(self.line)
+        print "\n"
 
         irr_stats = self.calc_irr_statistics()
         self.add_irr_results_to_simulation(irr_stats)
@@ -239,7 +240,8 @@ class Simulation():
 
     def run_one_iteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""
-        print "\tRunning iteration %s of %s" % (iteration_no, total_iteration_number)
+        #print "\tRunning iteration %s of %s" % (iteration_no, total_iteration_number)
+        print ".",
         self.prepare_data()
         self.prepare_iteration_results(iteration_no, total_iteration_number)
         self.convert_results()

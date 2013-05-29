@@ -591,9 +591,6 @@ def convert_dict(input_dict):
     """part of deep_serilization od DICTS"""
     result = OrderedDict()
     for (key, value) in input_dict.items():
-        if key == 'report_dates_y':
-            print
-
         key = convert_base_values(key)
         value = convert_base_values(value)
         value = convert_value(value)
