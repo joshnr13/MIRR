@@ -50,14 +50,14 @@ def show_irr_charts(irr_values_lst, simulation_no, yearly):
     figures : <title, figure> dictionary
     """
     figures = OrderedDict()
-    period_data = get_title_period(yearly)
+    #period_data = get_title_period(yearly)
     for dic in irr_values_lst:
         dig_values = dic['digit_values']
 
-        title1 = "Simulation %s. %s - Histogram of %s, based on %s values" % (simulation_no, period_data, dic['field'], len(dig_values))
+        title1 = "Simulation %s. Histogram of %s, based on %s values" % (simulation_no, dic['field'], len(dig_values))
         figures[title1] = dig_values
 
-        title2 = "Simulation %s. %s - Chart of %s, based on %s values" % (simulation_no, period_data, dic['field'], len(dig_values))
+        title2 = "Simulation %s. Chart of %s, based on %s values" % (simulation_no, dic['field'], len(dig_values))
         figures[title2] = dig_values
 
     fig, axeslist = pylab.subplots(ncols=2, nrows=2)
