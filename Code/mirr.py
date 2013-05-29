@@ -9,7 +9,7 @@ from annex import get_input_date, get_input_int, cached_property, memoize, get_i
 from database import Database
 
 from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution, print_equipment_db
-from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts, chart_outputElectricityProduction
+from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts, step_chart
 from report_output import ReportOutput
 from config_readers import MainConfig
 from _mirr import Mirr
@@ -57,6 +57,7 @@ class Interface():
         if simulation_no is  None:
             simulation_no =  self.get_input_simulation("for plotting IRR distribution ")
 
+        #show_save_irr_distribution(simulation_no, yearly=False)
         show_save_irr_distribution(simulation_no, yearly=True)
 
     def report_isbscf(self):
@@ -74,14 +75,14 @@ class Interface():
         print self.db.get_iteration_field(simulation_no, 1, 'equipment_description')
 
     def outputPrimaryEnergy(self):
+        simulation_no, iteration_no =  self.get_simulation_iteration_nums("for printing chart with Primary Energy ")
         start_date, end_date, resolution = self.get_inputs()
-        self.getMirr().energy_module.outputPrimaryEnergy(start_date, end_date, resolution)
+        step_chart(simulation_no, iteration_no, start_date, end_date, resolution, field= 'insolations_daily')
 
     def outputElectricityProduction(self):
-        simulation_no, iteration_no =  self.get_simulation_iteration_nums("for printing equipment ")
+        simulation_no, iteration_no =  self.get_simulation_iteration_nums("for printing chart with Electricity Production ")
         start_date, end_date, resolution = self.get_inputs()
-        chart_outputElectricityProduction(simulation_no, iteration_no, start_date, end_date, resolution)
-        #self.getMirr().technology_module.outputElectricityProduction(start_date, end_date, resolution)
+        step_chart(simulation_no, iteration_no, start_date, end_date, resolution, field= 'electricity_production_daily')
 
     def irr_correlations(self):
         self._run_correlations(CORRELLATION_IRR_FIELD)

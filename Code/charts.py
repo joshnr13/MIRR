@@ -242,11 +242,9 @@ def get_x_axis_title(yearly):
         title = "months"
     return title
 
-def chart_outputElectricityProduction(simulation_no, iteration_no, start_date, end_date, resolution):
+def step_chart(simulation_no, iteration_no, start_date, end_date, resolution, field=None):
 
     dates_range = getResolutionStartEnd(start_date, end_date, resolution)
-
-    field = 'electricity_production_daily'
     y_all_values = db.get_iteration_field(simulation_no, iteration_no, field)
     keys = db.get_iteration_field(simulation_no, iteration_no, 'project_days')
 
@@ -277,5 +275,5 @@ if __name__ == '__main__':
     end_date = dt.date(2017, 12, 31)
     #plot_charts(61, True)
     #irr_scatter_charts(11, 'irr_project', True)
-    chart_outputElectricityProduction(15, 1, start_date, end_date, 10)
+    step_chart(15, 1, start_date, end_date, 10)
     #plot_correlation_tornado(CORRELLATION_NPV_FIELD, 66)
