@@ -18,8 +18,10 @@ class ReportOutput():
     def __init__(self, report_data):
         self.r = report_data
 
-    def prepare_report_filenames(self, yearly):
+    def prepare_report_filenames(self, yearly, from_db):
         self.report_name = 'IS-BS-CF'
+        if from_db:
+            self.report_name += "_s%s_i%s" %  from_db
         self.output_filename = self.get_report_filename(self.report_name, yearly=yearly)
 
         self.bs_filename = self.output_filename + "_BS"
@@ -99,7 +101,7 @@ class ReportOutput():
         #add_second_sheet_excel(output_filename, ss_filename)
 
     def prepare_report_IS_BS_CF_IRR(self, from_db=False,  yearly=False, ):
-        self.prepare_report_filenames(yearly)
+        self.prepare_report_filenames(yearly, from_db)
         self.prepare_report_headers()
         self.prepare_report_values(yearly, from_db)
         self.write_report_values(yearly)
@@ -147,9 +149,9 @@ class ReportOutput():
 
 
     def get_report_filename(self, name, extension='csv', yearly=False):
-        cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        cur_date = datetime.datetime.now().strftime("%Y%m%d")
         if yearly:
-            report_name = "%s_%s_y.%s" % (cur_date, name, extension)
+            report_name = "%s_%s_yearly.%s" % (cur_date, name, extension)
         else :
             report_name = "%s_%s_monthly.%s" % (cur_date, name, extension)
         report_name = os.path.join(report_directory, report_name)
