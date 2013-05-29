@@ -178,7 +178,9 @@ class ReportOutput():
                 values = dic_values.values()
                 w.writerow([title])
                 for name, value in dic_values.items():
-                    if isinstance(value, (str, int, float)):
+                    if isinstance(value, (dict, list)):
+                        continue
+                    else:
                         w.writerow([name, value])
                 w.writerow('')
 
