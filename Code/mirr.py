@@ -70,8 +70,8 @@ class Interface():
         plot_charts(simulation_no, iteration_no, yearly=True)
 
     def print_equipment(self):
-        simulation_no, iteration_no =  self.get_simulation_iteration_nums("for printing equipment ")
-        print self.db.get_iteration_field(simulation_no, iteration_no, 'equipment_description')
+        simulation_no =  self.get_input_simulation("for printing equipment ")
+        print self.db.get_iteration_field(simulation_no, 1, 'equipment_description')
 
     def outputPrimaryEnergy(self):
         start_date, end_date, resolution = self.get_inputs()
