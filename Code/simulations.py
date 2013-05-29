@@ -194,7 +194,7 @@ class Simulation():
         self.db.insert_simulation(self.simulation_record)
 
     def init_simulation_record(self, iterations_number):
-        print "%s - runing simulation %s with %s iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
+        print "%s - runing simulation %s with %s number of iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
         self.simulation_record = defaultdict(list)
         self.simulation_record["simulation"] = self.simulation_no
         self.simulation_record["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
