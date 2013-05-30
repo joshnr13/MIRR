@@ -7,6 +7,7 @@ import tempfile
 import csv
 import operator
 import datetime as dt
+from datetime import timedelta
 import errno
 import types
 import numpy as np
@@ -187,7 +188,7 @@ def months_between(date1,date2):
 
 def is_last_day_year(date):
     """return True is date is last day of year"""
-    new_date = date + dt.timedelta(days=1)
+    new_date = date + timedelta(days=1)
     if new_date.year != date.year:
         return True
     else:
@@ -349,14 +350,6 @@ def mkdir_p(path):
             pass
         else: raise
 
-
-#def setColumnWidths(sheet, widths):
-    #idx = 1
-    #for w in widths:
-        #colLetter = openpyxl.cell.get_column_letter(idx)
-        #sheet.column_dimensions[colLetter].width = w
-        #idx += 1
-
 def csv2xlsx(inputfilename, outputfilename, sheet_no=0, sheet_name='report'):
     """Converts csv 2 excel"""
 
@@ -490,12 +483,12 @@ def getResolutionStartEnd(start_date, end_date, resolution):
     """Returns list [start , start_date + resolution] using resolution (days interval)"""
     result = []
     while start_date < end_date:
-        next_step_date = start_date + dt.timedelta(days=resolution-1)
+        next_step_date = start_date + timedelta(days=resolution-1)
         if next_step_date <= end_date:
             result.append((start_date, next_step_date))
         else:
             result.append((start_date, end_date))
-        start_date = next_step_date + dt.timedelta(days=1)
+        start_date = next_step_date + timedelta(days=1)
     return result
 
 
@@ -579,22 +572,6 @@ class Annuitet():
         self.rest_payments = rest_payments
         self.rest_payments_wo_percents = rest_payments_wo_percents
 
-#def sum_attrs_per_date(list_annuitets, attr):
-    #"""Calculation sum of attrs for all annuitets per date
-    #@list_annuitets - list [cls Annuitet]
-    #@attr - string attr name of cls Annuitet
-    #return OrderedDict
-    #"""
-    #result = OrderedDefaultdict(int)
-    #for a in list_annuitets:
-        #for k, v in getattr(a, attr).items():
-            #result[k] += v
-
-    #return  result
-
-
-
-
 def convert_dict(input_dict):
     """part of deep_serilization od DICTS"""
     result = OrderedDict()
@@ -607,7 +584,7 @@ def convert_dict(input_dict):
 
 def convert_base_values(base_value):
     """part of deep_serilization of BASE VALUES"""
-    if isinstance(base_value, (dt.datetime, dt.date)):
+    if isinstance(base_value, dt.date):
         key = str(base_value)
     else:
         key = base_value
@@ -619,18 +596,19 @@ def convert_value(value):
         return  convert_dict(value)
     elif isinstance(value, (types.ListType, types.TupleType)):
         return convert_list(value)
-    elif isinstance(value, (dt.datetime, dt.date)):
+    elif isinstance(value, dt.date):
         return str(value)
     else:
         return value
 
 def convert_list(input_lst):
     """part of deep_serilization of LISTS and TUPLES"""
-    result = []
-    for v in input_lst:
-        converted = convert_value(v)
-        result.append(converted)
-    return result
+    return [convert_value(v) for v in input_lst]
+    #result = []
+    #for v in input_lst:
+        #converted = convert_value(v)
+        #result.append(converted)
+    #return result
 
 
 def _discf(rate, pmts, ):
@@ -674,7 +652,7 @@ def invert_dict(d):
 @memoized
 def get_list_dates( date_start, date_end):
     duration_days = (date_end - date_start).days
-    list_dates = list([(date_start+dt.timedelta(days=i)) for i in range(duration_days+1)])
+    list_dates = list([(date_start+timedelta(days=i)) for i in range(duration_days+1)])
     return list_dates
 
 
