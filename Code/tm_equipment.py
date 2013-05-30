@@ -343,7 +343,7 @@ class PlantEquipment():
         days = []
         for i in range(1, 13):
             last_month_date = last_day_month(date(2000,  i, 1))
-            av_insolations.append(inputs.getAvMonthInsolation(last_month_date))
+            av_insolations.append(inputs.getAvMonthInsolation_month(i-1))
             days.append(last_month_date.day)
 
         one_day_production = numpy.array([self.getElectricityProductionPlant1Day(insolation) for insolation in av_insolations])

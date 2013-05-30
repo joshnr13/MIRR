@@ -7,6 +7,8 @@ import datetime
 import numpy
 import ConfigParser
 import os
+from numpy.random import normal as gauss
+
 from base_class import BaseClassConfig
 from config_readers import MainConfig, EnergyModuleConfigReader
 from constants import TESTMODE
@@ -18,9 +20,10 @@ class InputsReader():
         """Loads inputs to memory"""
         filepath = os.path.join(os.getcwd(), 'inputs', 'em_input.txt')
         self.inputs = numpy.genfromtxt(filepath, dtype=None, delimiter=';',  names=True)
-    def getAvMonthInsolation(self, date):
+    @memoize
+    def getAvMonthInsolation_month(self, month):
         """Returns average daily insolation in given date"""
-        return self.inputs[date.month - 1]['Hopt']
+        return self.inputs[month]['Hopt']
 
 class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 
@@ -35,13 +38,13 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         if TESTMODE:
             return  self.mean
         else:
-            return random.gauss(self.mean, self.stdev)
+            return gauss(self.mean, self.stdev)
 
     def getAvMonthInsolation(self, date):
         """Returns average daily insolation in given date"""
-        return self.inputs.getAvMonthInsolation(date)
+        month = date.month - 1
+        return self.inputs.getAvMonthInsolation_month(month)
 
-    #@memoize
     def generatePrimaryEnergyAvaialbility(self, date):
         """Parameters: start date
         based on monthly averages creates daily data

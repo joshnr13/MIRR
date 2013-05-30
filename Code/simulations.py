@@ -260,7 +260,7 @@ def print_equipment_db(simulation_no, iteration_no):
     pass
 
 
-def run_save_simulation(iterations_number, comment):
+def run_save_simulation(iterations_no, comment):
     """
     1) Runs multiple iterations @iterations_number with @comment
     2) Shows charts
@@ -268,7 +268,7 @@ def run_save_simulation(iterations_number, comment):
     return  simulation_no
     """
     s = Simulation(comment=comment)
-    s.run_simulation(iterations_number)
+    s.run_simulation(iterations_no)
     #process_irr_values(s.calc_irr_statistics(), s.get_simulation_no())
     return  s.get_simulation_no()
 

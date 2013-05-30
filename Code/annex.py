@@ -105,6 +105,14 @@ class memoize(object):
             res = cache[key] = self.func(*args, **kw)
         return res
 
+def memoized(f):
+    memory = {}
+    def wrapper(*args, **kwargs):
+        key = (tuple(args), hash(tuple(sorted(kwargs.items()))))
+        if not key in memory:
+            memory[key] = f(*args, **kwargs)
+        return memory[key]
+    return wrapper
 
 def get_multiplier(_from, _to, step):
     digits = []
@@ -663,7 +671,7 @@ def invert_dict(d):
         newdict[v] = k
     return newdict
 
-
+@memoized
 def get_list_dates( date_start, date_end):
     duration_days = (date_end - date_start).days
     list_dates = list([(date_start+dt.timedelta(days=i)) for i in range(duration_days+1)])

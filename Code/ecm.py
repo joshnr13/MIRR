@@ -7,8 +7,8 @@ import os
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, getDaysNoInMonth, years_between_1Jan, months_between, last_day_month
-from annex import add_x_years,add_x_months, month_number_days, last_day_next_month, get_configs,  OrderedDefaultdict
+from annex import Annuitet, getDaysNoInMonth, years_between_1Jan, months_between, last_day_month, get_list_dates
+from annex import add_x_years,add_x_months, month_number_days, last_day_next_month, get_configs,  OrderedDefaultdict, memoize
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
 from collections import OrderedDict
@@ -56,6 +56,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         else:
             return  False
 
+    #@memoize
     def isProductionElectricityStarted(self, date):
         """return  True if we recieved all permits, finished construction and can
         sell electricity"""
@@ -69,8 +70,9 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         revenue_electricity = 0
         revenue_subside = 0
         cur_date = date_start
+        date_list = get_list_dates(date_start, date_end)
 
-        while cur_date <= date_end:
+        for cur_date in date_list:
             electricity_production = self.getElectricityProduction(cur_date)
             day_revenue_electricity = electricity_production * self.getPriceKwh(cur_date)
             day_revenue_subsidy = electricity_production * self.subside_module.subsidyProduction(cur_date)
@@ -78,7 +80,6 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
             revenue_electricity += day_revenue_electricity
             revenue_subside += day_revenue_subsidy
 
-            cur_date += datetime.timedelta(days=1)
         return revenue_electricity, revenue_subside
 
     def getElectricityProduction(self,  date):
@@ -253,13 +254,14 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def getSomeCostsRange(self, cost_function, date_start, date_end):
         """basic function to calculate range costs"""
-        costs = 0
         cur_date = date_start
+        list_dates = get_list_dates(date_start, date_end)
+        return sum([cost_function(date) for date in list_dates])
 
-        while cur_date <= date_end:
-            costs += cost_function(cur_date)
-            cur_date += datetime.timedelta(days=1)
-        return costs
+        #while cur_date <= date_end:
+            #costs += cost_function(cur_date)
+            #cur_date += datetime.timedelta(days=1)
+        #return costs
 
     def getTaxRate(self):
         """return taxrate in float"""

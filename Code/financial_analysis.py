@@ -16,8 +16,9 @@ class CashFlows():
     def derivative_npv(self,  rate):
         cf = self.cashflows[1:]
         total = 0.0
+        rate_plus_1 = 1 + rate
         for i, cashflow in enumerate(cf):
-            val = (-1 * (i) * cashflow / ((1 + rate)** (i + 1)+SMALL))
+            val = (-1 * (i) * cashflow / (rate_plus_1** (i + 1)+SMALL))
             val = float(val)
             total += val
 
@@ -28,11 +29,12 @@ class CashFlows():
 
     def npv(self,  rate, save_pv=False):
         total = 0.0
+        rate_plus_1 = 1 + rate
         if rate not in self.npvs:
             for i, cashflow in enumerate(self.cashflows):
                 stepen = (i)
                 small = SMALL if i > 0 else 0
-                val = (cashflow / ((1 + rate)** (stepen) + small))
+                val = (cashflow / ((rate_plus_1)** (stepen) + small))
                 val = float(val)
                 total += val
                 if save_pv:
