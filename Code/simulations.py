@@ -279,7 +279,6 @@ def show_save_irr_distribution(simulation_no, yearly=False):
 
     """
     field = 'irr_stats'
-    simulation_no = db.get_last_simulation_no()
     irr_values_lst = db.get_simulation_values_from_db(simulation_no, [field])
     irr_values_lst = irr_values_lst[field][0]
 

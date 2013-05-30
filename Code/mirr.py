@@ -60,7 +60,6 @@ class Interface():
         if simulation_no is  None:
             simulation_no =  self.get_input_simulation("for plotting IRR distribution ")
 
-        #show_save_irr_distribution(simulation_no, yearly=False)
         show_save_irr_distribution(simulation_no, yearly=True)
 
     def report_isbscf(self):

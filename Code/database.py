@@ -191,6 +191,7 @@ class Database():
         """
         self.check_simulation(simulation_no)
         select_by, get_values = self.format_request(fields, [], False)
+        select_by['simulation'] = simulation_no
         results = self._get_results_find_limit_simulation(fields, select_by, get_values,
                                                yearly=False,
                                                collection='simulations')
