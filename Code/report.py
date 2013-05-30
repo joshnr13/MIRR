@@ -190,7 +190,6 @@ class Report(BaseClassConfig):
         """Main function to calc montly value for reports P2"""
         M = end_day
 
-
         self.tax[M] = self._calc_tax(end_day)
         self.net_earning[M] = self._calc_net_earning(end_day)
 
@@ -631,28 +630,31 @@ class Report(BaseClassConfig):
         """Calculates monthly values using 2 dates -first_day and last_day in month
         return  dict[end_day] = value base on dict with all dates
         """
-        results = OrderedDict()
-        for start_day, end_day in self.report_dates.items():
-            results[end_day] = dic[end_day]
-        return results
+        return OrderedDict((end_day, dic[end_day]) for end_day in self.report_dates.values())
+        #results = OrderedDict()
+        #for start_day, end_day in self.report_dates.items():
+            #results[end_day] = dic[end_day]
+        #return results
 
     def calc_report_monthly_values2(self, func):
         """Calculates monthly values using 2 dates -first_day and last_day in month
         return  dict[end_day] = value
         """
-        results = OrderedDict()
-        for start_day, end_day in self.report_dates.items():
-            results[end_day] = func(start_day, end_day)
+        return OrderedDict((end_day, func(start_day, end_day)) for start_day, end_day in self.report_dates.items())
+        #results = OrderedDict()
+        #for start_day, end_day in self.report_dates.items():
+            #results[end_day] = func(start_day, end_day)
 
-        return results
+        #return results
 
     def calc_report_monthly_values1(self, func):
         """Calculates monthly values using 1 date - last_day in month
         return  dict[end_day] = value"""
-        results = OrderedDict()
-        for end_day in self.report_dates.values():
-            results[end_day] = func(end_day)
-        return results
+        return OrderedDict((end_day, func(end_day)) for end_day in self.report_dates.values())
+        #results = OrderedDict()
+        #for end_day in self.report_dates.values():
+            #results[end_day] = func(end_day)
+        #return results
 
     def check_balance_sheet(self, date):
         """Checks balance sheet Assets - Liabilities should be 0

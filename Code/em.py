@@ -20,10 +20,13 @@ class InputsReader():
         """Loads inputs to memory"""
         filepath = os.path.join(os.getcwd(), 'inputs', 'em_input.txt')
         self.inputs = numpy.genfromtxt(filepath, dtype=None, delimiter=';',  names=True)
-    @memoize
+        self.inputs_insolations = [i[1] for i in self.inputs]
+
+    #@memoize
     def getAvMonthInsolation_month(self, month):
         """Returns average daily insolation in given date"""
-        return self.inputs[month]['Hopt']
+        #return self.inputs[month]['Hopt']
+        return self.inputs_insolations[month]
 
 class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 
@@ -35,10 +38,10 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 
     def getRandomFactor(self):
         """return random factor with normal distribution"""
-        if TESTMODE:
-            return  self.mean
-        else:
+        if not TESTMODE:
             return gauss(self.mean, self.stdev)
+        else:
+            return  self.mean
 
     def getAvMonthInsolation(self, date):
         """Returns average daily insolation in given date"""
@@ -121,8 +124,10 @@ if __name__ == '__main__':
     em = EnergyModule(mainconfig)
 
     #print em.generatePrimaryEnergyAvaialbilityLifetime()
-    start_date = datetime.date(2013, 1, 1)
-    end_date = datetime.date(2023, 12, 31)
-    em.outputPrimaryEnergy(start_date, end_date)
+    #start_date = datetime.date(2013, 1, 1)
+    #end_date = datetime.date(2023, 12, 31)
+    #em.outputPrimaryEnergy(start_date, end_date)
     #print (end_date - start_date).days
+    i =  InputsReader()
+    print [i[1] for i in i.inputs]
 
