@@ -12,9 +12,10 @@ from report_output import ReportOutput
 from numbers import Number
 from charts import show_irr_charts
 from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, report_directory
-from numpy import corrcoef, around, isnan, std, mean
+from numpy import corrcoef, around, isnan, std, mean, median
 from  scipy.stats import skew, kurtosis
 
+db = Database()
 
 class Simulation():
 
@@ -185,7 +186,7 @@ class Simulation():
 
         self.init_simulation_record(iterations_number)
         for i in range(iterations_number):
-            percent = i * 100 / float(iterations_number)
+            percent = (i + 1) * 100 / float(iterations_number)
             self.run_one_iteration(i+1, iterations_number)
             self.db.insert_iteration(self.line)
             sys.stdout.write("\r%d%%" %percent)    # or print >> sys.stdout, "\r%d%%" %i,
@@ -228,6 +229,11 @@ class Simulation():
             result['skew'] = skew(digit_irr)
             result['kurtosis'] = kurtosis(digit_irr)
             result['mean'] = mean(digit_irr)
+            result['min'] = min(digit_irr)
+            result['max'] = max(digit_irr)
+            result['median'] = median(digit_irr)
+            result['variance'] = result['std'] ** 0.5
+
             results.append(result)
 
         return  results
@@ -273,7 +279,8 @@ def show_save_irr_distribution(simulation_no, yearly=False):
 
     """
     field = 'irr_stats'
-    irr_values_lst = Database().get_simulation_values_from_db(simulation_no, [field])
+    simulation_no = db.get_last_simulation_no()
+    irr_values_lst = db.get_simulation_values_from_db(simulation_no, [field])
     irr_values_lst = irr_values_lst[field][0]
 
     save_irr_values_xls(irr_values_lst, simulation_no, yearly)  #was irr_values[:]
@@ -283,10 +290,13 @@ def show_save_irr_distribution(simulation_no, yearly=False):
 def print_irr_stats(irr_values_lst):
     """Prints statistics of irr values"""
     for dic in irr_values_lst:
-        #dig_values = dic['digit_values']
         print "Statistics for %s" % dic.get('field', None)
-        print "\tMean value %s" % dic.get('mean', None)
         print "\tSt.deviation value %s" % dic.get('std', None)
+        print "\tVariance value %s" % dic.get('variance', None)
+        print "\tMin value %s" % dic.get('min', None)
+        print "\tMax value %s" % dic.get('max', None)
+        print "\tMedium value %s" % dic.get('median', None)
+        print "\tMean value %s" % dic.get('mean', None)
         print "\tSkew value %s" % dic.get('skew', None)
         print "\tKurtosis value %s" % dic.get('kurtosis', None)
 
@@ -309,7 +319,7 @@ def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
     iterations = ["Iteration number"] + list(range(1, len(irr_values1)))
     simulation_info = ["Simulation number"] + [simulation_no]
 
-    stat_params = ['std','skew', 'kurtosis']
+    stat_params = ['min', 'max', 'median', 'mean', 'variance', 'std','skew', 'kurtosis']
     stat_fields = ['field'] + stat_params
 
     stat_info1 = [field1]
