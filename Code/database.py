@@ -271,7 +271,7 @@ class Database():
 
     def get_last_simulations_log(self, last=10):
         last_simulation_no = self.get_last_simulation_no()
-        min_s =  last_simulation_no - last
+        min_s =  last_simulation_no - last + 1
         max_s = last_simulation_no
 
         #group_by =  {"_id" : "$simulation",
@@ -304,8 +304,6 @@ class Database():
         results = self.simulations.aggregate(pipeline)['result']
         for r in results:
             print u"Simulation %s date %s - iterations %s - %s" % (r["_id"], r["date"], r["iterations_number"], r['comment'])
-
-
 
 
 #def test():

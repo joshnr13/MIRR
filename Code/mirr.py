@@ -90,16 +90,16 @@ class Interface():
     def irr_scatter_charts(self, simulation_no=None):
         if simulation_no is None:
             simulation_no = self.get_input_simulation("for IRR scatter_chart: ")
-
         irr_scatter_charts(simulation_no, 'irr_project', yearly=True)
         irr_scatter_charts(simulation_no, 'irr_owners', yearly=True)
-        #irr_scatter_charts(simulation_no, 'irr_project')
-        #irr_scatter_charts(simulation_no, 'irr_owners')
 
     def npv_correlations(self):
         self._run_correlations(CORRELLATION_NPV_FIELD)
 
-    def simulations_log(self, last=10):
+    def simulations_log(self, last=None):
+        default = 10
+        if last is  None:
+            last = get_input_int("Please input number of last simulations to show theirs log (or press Enter to use default %s) : " %default, default)
         self.db.get_last_simulations_log(last)
 
     def delete_simulation(self, simulation_no=None):
