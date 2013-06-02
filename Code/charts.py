@@ -77,6 +77,35 @@ def show_irr_charts(irr_values_lst, simulation_no, yearly):
 
     pylab.show()
 
+
+def plot_histograms(dic_values, simulation_no, yearly):
+    """
+    figures : <title, figure> dictionary
+    """
+    figures = OrderedDict()
+    for name, values in dic_values.items():
+        title = "%s" % name
+        figures[title] = values
+
+    fig, axeslist = pylab.subplots(ncols=3, nrows=2)
+
+    for ind,title in izip_longest(range(6), figures):
+        if title is not None:
+            values = figures[title]
+            axeslist.ravel()[ind].hist(values, bins=7)
+            axeslist.ravel()[ind].set_title(title)
+        else:
+            axeslist.ravel()[ind].set_axis_off()
+
+    #title = "Simulation %s. Scatter charts '%s'. %s" % (simulation_no, add_yearly_prefix(field, yearly), get_title_period(yearly))
+    title = "Simulation %s. Stochastic histograms. Using %s iterations values" % (simulation_no, len(values))
+    fig = pylab.gcf()
+    fig.suptitle(title, fontsize=14)
+
+    pylab.show()
+
+
+
 def plot_correlation_tornado(field_dic, simulation_id, yearly=False):
     """Plot tornado chart with correlation of field and other stochastic variables"""
 
@@ -242,7 +271,7 @@ def get_x_axis_title(yearly):
         title = "months"
     return title
 
-def step_chart(simulation_no, iteration_no, start_date, end_date, resolution, field=None):
+def step_chart(simulation_no, iteration_no, start_date, end_date, resolution, field):
 
     dates_range = getResolutionStartEnd(start_date, end_date, resolution)
     y_all_values = db.get_iteration_field(simulation_no, iteration_no, field)
@@ -252,7 +281,7 @@ def step_chart(simulation_no, iteration_no, start_date, end_date, resolution, fi
     y_all_values = dict((x, y) for x, y in zip(keys, y_all_values[1:]))
 
     def sum_period(start, days):
-        return sum([y_all_values[start+datetime.timedelta(days=days)] for days in range(days)])
+        return
 
     x_values = []
     y_values = []
@@ -260,9 +289,13 @@ def step_chart(simulation_no, iteration_no, start_date, end_date, resolution, fi
 
     for day_from, day_to in dates_range:
         delta = (day_to - day_from).days
-        y_values.append(sum_period(day_from, delta))
+        sum_period = sum([y_all_values[day_from+datetime.timedelta(days=days)] for days in range(delta)])
+        y_values.append(sum_period)
         x_values.append(sm+delta)
         sm += delta
+
+    #print x_values
+    #print y_values
 
     pylab.step(x_values, y_values)
     title = "Simulation {simulation_no} - iteration {iteration_no}. Electricity Production from {start_date} to {end_date} with resolution {resolution} days".format(**locals())
@@ -275,5 +308,5 @@ if __name__ == '__main__':
     end_date = dt.date(2017, 12, 31)
     #plot_charts(61, True)
     #irr_scatter_charts(11, 'irr_project', True)
-    step_chart(15, 1, start_date, end_date, 10)
+    step_chart(60, 1, start_date, end_date, 10, 'insolations_daily')
     #plot_correlation_tornado(CORRELLATION_NPV_FIELD, 66)

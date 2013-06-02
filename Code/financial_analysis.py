@@ -1,4 +1,4 @@
-#import numpy
+import numpy
 
 BEST_GUESSES = [-0.1, -0.01, 0.01,  0.1]
 SMALL = 0.00000001
@@ -15,12 +15,11 @@ class CashFlows():
 
     def derivative_npv(self,  rate):
         small = SMALL
-        cf = self.cashflows[1:]
         total = 0.0
         rate_plus_1 = 1 + rate
+        cf = self.cashflows[1:]
         for i, cashflow in enumerate(cf):
             val = (-1 * (i) * cashflow / (rate_plus_1** (i + 1)+small))
-            val = float(val)
             total += val
 
         return total
@@ -29,14 +28,15 @@ class CashFlows():
         return  self.pv
 
     def npv(self,  rate, save_pv=False):
-        total = 0.0
-        rate_plus_1 = 1 + rate
         if rate not in self.npvs:
-            for i, cashflow in enumerate(self.cashflows):
+            total = 0.0
+            rate_plus_1 = 1 + rate
+            cf = self.cashflows
+            for i, cashflow in enumerate(cf):
                 stepen = (i)
                 small = SMALL if i > 0 else 0
                 val = (cashflow / ((rate_plus_1)** (stepen) + small))
-                val = float(val)
+                #val = float(val)
                 total += val
                 if save_pv:
                     self.pv.append(val)
@@ -47,7 +47,7 @@ class CashFlows():
             return  self.npvs[rate]
 
     def improve(self,  guess):
-        if guess <= min(BEST_GUESSES) and guess <= min(BEST_GUESSES):
+        if guess <= min(BEST_GUESSES) and guess <= min(BEST_GUESSES):  ## STRANGE ???
             self.guesses.append(guess)
 
         result = guess - self.npv(guess) / self.derivative_npv(guess)
@@ -75,7 +75,7 @@ class CashFlows():
                 stop = self.good_enough(guess)
             else:
                 stop = True
-            if iter_no > 100:
+            if iter_no > 50:
                 guest = None
                 stop = True
 

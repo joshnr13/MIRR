@@ -8,7 +8,7 @@ from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize, get_input_comment
 from database import Database
 
-from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution, print_equipment_db
+from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution, print_equipment_db, plotsave_stochastic_values_by_simulation
 from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts, step_chart
 from report_output import ReportOutput
 from config_readers import MainConfig
@@ -31,8 +31,9 @@ commands['7'] = 'outputElectricityProduction'
 commands['8'] = 'irr_correlations'
 commands['9'] = 'irr_scatter_charts'
 commands['10'] = 'npv_correlations'
-commands['11'] = 'simulations_log'
-commands['12'] = 'delete_simulation'
+commands['11'] = 'stochastic_distributions'
+commands['12'] = 'simulations_log'
+commands['13'] = 'delete_simulation'
 
 class Interface():
     def __init__(self):
@@ -58,7 +59,7 @@ class Interface():
     def irr_distribution(self, simulation_no=None):
         """Shows last N irrs distribution from database"""
         if simulation_no is  None:
-            simulation_no =  self.get_input_simulation("for plotting IRR distribution ")
+            simulation_no =  self.get_input_simulation("plotting IRR distribution ")
 
         show_save_irr_distribution(simulation_no, yearly=True)
 
@@ -73,8 +74,8 @@ class Interface():
         plot_charts(simulation_no, iteration_no, yearly=True)
 
     def print_equipment(self):
-        simulation_no =  self.get_input_simulation("for printing equipment ")
-        print self.db.get_iteration_field(simulation_no, 1, 'equipment_description')
+        simulation_no =  self.get_input_simulation("printing equipment ")
+        print print_equipment_db(simulation_no)
 
     def outputPrimaryEnergy(self):
         simulation_no, iteration_no =  self.get_simulation_iteration_nums("for printing chart with Primary Energy ")
@@ -91,12 +92,17 @@ class Interface():
 
     def irr_scatter_charts(self, simulation_no=None):
         if simulation_no is None:
-            simulation_no = self.get_input_simulation("for IRR scatter_chart: ")
+            simulation_no = self.get_input_simulation("IRR scatter_chart: ")
         irr_scatter_charts(simulation_no, 'irr_project', yearly=True)
         irr_scatter_charts(simulation_no, 'irr_owners', yearly=True)
 
     def npv_correlations(self):
         self._run_correlations(CORRELLATION_NPV_FIELD)
+
+    def stochastic_distributions(self, simulation_no=None):
+        if simulation_no is None:
+            simulation_no = self.get_input_simulation("stochastic distribution charts: ")
+        plotsave_stochastic_values_by_simulation(simulation_no)
 
     def simulations_log(self, last=None):
         default = 10
@@ -106,12 +112,12 @@ class Interface():
 
     def delete_simulation(self, simulation_no=None):
         if simulation_no is  None:
-            simulation_no = self.get_input_simulation("for DELETING: ")
+            simulation_no = self.get_input_simulation("DELETING: ")
         self.db.delete_simulation(simulation_no)
 
     def _run_correlations(self, field):
         """field - dict [short_name] = database name"""
-        simulation_no = self.get_input_simulation("for %s correlations charts: " %field.keys()[0])
+        simulation_no = self.get_input_simulation("%s correlations charts: " %field.keys()[0])
         plot_correlation_tornado(field, simulation_no)
     @memoize
     def getMirr(self):

@@ -225,13 +225,13 @@ class Database():
 
         return  results
 
-    def get_correlation_values(self, main_field, simulation_id, yearly=False):
+    def get_correlation_values(self, main_field, simulation_no, yearly=False):
         """get correlation of main_field with CORRELLATION_FIELDS"""
 
         fields = CORRELLATION_FIELDS.values()
-        results = self.get_iteration_values_from_db(simulation_id, fields, yearly, not_changing_fields=[main_field])
+        results = self.get_iteration_values_from_db(simulation_no, fields, yearly, not_changing_fields=[main_field])
         if not results:
-            print ValueError('No data in Database for simulation %s' %simulation_id)
+            print ValueError('No data in Database for simulation %s' %simulation_no)
             return None
 
         main_list_values = results.pop(main_field)

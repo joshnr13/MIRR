@@ -10,8 +10,8 @@ from database import Database
 from config_readers import MainConfig
 from report_output import ReportOutput
 from numbers import Number
-from charts import show_irr_charts
-from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, report_directory
+from charts import show_irr_charts, plot_histograms
+from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, report_directory, CORRELLATION_FIELDS
 from numpy import corrcoef, around, isnan, std, mean, median
 from  scipy.stats import skew, kurtosis
 
@@ -225,15 +225,7 @@ class Simulation():
             result['field'] = field
             result['digit_values'] = digit_irr
             result[field] = irr
-            result['std'] = std(digit_irr)
-            result['skew'] = skew(digit_irr)
-            result['kurtosis'] = kurtosis(digit_irr)
-            result['mean'] = mean(digit_irr)
-            result['min'] = min(digit_irr)
-            result['max'] = max(digit_irr)
-            result['median'] = median(digit_irr)
-            result['variance'] = result['std'] ** 0.5
-
+            result.update(calc_statistics(digit_irr))
             results.append(result)
 
         return  results
@@ -256,8 +248,25 @@ class Simulation():
         self.add_result_irrs()
 
 
-def print_equipment_db(simulation_no, iteration_no):
-    pass
+def calc_statistics(values):
+    """input @list of values
+    output @dict with keys - stat name, value=stat_value
+    """
+    result = OrderedDict()
+    result['std'] = std(values)
+    result['skew'] = skew(values)
+    result['kurtosis'] = kurtosis(values)
+    result['mean'] = mean(values)
+    result['min'] = min(values)
+    result['max'] = max(values)
+    result['median'] = median(values)
+    result['variance'] = result['std'] ** 0.5
+    return  result
+
+
+
+def print_equipment_db(simulation_no, iteration_no=1):
+    return  db.get_iteration_field(simulation_no, iteration_no, 'equipment_description')
 
 
 def run_save_simulation(iterations_no, comment):
@@ -350,6 +359,60 @@ def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
     print "CSV Report outputed to file %s" % (xls_output_filename)
 
 
+def plotsave_stochastic_values_by_simulation(simulation_no, yearly=True):
+    """"""
+    fields = CORRELLATION_FIELDS.values()
+    results = db.get_iteration_values_from_db(simulation_no, fields=[], yearly=yearly , not_changing_fields=fields)
+    plot_histograms(results, simulation_no, yearly)
+    save_stochastic_values_by_simulation(results, simulation_no)
+
+def save_stochastic_values_by_simulation(dic_values, simulation_no):
+    """Saves IRR values to excel file
+    @irr_values_lst - list  with 2 complicated dicts inside """
+
+    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    report_name = "{cur_date}_stochastic_s{simulation_no}.csv".format(**locals())
+    report_full_name = os.path.join(report_directory, report_name)
+    output_filename = uniquify_filename(report_full_name)
+    rows_values = []
+    rows_stats = []
+
+    for name, values in dic_values.items():
+        row = [name] + values
+        rows_values.append(row)
+        stats_dic = calc_statistics(values)
+        stats = [name] + stats_dic.values()
+        rows_stats.append(stats)
+
+
+    blank_row = [""]
+
+    iterations = ["Iteration number"] + list(range(1, len(values)+1))
+    simulation_info = ["Simulation number"] + [simulation_no]
+    stat_info = ["Statistics"] + stats_dic.keys()
+
+    with open(output_filename,'ab') as f:
+
+        w = csv.writer(f, delimiter=';')
+        w.writerow(simulation_info)
+        w.writerow(blank_row)
+
+        w.writerow(iterations)
+        w.writerows(rows_values)
+
+        w.writerow(blank_row)
+        w.writerow(stat_info)
+        w.writerows(rows_stats)
+
+    xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
+    xls_output_filename = uniquify_filename(xls_output_filename)
+
+    convert2excel(source=output_filename, output=xls_output_filename)
+    print "Stochastic Report outputed to file %s" % (xls_output_filename)
+
+
+
+
 if __name__ == '__main__':
     #run_all_iterations()
     #plot_correlation_tornado()
@@ -359,6 +422,7 @@ if __name__ == '__main__':
     #irr_scatter_charts()
     #s.run_simulations(10)
 
-    show_save_irr_distribution(2)
+    #show_save_irr_distribution(2)
+    plotsave_stochastic_values_by_simulation(60)
 
 
