@@ -4,9 +4,10 @@ import datetime
 
 from collections import OrderedDict
 from database import Database
-from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD, IRR_REPORT_FIELD, IRR_REPORT_FIELD2, CORRELLATION_NPV_FIELD
+from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD, IRR_REPORT_FIELD, IRR_REPORT_FIELD2, CORRELLATION_NPV_FIELD, BINS
 from annex import invert_dict, add_yearly_prefix, getResolutionStartEnd
 from itertools import izip_longest
+
 
 db = Database()
 
@@ -50,7 +51,6 @@ def show_irr_charts(irr_values_lst, simulation_no, yearly):
     figures : <title, figure> dictionary
     """
     figures = OrderedDict()
-    #period_data = get_title_period(yearly)
     for dic in irr_values_lst:
         dig_values = dic['digit_values']
 
@@ -61,12 +61,15 @@ def show_irr_charts(irr_values_lst, simulation_no, yearly):
         figures[title2] = dig_values
 
     fig, axeslist = pylab.subplots(ncols=2, nrows=2)
-
     for ind,title in zip(range(4), figures):
         if title is not None:
             values = figures[title]
             if ind in [0, 2]:
-                axeslist.ravel()[ind].hist(values, bins=7)
+                n, bins, patches = axeslist.ravel()[ind].hist(values, bins=BINS, normed=True)
+                mu = numpy.mean(values)
+                sigma = numpy.std(values)
+                y = pylab.normpdf( bins, mu, sigma)
+                axeslist.ravel()[ind].plot(bins, y, 'r--', linewidth=1)
             else:
                 limx, limy = get_limit_values(range(len(values)), values)
                 axeslist.ravel()[ind].plot(values, 'o')
@@ -76,6 +79,28 @@ def show_irr_charts(irr_values_lst, simulation_no, yearly):
             axeslist.ravel()[ind].set_title(title)
 
     pylab.show()
+
+    #for ind,title in zip(range(4), figures):
+
+        #if title is not None:
+            #obj = axeslist.ravel()[ind]
+            #obj.set_title(title)
+            #values = figures[title]
+            #if ind in [0, 2]:
+                #n, bins, patches = pylab.hist(values, bins=BINS, normed=True, cumulative=False)
+                #obj.hist(values, bins=BINS)
+                ##axeslist.ravel()[ind].hist(values, bins=50)
+                #mu = numpy.mean(values)
+                #sigma = numpy.std(values)
+                ##y = pylab.normpdf( bins, mu, sigma)
+                ##pylab.plot(bins, y, 'r--', linewidth=1)
+            #else:
+                #limx, limy = get_limit_values(range(len(values)), values)
+                #obj.plot(values, 'o')
+                #obj.set_xlim(limx)
+                #obj.set_ylim(limy)
+
+    #pylab.show()
 
 
 def plot_histograms(dic_values, simulation_no, yearly):
@@ -92,7 +117,7 @@ def plot_histograms(dic_values, simulation_no, yearly):
     for ind,title in izip_longest(range(6), figures):
         if title is not None:
             values = figures[title]
-            axeslist.ravel()[ind].hist(values, bins=7)
+            axeslist.ravel()[ind].hist(values, bins=BINS)
             axeslist.ravel()[ind].set_title(title)
         else:
             axeslist.ravel()[ind].set_axis_off()
