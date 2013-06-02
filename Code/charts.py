@@ -54,10 +54,10 @@ def show_irr_charts(irr_values_lst, simulation_no, yearly):
     for dic in irr_values_lst:
         dig_values = dic['digit_values']
 
-        title1 = "Simulation %s. Histogram of %s, based on %s values" % (simulation_no, dic['field'], len(dig_values))
+        title1 = "Sim. N. %s. Histogram of %s - %s values" % (simulation_no, dic['field'], len(dig_values))
         figures[title1] = dig_values
 
-        title2 = "Simulation %s. Chart of %s, based on %s values" % (simulation_no, dic['field'], len(dig_values))
+        title2 = "Sim N. %s. Chart of %s - %s values" % (simulation_no, dic['field'], len(dig_values))
         figures[title2] = dig_values
 
     fig, axeslist = pylab.subplots(ncols=2, nrows=2)
@@ -80,28 +80,6 @@ def show_irr_charts(irr_values_lst, simulation_no, yearly):
 
     pylab.show()
 
-    #for ind,title in zip(range(4), figures):
-
-        #if title is not None:
-            #obj = axeslist.ravel()[ind]
-            #obj.set_title(title)
-            #values = figures[title]
-            #if ind in [0, 2]:
-                #n, bins, patches = pylab.hist(values, bins=BINS, normed=True, cumulative=False)
-                #obj.hist(values, bins=BINS)
-                ##axeslist.ravel()[ind].hist(values, bins=50)
-                #mu = numpy.mean(values)
-                #sigma = numpy.std(values)
-                ##y = pylab.normpdf( bins, mu, sigma)
-                ##pylab.plot(bins, y, 'r--', linewidth=1)
-            #else:
-                #limx, limy = get_limit_values(range(len(values)), values)
-                #obj.plot(values, 'o')
-                #obj.set_xlim(limx)
-                #obj.set_ylim(limy)
-
-    #pylab.show()
-
 
 def plot_histograms(dic_values, simulation_no, yearly):
     """
@@ -123,7 +101,7 @@ def plot_histograms(dic_values, simulation_no, yearly):
             axeslist.ravel()[ind].set_axis_off()
 
     #title = "Simulation %s. Scatter charts '%s'. %s" % (simulation_no, add_yearly_prefix(field, yearly), get_title_period(yearly))
-    title = "Simulation %s. Stochastic histograms. Using %s iterations values" % (simulation_no, len(values))
+    title = "Sim. N. %s. Stochastic histograms. %s iterations" % (simulation_no, len(values))
     fig = pylab.gcf()
     fig.suptitle(title, fontsize=14)
 
@@ -150,7 +128,7 @@ def plot_correlation_tornado(field_dic, simulation_id, yearly=False):
         print "No needed values in Database. Please run simulations before!"
         return
     else:
-        print ("Corellation using simulation %s with %s values from DB" % (simulation_id, number_values_used))
+        print ("Corellations using sim N. %s with %s values" % (simulation_id, number_values_used))
 
     for i, (field_short_name, main_field_db_name) in enumerate(CORRELLATION_FIELDS.items()):
         short_db_name = main_field_db_name.split('.')[-1]
@@ -182,7 +160,7 @@ def plot_correlation_tornado(field_dic, simulation_id, yearly=False):
 
     pylab.yticks(list(reversed(range(len(y_names)))), y_names)
     pylab.xlabel('correlation coefficient')
-    pylab.title('Simulation %s. Correlation between %s and stochastic values, based on %s values' %(simulation_id, main_field_name, number_values_used))
+    pylab.title('Sim N. %s. Correlation between %s and stochastic variables - %s iter.' %(simulation_id, main_field_name, number_values_used))
     pylab.grid(True)
     pylab.xlim(-1,1)
     pylab.ylim(-0.5, len(field_values)-0.5)
@@ -323,7 +301,7 @@ def step_chart(simulation_no, iteration_no, start_date, end_date, resolution, fi
     #print y_values
 
     pylab.step(x_values, y_values)
-    title = "Simulation {simulation_no} - iteration {iteration_no}. Electricity Production from {start_date} to {end_date} with resolution {resolution} days".format(**locals())
+    title = "Sim. N. {simulation_no}; Iter. N. {iteration_no}. Electricity production from {start_date} to {end_date} - res. {resolution} days".format(**locals())
     pylab.title(title, fontsize=12)
     pylab.show()
 
