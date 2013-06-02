@@ -66,7 +66,7 @@ def show_irr_charts(irr_values_lst, simulation_no, yearly):
         if title is not None:
             values = figures[title]
             if ind in [0, 2]:
-                axeslist.ravel()[ind].hist(values, bins=7)
+                axeslist.ravel()[ind].hist(values, bins=50)
             else:
                 limx, limy = get_limit_values(range(len(values)), values)
                 axeslist.ravel()[ind].plot(values, 'o')
@@ -92,7 +92,7 @@ def plot_histograms(dic_values, simulation_no, yearly):
     for ind,title in izip_longest(range(6), figures):
         if title is not None:
             values = figures[title]
-            axeslist.ravel()[ind].hist(values, bins=7)
+            axeslist.ravel()[ind].hist(values, bins=50)
             axeslist.ravel()[ind].set_title(title)
         else:
             axeslist.ravel()[ind].set_axis_off()

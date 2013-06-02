@@ -100,7 +100,7 @@ class Interface():
     def simulations_log(self, last=None):
         default = 10
         if last is  None:
-            last = get_input_int("Please input number of last simulations to show theirs log (or press Enter to use default %s) : " %default, default)
+            last = get_input_int("Please input number of number of last simulations to display (or press Enter to use default %s) : " %default, default)
         self.db.get_last_simulations_log(last)
 
     def delete_simulation(self, simulation_no=None):
@@ -133,7 +133,7 @@ class Interface():
         def_res = self.getMirr().main_config.getResolution()
 
         memo = " (from %s to %s)" % (def_start,def_end)
-        memo_res = "Please select resolution in days  (or press Enter to use default %s) : " % def_res
+        memo_res = "Please select resolution of graph in days (or press Enter to use default %s) : " % def_res
 
         start_date =  get_input_date(text="Start date" + memo, default=def_start)
         end_date =  get_input_date(text="End date" + memo, default=def_end)
@@ -141,7 +141,7 @@ class Interface():
 
         return (start_date, end_date, resolution)
     def stop(self):
-        raise KeyboardInterrupt("User selected command to exit")
+        raise KeyboardInterrupt("Exit command selected")
     def no_such_method(self):
         print "No such function. Try again from allowed %s" % commands.values()
     def help(self):
