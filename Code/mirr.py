@@ -40,21 +40,14 @@ class Interface():
         self.db = Database()
 
     def run_simulation(self, iterations_no=None, comment=None):
-        """Running simulation and saving results
-         display 4 charts:
-         1) +histogram for IRR project,
-         2) XY scatter graph of iRR project;
-         3) +histogram of IRR owners,
-         4) XY scatter of IRR owners (all dervied fro monthly data and annualized)
-        """
+        """Running simulation and saving results"""
         if iterations_no is None:
             iterations_no = self.get_number_iterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)
         if comment is  None:
             comment = get_input_comment()
 
         simulation_no = run_save_simulation(iterations_no, comment)
-        self.irr_distribution(simulation_no)
-        self.irr_scatter_charts(simulation_no)
+        
 
     def irr_distribution(self, simulation_no=None):
         """Shows last N irrs distribution from database"""
