@@ -21,10 +21,10 @@ def calc_J():
 
 S0 = 120  #EUR/MWh
 k = 1
-theta = 0.03  #EUR/h
+theta = 0.5  #EUR/h
 Lambda = 0.02
 sigma = 0.01
-y = 0  #is the annual escalation factor
+y = 0.1  #is the annual escalation factor
 delta_q = 24.26  #lambda from table 2
 #J = calc_J()
 T = 3     #years
@@ -43,8 +43,6 @@ def calc_price_delta(prev_price):
     delta_Z = delta_brownian()
     J = calc_J()
     delta_price = k * (theta * 24* (1 + y)- prev_price) * dt + sigma * delta_Z + (J - prev_price) * delta_q
-    J = calc_J()
-    
     return  delta_price
 
 def calc_price_for_period(prev_price):
