@@ -20,7 +20,6 @@ theta = 0.03  #EUR/h
 Lambda = 0.02
 sigma = 0.01
 y = 0  #is the annual escalation factor
-J =
 delta_q = 24.26  #lambda from table 2
 
 T = 3     #years
