@@ -43,7 +43,7 @@ def calc_price_for_period(prev_price):
     """Calculate delta price for whole period"""
     result = []
     for i in range(N):
-        price = calc_price_delta(prev_price)
+        price = prev_price + calc_price_delta(prev_price)
         prev_price = price
         result.append(price)
     return  result
