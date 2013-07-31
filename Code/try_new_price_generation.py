@@ -23,11 +23,11 @@ S0 = 120  #EUR/MWh
 k = 365
 theta = 4.5  #EUR/h
 Lambda = 0.02
-sigma = 0.01
+sigma = 5
 y = 0.1  #is the annual escalation factor
 delta_q = 0.5  #random variable with Poisson distribution with lambda 24.26
 #J = calc_J()
-T = 3     #years
+T = 10     #years
 dt = 1.0 / 365  #1day
 N = int(round(T/dt))  #number of periods
 
@@ -36,7 +36,7 @@ N = int(round(T/dt))  #number of periods
 def delta_brownian():
     """Calculated delta betw    een 2 values with normal distribution"""
     two_randoms = np.random.standard_normal(size = 2)
-    return  np.sqrt(dt) * (two_randoms[1] - two_randoms[0])
+    return  (two_randoms[1] - two_randoms[0])
 
 def calc_price_delta(prev_price):
     """Calculated delta price based on @prev_price"""
@@ -46,7 +46,7 @@ def calc_price_delta(prev_price):
     return  delta_price
 
 def calc_price_for_period(prev_price):
-    """Calculate delta price for whole period"""
+    """Calculate price for whole period"""
     result = []
     for i in range(N):
         price = prev_price + calc_price_delta(prev_price)
