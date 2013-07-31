@@ -17,15 +17,15 @@ Calculate the values for 30 year 10 times and display the values on a graph. If 
 
 def calc_J():
     """Calcultation of J as random with mean=loc and std=scale"""
-    return  np.random.normal(loc=155, scale=81)  #loc means - mean, scale -std
+    return  np.random.normal(loc=130, scale=11)  #loc means - mean, scale -std
 
 S0 = 120  #EUR/MWh
-k = 1
-theta = 0.5  #EUR/h
+k = 365
+theta = 4.5  #EUR/h
 Lambda = 0.02
 sigma = 0.01
 y = 0.1  #is the annual escalation factor
-delta_q = 24.26  #lambda from table 2
+delta_q = 0.5  #random variable with Poisson distribution with lambda 24.26
 #J = calc_J()
 T = 3     #years
 dt = 1.0 / 365  #1day
