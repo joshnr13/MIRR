@@ -14,17 +14,24 @@ As inputs we use:
 
 Calculate the values for 30 year 10 times and display the values on a graph. If correct should look more or less like the picture attached below.
 """
-S0 = 120  #EUR/MWh
-k = 5
-theta = 0.3  #EUR/h
-sigma = 10
-y = 0.1 #is the annual escalation factor
-J =  150# mu from table 2
-delta_q = 0.8  #lambda from table 2
 
-T = 10     #years
+def calc_J():
+    """Calcultation of J as random with mean=loc and std=scale"""
+    return  np.random.normal(loc=155, scale=81)  #loc means - mean, scale -std
+
+S0 = 120  #EUR/MWh
+k = 1
+theta = 0.03  #EUR/h
+Lambda = 0.02
+sigma = 0.01
+y = 0  #is the annual escalation factor
+delta_q = 24.26  #lambda from table 2
+#J = calc_J()
+T = 3     #years
 dt = 1.0 / 365  #1day
 N = int(round(T/dt))  #number of periods
+
+
 
 def delta_brownian():
     """Calculated delta betw    een 2 values with normal distribution"""
@@ -34,7 +41,10 @@ def delta_brownian():
 def calc_price_delta(prev_price):
     """Calculated delta price based on @prev_price"""
     delta_Z = delta_brownian()
+    J = calc_J()
     delta_price = k * (theta * 24* (1 + y)- prev_price) * dt + sigma * delta_Z + (J - prev_price) * delta_q
+    J = calc_J()
+    
     return  delta_price
 
 def calc_price_for_period(prev_price):
