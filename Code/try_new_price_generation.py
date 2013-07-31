@@ -15,15 +15,14 @@ As inputs we use:
 Calculate the values for 30 year 10 times and display the values on a graph. If correct should look more or less like the picture attached below.
 """
 S0 = 120  #EUR/MWh
-k = 1
-theta = 0.03  #EUR/h
-Lambda = 0.02
-sigma = 0.01
-y = 0  #is the annual escalation factor
+k = 5
+theta = 0.3  #EUR/h
+sigma = 10
+y = 0.1 #is the annual escalation factor
 J =  150# mu from table 2
-delta_q = 24.26  #lambda from table 2
+delta_q = 0.8  #lambda from table 2
 
-T = 3     #years
+T = 10     #years
 dt = 1.0 / 365  #1day
 N = int(round(T/dt))  #number of periods
 
@@ -35,8 +34,7 @@ def delta_brownian():
 def calc_price_delta(prev_price):
     """Calculated delta price based on @prev_price"""
     delta_Z = delta_brownian()
-    """delta_price = k * (theta * 24* (1 + y) ) * dt - prev_price + sigma * delta_Z + (J - prev_price) * delta_q"""
-    delta_price = sigma * delta_Z + (J - prev_price) * delta_q
+    delta_price = k * (theta * 24* (1 + y)- prev_price) * dt + sigma * delta_Z + (J - prev_price) * delta_q
     return  delta_price
 
 def calc_price_for_period(prev_price):
