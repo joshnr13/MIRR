@@ -6,9 +6,8 @@ We use the Mean-reverting jump diffusion model (formula 4 - see comments)
 
 As inputs we use:
 - starting S - config value - 120 EUR/MWh
- - k -  for now use a uniform value - is a config value and set it to 1
+- k -  for now use a uniform value - is a config value and set it to 1
 - theta -  config value - 0,3 EUR/h
-- lambda - config value - 0,02
 -  sigma -  for now use a uniform value - is a config value and set it to 0,1
 - J use the values in table 2 - see comments
 - dq - is a possion process - use lambda from table 2
@@ -17,26 +16,27 @@ Calculate the values for 30 year 10 times and display the values on a graph. If 
 """
 S0 = 120  #EUR/MWh
 k = 1
-theta = 0.3  #EUR/h
+theta = 0.03  #EUR/h
 Lambda = 0.02
-sigma = 0.1
+sigma = 0.01
 y = 0  #is the annual escalation factor
-J =  154.85# mu from table 2
+J =  150# mu from table 2
 delta_q = 24.26  #lambda from table 2
 
-T = 30  #years
+T = 3     #years
 dt = 1.0 / 365  #1day
 N = int(round(T/dt))  #number of periods
 
 def delta_brownian():
-    """Calculated delta between 2 values with normal distribution"""
+    """Calculated delta betw    een 2 values with normal distribution"""
     two_randoms = np.random.standard_normal(size = 2)
     return  np.sqrt(dt) * (two_randoms[1] - two_randoms[0])
 
 def calc_price_delta(prev_price):
     """Calculated delta price based on @prev_price"""
     delta_Z = delta_brownian()
-    delta_price = k * (theta * (1 + y) - prev_price ) * dt + sigma * delta_Z + (J - prev_price) * delta_q
+    """delta_price = k * (theta * 24* (1 + y) ) * dt - prev_price + sigma * delta_Z + (J - prev_price) * delta_q"""
+    delta_price = sigma * delta_Z + (J - prev_price) * delta_q
     return  delta_price
 
 def calc_price_for_period(prev_price):
