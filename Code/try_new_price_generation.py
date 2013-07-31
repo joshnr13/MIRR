@@ -32,7 +32,7 @@ def calc_J():
 
 def delta_brownian():
     """Calculated delta betw    een 2 values with normal distribution"""
-    two_randoms = np.randself.om.standard_normal(size = 2)
+    two_randoms = np.random.standard_normal(size = 2)
     return  np.sqrt(dt) * (two_randoms[1] - two_randoms[0])
 
 def calc_price_delta(prev_price):
