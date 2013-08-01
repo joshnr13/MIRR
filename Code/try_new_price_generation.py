@@ -30,18 +30,8 @@ delta_q = 0.5  #random variable with Poisson distribution with lambda 24.26
 T = 10     #years
 dt = 1.0 / 365  #1day
 N = int(round(T/dt))  #number of periods
-Lambda_table2 = 24.26  #lambda from table 2
 
-def poisson_distribution_value(lam=Lambda_table2, size=None):
-    """return  Poisson disribution with @lam
-    if size is None - return 1 value (numerical)
-    otherwise return list with values with length = size
-    """
-    return  np.random.poisson(lam, size)
 
-def delta_poisson_distribution(lam=Lambda_table2):
-    """return  delta between 2 values from poisson distribution with defined @lam"""
-    return  np.diff(poisson_distribution_value(lam, 2))[0]
 
 def delta_brownian():
     """Calculated delta betw    een 2 values with normal distribution"""
@@ -52,10 +42,6 @@ def calc_price_delta(prev_price):
     """Calculated delta price based on @prev_price"""
     delta_Z = delta_brownian()
     J = calc_J()
-
-    delta_q = poisson_distribution_value()
-    #delta_q = delta_poisson_distribution()
-
     delta_price = k * (theta * 24* (1 + y)- prev_price) * dt + sigma * delta_Z + (J - prev_price) * delta_q
     return  delta_price
 
