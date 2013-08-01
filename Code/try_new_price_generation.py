@@ -17,37 +17,50 @@ Calculate the values for 30 year 10 times and display the values on a graph. If 
 
 def calc_J():
     """Calcultation of J as random with mean=loc and std=scale"""
-    return  np.random.normal(loc=155, scale=81)  #loc means - mean, scale -std
+    return  np.random.normal(loc=130, scale=11)  #loc means - mean, scale -std
 
 S0 = 120  #EUR/MWh
-k = 1
-theta = 0.03  #EUR/h
+k = 365
+theta = 4.5  #EUR/h
 Lambda = 0.02
-sigma = 0.01
-y = 0  #is the annual escalation factor
-delta_q = 24.26  #lambda from table 2
+sigma = 5
+y = 0.1  #is the annual escalation factor
+delta_q = 0.5  #random variable with Poisson distribution with lambda 24.26
 #J = calc_J()
-T = 3     #years
+T = 10     #years
 dt = 1.0 / 365  #1day
 N = int(round(T/dt))  #number of periods
+Lambda_table2 = 24.26  #lambda from table 2
 
+def poisson_distribution_value(lam=Lambda_table2, size=None):
+    """return  Poisson disribution with @lam
+    if size is None - return 1 value (numerical)
+    otherwise return list with values with length = size
+    """
+    return  np.random.poisson(lam, size)
 
+def delta_poisson_distribution(lam=Lambda_table2):
+    """return  delta between 2 values from poisson distribution with defined @lam"""
+    return  np.diff(poisson_distribution_value(lam, 2))[0]
 
 def delta_brownian():
     """Calculated delta betw    een 2 values with normal distribution"""
     two_randoms = np.random.standard_normal(size = 2)
-    return  np.sqrt(dt) * (two_randoms[1] - two_randoms[0])
+    return  (two_randoms[1] - two_randoms[0])
 
 def calc_price_delta(prev_price):
     """Calculated delta price based on @prev_price"""
     delta_Z = delta_brownian()
     J = calc_J()
-    #"""delta_price = k * (theta * 24* (1 + y) ) * dt - prev_price + sigma * delta_Z + (J - prev_price) * delta_q"""
-    delta_price = sigma * delta_Z + (J - prev_price) * delta_q
+
+    delta_q = poisson_distribution_value()
+    #delta_q = delta_poisson_distribution()
+
+    delta_price = k * (theta * 24* (1 + y)- prev_price) * dt + sigma * delta_Z + (J - prev_price) * delta_q
     return  delta_price
 
 def calc_price_for_period(prev_price):
-    """Calculate delta price for whole period"""
+    """Calculate price for whole period"""
     result = []
     for i in range(N):
         price = prev_price + calc_price_delta(prev_price)
