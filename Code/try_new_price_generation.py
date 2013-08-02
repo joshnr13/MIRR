@@ -15,15 +15,15 @@ As inputs we use:
 Calculate the values for 30 year 10 times and display the values on a graph. If correct should look more or less like the picture attached below.
 """
 
-S0 = 120  #EUR/MWh
+S0 = 150  #EUR/MWh
 k = 1
 theta = 4.5  #EUR/h
-Lambda = 24
-sigma = 0
-y = 0.1  #is the annual escalation factor
+Lambda = 200  # Lambda for the Poisson process used for price jumps
+sigma = 5
+y = 0.02  #is the annual escalation factor
 delta_q = 0.5  #random variable with Poisson distribution with lambda 24.26
 #J = calc_J()
-T = 3     #years
+T = 10     #years
 dt = 1.0 / 365  #1day
 N = int(round(T/dt))  #number of periods
 
@@ -65,7 +65,7 @@ class Poisson_step():
 
 def calc_J():
     """Calcultation of J as random with mean=loc and std=scale"""
-    return  np.random.normal(loc=130, scale=11)  #loc means - mean, scale -std
+    return  np.random.normal(loc=150, scale=5)  #loc means - mean, scale -std
 
 def poisson_distribution_value(lam=Lambda, size=None):
     """return  Poisson disribution with @lam
@@ -86,7 +86,7 @@ def calc_price_delta(prev_price, iteration_no):
 
     delta_q = poisson_steps.get_delta(iteration_no)
 
-    delta_price = k * (theta * 24* (1 + y)- prev_price) * dt + sigma * delta_Z + (J - prev_price) * delta_q
+    delta_price = k * (theta * 24* (1 + y*iteration_no/365)- prev_price) * dt + sigma * delta_Z + (J*(1 + y*iteration_no/365) - prev_price) * delta_q
     return  delta_price
 
 def calc_price_for_period(prev_price):
