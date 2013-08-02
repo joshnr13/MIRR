@@ -15,10 +15,6 @@ As inputs we use:
 Calculate the values for 30 year 10 times and display the values on a graph. If correct should look more or less like the picture attached below.
 """
 
-def calc_J():
-    """Calcultation of J as random with mean=loc and std=scale"""
-    return  np.random.normal(loc=130, scale=11)  #loc means - mean, scale -std
-
 S0 = 120  #EUR/MWh
 k = 1
 theta = 4.5  #EUR/h
@@ -31,6 +27,46 @@ T = 3     #years
 dt = 1.0 / 365  #1day
 N = int(round(T/dt))  #number of periods
 
+class Poisson_step():
+    """class for holding generated Poisson values"""
+    def __init__(self, lam, size):
+        self.lam = lam
+        self.size = size
+        self.generate_values()
+        self.make_step()
+        self.make_function()
+
+    def generate_values(self):
+        """Generate poisson values"""
+        self.vals = poisson_distribution_value(self.lam, self.size)
+
+    def make_step(self):
+        """Make step (path) from generated poisson values"""
+        self.step_vals = np.cumsum(self.vals)
+
+    def make_function(self):
+        """Make function - dict
+        where key in integers from x value,
+        value - current iteration no, ie y value
+        """
+        result = {}
+        x0 = 0
+        for i, x in enumerate(self.step_vals):
+            vals_range = xrange(x0, x)
+            for k in vals_range:
+                result[k] = i
+            x0 = x
+        self.function = result
+
+    def get_delta(self, index):
+        """return  delta between current index and previous"""
+        return  self.function[index] - self.function[index-1]
+
+
+def calc_J():
+    """Calcultation of J as random with mean=loc and std=scale"""
+    return  np.random.normal(loc=130, scale=11)  #loc means - mean, scale -std
+
 def poisson_distribution_value(lam=Lambda, size=None):
     """return  Poisson disribution with @lam
     if size is None - return 1 value (numerical)
@@ -38,22 +74,17 @@ def poisson_distribution_value(lam=Lambda, size=None):
     """
     return  np.random.poisson(lam, size)
 
-def delta_poisson_distribution(lam=Lambda):
-    """return  delta between 2 values from poisson distribution with defined @lam"""
-    return  np.diff(poisson_distribution_value(lam, 2))[0]
-
 def delta_brownian():
     """Calculated delta betw    een 2 values with normal distribution"""
     two_randoms = np.random.standard_normal(size = 2)
     return  (two_randoms[1] - two_randoms[0])
 
-def calc_price_delta(prev_price):
+def calc_price_delta(prev_price, iteration_no):
     """Calculated delta price based on @prev_price"""
     delta_Z = delta_brownian()
     J = calc_J()
 
-    #delta_q = poisson_distribution_value()
-    #delta_q = delta_poisson_distribution()
+    delta_q = poisson_steps.get_delta(iteration_no)
 
     delta_price = k * (theta * 24* (1 + y)- prev_price) * dt + sigma * delta_Z + (J - prev_price) * delta_q
     return  delta_price
@@ -61,12 +92,16 @@ def calc_price_delta(prev_price):
 def calc_price_for_period(prev_price):
     """Calculate price for whole period"""
     result = []
-    for i in range(N):
-        price = prev_price + calc_price_delta(prev_price)
+    for i in range(1, N+1):
+        price = prev_price + calc_price_delta(prev_price, i)
         prev_price = price
         result.append(price)
     return  result
 
-price = calc_price_for_period(S0)
-pylab.plot(price)
-pylab.show()
+if __name__ == '__main__':
+
+    poisson_steps = Poisson_step(Lambda, size=N)
+    price = calc_price_for_period(S0)
+
+    pylab.plot(price)
+    pylab.show()
