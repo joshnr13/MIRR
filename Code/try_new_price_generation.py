@@ -17,9 +17,9 @@ Calculate the values for 30 year 10 times and display the values on a graph. If 
 
 S0 = 150  #EUR/MWh
 k = 1
-theta = 4.5  #EUR/h
-Lambda = 200  # Lambda for the Poisson process used for price jumps
-sigma = 5
+theta = 150  #EUR/MWh
+Lambda = 24  # Lambda for the Poisson process used for price jumps
+sigma = 2
 y = 0.02  #is the annual escalation factor
 delta_q = 0.5  #random variable with Poisson distribution with lambda 24.26
 #J = calc_J()
@@ -65,7 +65,7 @@ class Poisson_step():
 
 def calc_J():
     """Calcultation of J as random with mean=loc and std=scale"""
-    return  np.random.normal(loc=150, scale=5)  #loc means - mean, scale -std
+    return  np.random.normal(loc=150, scale=80)  #loc means - mean, scale -std
 
 def poisson_distribution_value(lam=Lambda, size=None):
     """return  Poisson disribution with @lam
