@@ -4,7 +4,7 @@ import pylab
 import csv
 
 from _mirr import Mirr
-from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv, get_only_digits_list
+from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv, get_only_digits_list, calc_statistics
 from collections import OrderedDict, defaultdict
 from database import Database
 from config_readers import MainConfig
@@ -12,8 +12,7 @@ from report_output import ReportOutput
 from numbers import Number
 from charts import show_irr_charts, plot_histograms
 from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, report_directory, CORRELLATION_FIELDS
-from numpy import corrcoef, around, isnan, std, mean, median
-from  scipy.stats import skew, kurtosis
+
 
 db = Database()
 
@@ -248,20 +247,6 @@ class Simulation():
         self.add_result_irrs()
 
 
-def calc_statistics(values):
-    """input @list of values
-    output @dict with keys - stat name, value=stat_value
-    """
-    result = OrderedDict()
-    result['std'] = std(values)
-    result['skew'] = skew(values)
-    result['kurtosis'] = kurtosis(values)
-    result['mean'] = mean(values)
-    result['min'] = min(values)
-    result['max'] = max(values)
-    result['median'] = median(values)
-    result['variance'] = result['std'] ** 0.5
-    return  result
 
 
 

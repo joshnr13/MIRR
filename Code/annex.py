@@ -21,6 +21,8 @@ from collections import OrderedDict
 from numbers import Number
 from decimal import Decimal
 from scipy.optimize import newton
+from numpy import corrcoef, around, isnan, std, mean, median
+from  scipy.stats import skew, kurtosis
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.cell import get_column_letter
@@ -123,6 +125,21 @@ def get_multiplier(_from, _to, step):
         digits.append(digit)
     max_digits = max(digits)
     return float(10 ** (max_digits))
+
+def calc_statistics(values):
+    """input @list of values
+    output @dict with keys - stat name, value=stat_value
+    """
+    result = OrderedDict()
+    result['std'] = std(values)
+    result['skew'] = skew(values)
+    result['kurtosis'] = kurtosis(values)
+    result['mean'] = mean(values)
+    result['min'] = min(values)
+    result['max'] = max(values)
+    result['median'] = median(values)
+    result['variance'] = result['std'] ** 0.5
+    return  result
 
 
 def float_range(_from, _to, step, include=False):
