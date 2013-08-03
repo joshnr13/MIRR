@@ -1,5 +1,6 @@
 import numpy as np
 import pylab
+from annex import calc_statistics
 
 """
 We use the Mean-reverting jump diffusion model (formula 4 - see comments)
@@ -103,5 +104,21 @@ if __name__ == '__main__':
     poisson_steps = Poisson_step(Lambda, size=N)
     price = calc_price_for_period(S0)
 
-    pylab.plot(price)
+    stats = calc_statistics(price)
+    fig = pylab.figure()
+
+    ax1 = fig.add_subplot(211)
+    ax2 = fig.add_subplot(212)  # share ax1's xaxis
+
+    stats = "; ".join(['%s=%s' % (k, round(v, 2)) for k, v in stats.items()])
+    ax1.plot(price)
+    ax2.hist(price, label='Electricity price histogram\n$%s$' %stats)
+    # Shink current axis's height by 10% on the bottom
+    box = ax1.get_position()
+    ax1.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+
+    # Put a legend below current axis
+    ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+              fancybox=True, shadow=True)
+
     pylab.show()
