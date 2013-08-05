@@ -5,8 +5,9 @@ import os
 import random
 import datetime
 import ConfigParser
-from annex import add_x_months, add_x_years, get_report_dates, get_configs, float_range, get_list_dates
+from annex import add_x_months, add_x_years, get_report_dates, get_configs, float_range, get_list_dates, cached_property
 from constants import TESTMODE
+import numpy
 
 class ModuleConfigReader():
     def __init__(self, _filename='main_config.ini'):
@@ -90,6 +91,10 @@ class MainConfig():
         """
         return self.configs
 
+    @cached_property
+    def weather_data_rnd_simulation(self):
+        return random.randint(1, 100)
+
 class SubsidyModuleConfigReader():
     def __init__(self, _filename='sm_config.ini'):
         """Reads module config file"""
@@ -121,6 +126,9 @@ class SubsidyModuleConfigReader():
 
     def getConfigsValues(self):
         return  self.configs
+
+
+
 
 class TechnologyModuleConfigReader():
     def __init__(self, _filename='tm_config.ini'):
@@ -223,6 +231,22 @@ class EnergyModuleConfigReader():
     def getConfigsValues(self):
         return  self.configs
 
+
+class EmInputsReader():
+    def __init__(self):
+        """Loads inputs to memory"""
+        filepath = os.path.join(os.getcwd(), 'inputs', 'em_input.txt')
+        self.inputs = numpy.genfromtxt(filepath, dtype=None, delimiter=';',  names=True)
+        self.inputs_insolations = [i[1] for i in self.inputs]
+        self.inputs_temperature = [i[2] for i in self.inputs]
+
+    def getAvMonthInsolation_month(self, month):
+        """Returns average daily insolation in given date"""
+        return self.inputs_insolations[month]
+
+    def getAvMonthTemperature_month(self, month):
+        """Returns average daily insolation in given date"""
+        return self.inputs_temperature[month]
 
 if __name__ == '__main__':
 

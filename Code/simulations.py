@@ -3,16 +3,17 @@ import datetime
 import pylab
 import csv
 
+
 from _mirr import Mirr
-from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv, get_only_digits_list, calc_statistics
+from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv, get_only_digits_list, calc_statistics, get_report_dates
 from collections import OrderedDict, defaultdict
 from database import Database
-from config_readers import MainConfig
+from config_readers import MainConfig, EmInputsReader, EnergyModuleConfigReader
 from report_output import ReportOutput
 from numbers import Number
 from charts import show_irr_charts, plot_histograms
-from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, report_directory, CORRELLATION_FIELDS
-
+from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, report_directory, CORRELLATION_FIELDS, TESTMODE
+from numpy.random import normal as gauss
 
 db = Database()
 
@@ -246,13 +247,8 @@ class Simulation():
         self.convert_results()
         self.add_result_irrs()
 
-
-
-
-
 def print_equipment_db(simulation_no, iteration_no=1):
     return  db.get_iteration_field(simulation_no, iteration_no, 'equipment_description')
-
 
 def run_save_simulation(iterations_no, comment):
     """
@@ -396,6 +392,81 @@ def save_stochastic_values_by_simulation(dic_values, simulation_no):
     print "Stochastic Report outputed to file %s" % (xls_output_filename)
 
 
+class WeatherSimulations():
+    def __init__(self, period, simulations_no):
+        """
+        inputs - class with inputs
+        @period - list dates for simulation
+        """
+        config = EnergyModuleConfigReader()
+        self.mean = config.mean
+        self.stdev = config.stdev
+        self.period = period
+        self.simulations_no = simulations_no
+        self.inputs = EmInputsReader()
+        self.db = Database()
+
+    def clend_prev_data(self):
+        print "Cleaning previous data"
+        self.db.clean_previous_weather_data()
+
+    def simulate(self):
+        self.clend_prev_data()
+        for simulation_no in range(1, self.simulations_no+1):
+            data = self.generate_one_simulation(simulation_no)
+            self.write_weather_data(data)
+
+    def generate_one_simulation(self, simulation_no):
+
+        days_dict = OrderedDict()
+        for date in self.period:
+            insolation, temperature = self.generate_weather_data(date)
+            date_str = date.strftime("%Y-%m-%d")
+            days_dict[date_str] = (insolation, temperature)
+        simulation_result = {"simulation_no": simulation_no, "data": days_dict}
+        return  simulation_result
+
+    def write_weather_data(self, data):
+        self.db.write_weather_data(data)
+        print 'Writing simulation %s' % data["simulation_no"]
+
+    def generate_weather_data(self, date):
+        """
+        generates insolation and temperature for given_data
+        - each time new random factor used
+        return  2 values:  insolation, temperature
+        """
+        rnd_factor = self.getRandomFactor()
+        insolation = self.getAvMonthInsolation(date) * rnd_factor
+        temperature = self.getAvMonthTemperature(date) * rnd_factor
+
+        return  insolation, temperature
+
+    def getRandomFactor(self):
+        """return random factor with normal distribution"""
+        if not TESTMODE:
+            return gauss(self.mean, self.stdev)
+        else:
+            return self.mean
+
+    def getAvMonthInsolation(self, date):
+        """Returns average daily insolation in given date"""
+        month = date.month - 1
+        av_insolation = self.inputs.getAvMonthInsolation_month(month)
+        return av_insolation
+
+    def getAvMonthTemperature(self, date):
+        """Returns average daily temperature in given date"""
+        month = date.month - 1
+        av_temperature = self.inputs.getAvMonthTemperature_month(month)
+        return av_temperature
+
+    def generatePrimaryEnergyAvaialbility(self, date):
+        """Parameters: start date
+        based on monthly averages creates daily data
+        """
+        result = self.getAvMonthInsolation(date) * self.getRandomFactor()
+        return result
 
 
 if __name__ == '__main__':
@@ -408,6 +479,16 @@ if __name__ == '__main__':
     #s.run_simulations(10)
 
     #show_save_irr_distribution(2)
-    plotsave_stochastic_values_by_simulation(60)
+    #plotsave_stochastic_values_by_simulation(60)
+    from annex import get_list_dates
+    date_start = datetime.date(2001, 1, 1)
+    date_end = datetime.date(2051, 1, 1)
+    #period =get_report_dates(date_start, date_end)[0].values()
+    period = get_list_dates(date_start, date_end)
+    print 1
+    s = WeatherSimulations(period, 100)
+    #s.simulate()
+    print s.db.get_weather_data(1)
+
 
 

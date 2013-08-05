@@ -14,7 +14,8 @@ class Database():
         self.simulation_numbers = self.db['simulation_numbers']
         self.simulations = self.db['simulations']
         self.iterations = self.db['iterations']
-        self.add_iteration_index()
+        self.weater_data = self.db['weater_data']
+        self.add_indexes()
 
     def get_connection(self):
         """get connection to db"""
@@ -26,6 +27,9 @@ class Database():
 
         db = connection['MirrDatabase']
         return db
+
+    def add_indexes(self):
+        self.add_iteration_index()
 
     def add_iteration_index(self):
         self.iterations.ensure_index('simulation', background=True )
@@ -306,6 +310,38 @@ class Database():
         results = self.simulations.aggregate(pipeline)['result']
         for r in results:
             print u"Simulation %s date %s - iterations %s - %s" % (r["_id"], r["date"], r["iterations_number"], r['comment'])
+
+    def clean_previous_weather_data(self):
+        self.weater_data.drop()
+
+    def write_weather_data(self, data):
+        """Writes weather data
+        data LIST looks like this:
+                    [
+                    {"simulation_no":"1", "data": {01.01.2001: (ins,temp), 02.01.2001: (ins,temp) ... 31.12.2035: (ins,temp) },
+                    {"simulation_no":"2", "data": {01.01.2001: (ins,temp), 02.01.2001: (ins,temp) ... 31.12.2035: (ins,temp) },
+                    {"simulation_no":"100", "data": {01.01.2001: (ins,temp), 02.01.2001: (ins,temp) ... 31.12.2035: (ins,temp) },
+                    ]
+        """
+        self.weater_data.insert(data, safe=True)
+
+
+    def get_weather_data(self, simulation_no):
+        """Writes weather data
+        data LIST looks like this:
+                    [
+                    {1: {01.01.2001: (ins,temp), 02.01.2001: (ins,temp) ... 31.12.2035: (ins,temp) },
+                    {2: {01.01.2001: (ins,temp), 02.01.2001: (ins,temp) ... 31.12.2035: (ins,temp) },
+                    {100: {01.01.2001: (ins,temp), 02.01.2001: (ins,temp) ... 31.12.2035: (ins,temp) },
+                    ]
+        """
+        result = self.weater_data.find_one({"simulation_no": simulation_no}, {"_id": False})
+        if result:
+
+            return result['data']
+
+
+
 
 
 #def test():

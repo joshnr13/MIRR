@@ -4,7 +4,7 @@ import numpy
 
 from annex import memoize, last_day_month
 from collections import defaultdict
-from em import  InputsReader
+from config_readers import  EmInputsReader
 from datetime import date
 ################################# Equipment ######################
 
@@ -337,7 +337,7 @@ class PlantEquipment():
         return sum([gr.get_group_power() for gr in self.get_Solar_groups()])
 
     def expectedYearProduction(self):
-        inputs = InputsReader()
+        inputs = EmInputsReader()
 
         av_insolations = []
         days = []

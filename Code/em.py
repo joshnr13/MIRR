@@ -7,57 +7,29 @@ import datetime
 import numpy
 import ConfigParser
 import os
-from numpy.random import normal as gauss
+
 
 from base_class import BaseClassConfig
-from config_readers import MainConfig, EnergyModuleConfigReader
+from config_readers import MainConfig, EnergyModuleConfigReader, EmInputsReader
 from constants import TESTMODE
 from collections import OrderedDict
 from annex import get_configs, memoize, getResolutionStartEnd
-
-class InputsReader():
-    def __init__(self):
-        """Loads inputs to memory"""
-        filepath = os.path.join(os.getcwd(), 'inputs', 'em_input.txt')
-        self.inputs = numpy.genfromtxt(filepath, dtype=None, delimiter=';',  names=True)
-        self.inputs_insolations = [i[1] for i in self.inputs]
-
-    #@memoize
-    def getAvMonthInsolation_month(self, month):
-        """Returns average daily insolation in given date"""
-        #return self.inputs[month]['Hopt']
-        return self.inputs_insolations[month]
+from database import  Database
 
 class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 
     def __init__(self, config_module):
         BaseClassConfig.__init__(self, config_module)
         EnergyModuleConfigReader.__init__(self)
-        self.inputs = InputsReader()
+        self.inputs = EmInputsReader()
+        self.db = Database()
+        self.get_weather_data()
         self.calculateInsolations()
 
-    def getRandomFactor(self):
-        """return random factor with normal distribution"""
-        if not TESTMODE:
-            return gauss(self.mean, self.stdev)
-        else:
-            return  self.mean
 
-    def getAvMonthInsolation(self, date):
-        """Returns average daily insolation in given date"""
-        month = date.month - 1
-        return self.inputs.getAvMonthInsolation_month(month)
-
-    def generatePrimaryEnergyAvaialbility(self, date):
-        """Parameters: start date
-        based on monthly averages creates daily data
-        """
-        result = self.getAvMonthInsolation(date) * self.getRandomFactor()
-        return result
-
-    def generatePrimaryEnergyAvaialbilityLifetime(self):
-        """return energy availability per each day in whole lifetime"""
-        return self.insolations.values()
+    #def generatePrimaryEnergyAvaialbilityLifetime(self):
+        #"""return energy availability per each day in whole lifetime"""
+        #return self.insolations.values()
 
     def getCumulativePrimaryEnergy(self, start_date, end_date):
         """
@@ -89,11 +61,19 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 
         return x,y
 
+    def get_weather_data(self):
+        """Takes weather data from database"""
+        self.weather_data = self.db.get_weather_data(self.weather_data_rnd_simulation)
+        if not self.weather_data:
+            raise ValueError("Please generate first Weather data before using it")
+
     def calculateInsolations(self):
         """Calculating insolations for whole project"""
         last_day_construction = self.last_day_construction
-        date_list = self.all_dates
-        self.insolations = OrderedDict((date, self.generatePrimaryEnergyAvaialbility(date) if date > last_day_construction else 0) for date in date_list)
+        insolations = OrderedDict()
+        for date in self.all_dates:
+            insolations[date] = self.weather_data[date.strftime('%Y-%m-%d')][0] if date > last_day_construction else 0
+        self.insolations = insolations
 
     def get_insolation(self,  date):
         return  self.insolations[date]
@@ -123,11 +103,6 @@ if __name__ == '__main__':
     mainconfig = MainConfig()
     em = EnergyModule(mainconfig)
 
-    #print em.generatePrimaryEnergyAvaialbilityLifetime()
-    #start_date = datetime.date(2013, 1, 1)
-    #end_date = datetime.date(2023, 12, 31)
-    #em.outputPrimaryEnergy(start_date, end_date)
-    #print (end_date - start_date).days
-    i =  InputsReader()
-    print [i[1] for i in i.inputs]
+    em.calculateInsolations()
+    print  em.insolations
 

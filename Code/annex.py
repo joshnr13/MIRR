@@ -283,6 +283,11 @@ def add_x_months(date, months):
     """return date X months later - 1 day"""
     return  date + relativedelta(months=int(months)) - relativedelta(days=1)
 
+@memoized
+def get_list_dates( date_start, date_end):
+    duration_days = (date_end - date_start).days
+    list_dates = list([(date_start+timedelta(days=i)) for i in range(duration_days+1)])
+    return list_dates
 
 def uniquify_filename(path, sep = ''):
     """Return free filename, if file name is Busy adds suffix _number
@@ -666,11 +671,7 @@ def invert_dict(d):
         newdict[v] = k
     return newdict
 
-@memoized
-def get_list_dates( date_start, date_end):
-    duration_days = (date_end - date_start).days
-    list_dates = list([(date_start+timedelta(days=i)) for i in range(duration_days+1)])
-    return list_dates
+
 
 
 if __name__ == '__main__':

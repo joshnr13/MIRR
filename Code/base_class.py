@@ -51,5 +51,12 @@ class BaseClassConfig():
     def all_dates(self):
         return  self._config_module.getAllDates()
 
+    @property
+    def weather_data_rnd_simulation(self):
+        return  self._config_module.weather_data_rnd_simulation
+
+
+
+
 
 

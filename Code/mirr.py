@@ -9,6 +9,7 @@ from annex import get_input_date, get_input_int, cached_property, memoize, get_i
 from database import Database
 
 from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution, print_equipment_db, plotsave_stochastic_values_by_simulation
+from simulations import WeatherSimulations
 from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts, step_chart
 from report_output import ReportOutput
 from config_readers import MainConfig
@@ -34,10 +35,12 @@ commands['10'] = 'npv_correlations'
 commands['11'] = 'stochastic_distributions'
 commands['12'] = 'simulations_log'
 commands['13'] = 'delete_simulation'
+commands['14'] = 'generate_weather_data'  #daily insolation and Temperature
 
 class Interface():
     def __init__(self):
         self.db = Database()
+        self.main_config = MainConfig()
 
     def run_simulation(self, iterations_no=None, comment=None):
         """Running simulation and saving results"""
@@ -47,7 +50,7 @@ class Interface():
             comment = get_input_comment()
 
         simulation_no = run_save_simulation(iterations_no, comment)
-        
+
 
     def irr_distribution(self, simulation_no=None):
         """Shows last N irrs distribution from database"""
@@ -107,6 +110,12 @@ class Interface():
         if simulation_no is  None:
             simulation_no = self.get_input_simulation("DELETING: ")
         self.db.delete_simulation(simulation_no)
+
+    def generate_weather_data(self):
+        simulations_no = 100
+        period = self.main_config.getAllDates()
+        simulations = WeatherSimulations(period, simulations_no)
+        simulations.simulate()
 
     def _run_correlations(self, field):
         """field - dict [short_name] = database name"""
