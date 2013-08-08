@@ -10,8 +10,9 @@ import datetime as dt
 from datetime import timedelta
 import errno
 import types
-import numpy as np
+import numpy as np; np.seterr(all='raise')
 import sys
+import datetime
 
 from functools import partial
 from math import floor
@@ -131,14 +132,24 @@ def calc_statistics(values):
     output @dict with keys - stat name, value=stat_value
     """
     result = OrderedDict()
-    result['std'] = std(values)
-    result['skew'] = skew(values)
-    result['kurtosis'] = kurtosis(values)
-    result['mean'] = mean(values)
-    result['min'] = min(values)
-    result['max'] = max(values)
-    result['median'] = median(values)
-    result['variance'] = result['std'] ** 0.5
+    if len(values) > 1:
+        result['std'] = std(values)
+        result['skew'] = skew(values)
+        result['kurtosis'] = kurtosis(values)
+        result['mean'] = mean(values)
+        result['min'] = min(values)
+        result['max'] = max(values)
+        result['median'] = median(values)
+        result['variance'] = result['std'] ** 0.5
+    else:
+        result['std'] = std(values)
+        result['skew'] = float('nan')
+        result['kurtosis'] = float('nan')
+        result['mean'] = mean(values)
+        result['min'] = min(values)
+        result['max'] = max(values)
+        result['median'] = median(values)
+        result['variance'] = result['std'] ** 0.5
     return  result
 
 
@@ -288,6 +299,10 @@ def get_list_dates( date_start, date_end):
     duration_days = (date_end - date_start).days
     list_dates = list([(date_start+timedelta(days=i)) for i in range(duration_days+1)])
     return list_dates
+
+def convert_dict_dates(dic):
+    return dict((datetime.datetime.strptime(x, '%Y-%m-%d').date(), y) for x, y in dic.items())
+
 
 def uniquify_filename(path, sep = ''):
     """Return free filename, if file name is Busy adds suffix _number

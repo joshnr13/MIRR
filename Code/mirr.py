@@ -9,7 +9,7 @@ from annex import get_input_date, get_input_int, cached_property, memoize, get_i
 from database import Database
 
 from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution, print_equipment_db, plotsave_stochastic_values_by_simulation
-from simulations import WeatherSimulations
+from simulations import WeatherSimulations, ElectricitySimulations
 from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts, step_chart
 from report_output import ReportOutput
 from config_readers import MainConfig
@@ -36,6 +36,7 @@ commands['11'] = 'stochastic_distributions'
 commands['12'] = 'simulations_log'
 commands['13'] = 'delete_simulation'
 commands['14'] = 'generate_weather_data'  #daily insolation and Temperature
+commands['15'] = 'generate_electricity_price'  #daily insolation and Temperature
 
 class Interface():
     def __init__(self):
@@ -115,6 +116,12 @@ class Interface():
         simulations_no = 100
         period = self.main_config.getAllDates()
         simulations = WeatherSimulations(period, simulations_no)
+        simulations.simulate()
+
+    def generate_electricity_price(self):
+        simulations_no = 100
+        period = self.main_config.getAllDates()
+        simulations = ElectricitySimulations(period, simulations_no)
         simulations.simulate()
 
     def _run_correlations(self, field):

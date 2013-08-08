@@ -55,6 +55,9 @@ class BaseClassConfig():
     def weather_data_rnd_simulation(self):
         return  self._config_module.weather_data_rnd_simulation
 
+    @property
+    def electricity_prices_rnd_simulation(self):
+        return  self._config_module.electricity_price_rnd_simulation
 
 
 

@@ -3,7 +3,7 @@ import  pymongo
 import pylab
 from collections import defaultdict
 from numbers import Number
-from annex import add_yearly_prefix
+from annex import add_yearly_prefix, convert_dict_dates
 from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD
 from numpy import corrcoef, around, isnan
 
@@ -15,6 +15,7 @@ class Database():
         self.simulations = self.db['simulations']
         self.iterations = self.db['iterations']
         self.weater_data = self.db['weater_data']
+        self.electricity_prices = self.db['electricity_prices']
         self.add_indexes()
 
     def get_connection(self):
@@ -314,6 +315,10 @@ class Database():
     def clean_previous_weather_data(self):
         self.weater_data.drop()
 
+    def clean_previous_electricity_price_data(self):
+        self.electricity_prices.drop()
+
+
     def write_weather_data(self, data):
         """Writes weather data
         data LIST looks like this:
@@ -327,18 +332,19 @@ class Database():
 
 
     def get_weather_data(self, simulation_no):
-        """Writes weather data
-        data LIST looks like this:
-                    [
-                    {1: {01.01.2001: (ins,temp), 02.01.2001: (ins,temp) ... 31.12.2035: (ins,temp) },
-                    {2: {01.01.2001: (ins,temp), 02.01.2001: (ins,temp) ... 31.12.2035: (ins,temp) },
-                    {100: {01.01.2001: (ins,temp), 02.01.2001: (ins,temp) ... 31.12.2035: (ins,temp) },
-                    ]
-        """
         result = self.weater_data.find_one({"simulation_no": simulation_no}, {"_id": False})
         if result:
+            return convert_dict_dates(result['data'])
 
-            return result['data']
+    def write_electricity_prices(self, data):
+        self.electricity_prices.insert(data, safe=True)
+
+    def get_electricity_prices(self, simulation_no):
+        result = self.electricity_prices.find_one({"simulation_no": simulation_no}, {"_id": False})
+        if result:
+            return convert_dict_dates(result['data'])
+
+
 
 
 

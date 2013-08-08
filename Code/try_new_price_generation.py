@@ -75,11 +75,6 @@ def poisson_distribution_value(lam=Lambda, size=None):
     """
     return  np.random.poisson(lam, size)
 
-def delta_brownian():
-    """Calculated delta betw    een 2 values with normal distribution"""
-    two_randoms = np.random.standard_normal(size = 2)
-    return  (two_randoms[1] - two_randoms[0])
-
 def calc_price_delta(prev_price, iteration_no):
     """Calculated delta price based on @prev_price"""
     delta_Z = np.random.normal(loc=0, scale=0.4)
@@ -122,3 +117,4 @@ if __name__ == '__main__':
               fancybox=True, shadow=True)
 
     pylab.show()
+    print N

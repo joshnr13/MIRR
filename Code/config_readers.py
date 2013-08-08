@@ -95,6 +95,10 @@ class MainConfig():
     def weather_data_rnd_simulation(self):
         return random.randint(1, 100)
 
+    @cached_property
+    def electricity_price_rnd_simulation(self):
+        return random.randint(1, 100)
+
 class SubsidyModuleConfigReader():
     def __init__(self, _filename='sm_config.ini'):
         """Reads module config file"""

@@ -72,7 +72,7 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         last_day_construction = self.last_day_construction
         insolations = OrderedDict()
         for date in self.all_dates:
-            insolations[date] = self.weather_data[date.strftime('%Y-%m-%d')][0] if date > last_day_construction else 0
+            insolations[date] = self.weather_data[date][0] if date > last_day_construction else 0
         self.insolations = insolations
 
     def get_insolation(self,  date):
