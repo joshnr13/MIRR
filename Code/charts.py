@@ -281,7 +281,7 @@ def step_chart(simulation_no, iteration_no, start_date, end_date, resolution, fi
     keys = db.get_iteration_field(simulation_no, iteration_no, 'project_days')
 
     keys = map(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').date(), keys)
-    y_all_values = dict((x, y) for x, y in zip(keys, y_all_values[1:]))
+    y_all_values = dict((x, y) for x, y in zip(keys, y_all_values))  #was @!! y_all_values = dict((x, y) for x, y in zip(keys, y_all_values[1:]))
 
     def sum_period(start, days):
         return
@@ -292,10 +292,7 @@ def step_chart(simulation_no, iteration_no, start_date, end_date, resolution, fi
 
     for day_from, day_to in dates_range:
         delta = (day_to - day_from).days
-        try:
-            sum_period = sum([y_all_values[day_from+datetime.timedelta(days=days)] for days in range(delta)])
-        except KeyError:
-           pass
+        sum_period = sum([y_all_values[day_from+datetime.timedelta(days=days)] for days in range(delta)])
         y_values.append(sum_period)
         x_values.append(sm+delta)
         sm += delta
