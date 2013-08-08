@@ -244,7 +244,8 @@ class Database():
 
         correllation_dict = {}
         for k, v in results.items():
-            cor = corrcoef([main_list_values, v] )[0][1]
+            v1 = v[:];v1[0] += 0.00001
+            cor = corrcoef([main_list_values, v1] )[0][1]
             rounded_value = round(cor, 3)
             correllation_dict[k] = rounded_value
 

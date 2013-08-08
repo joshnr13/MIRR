@@ -292,7 +292,10 @@ def step_chart(simulation_no, iteration_no, start_date, end_date, resolution, fi
 
     for day_from, day_to in dates_range:
         delta = (day_to - day_from).days
-        sum_period = sum([y_all_values[day_from+datetime.timedelta(days=days)] for days in range(delta)])
+        try:
+            sum_period = sum([y_all_values[day_from+datetime.timedelta(days=days)] for days in range(delta)])
+        except KeyError:
+           pass
         y_values.append(sum_period)
         x_values.append(sm+delta)
         sm += delta

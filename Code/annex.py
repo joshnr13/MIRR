@@ -133,13 +133,16 @@ def calc_statistics(values):
     """
     result = OrderedDict()
     if len(values) > 1:
-        result['std'] = std(values)
-        result['skew'] = skew(values)
-        result['kurtosis'] = kurtosis(values)
-        result['mean'] = mean(values)
-        result['min'] = min(values)
-        result['max'] = max(values)
-        result['median'] = median(values)
+        values_upd = values[:]
+        values_upd[0] += 0.00001
+
+        result['std'] = std(values_upd)
+        result['skew'] = skew(values_upd)
+        result['kurtosis'] = kurtosis(values_upd)
+        result['mean'] = mean(values_upd)
+        result['min'] = min(values_upd)
+        result['max'] = max(values_upd)
+        result['median'] = median(values_upd)
         result['variance'] = result['std'] ** 0.5
     else:
         result['std'] = std(values)
