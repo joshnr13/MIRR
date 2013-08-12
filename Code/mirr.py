@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding utf-8 -*-
+# Project MIRR - Modelling Investment Risk in Renewables  - Research related to risk quantification at investments in renewable energy sources
+# Project owner Borut Del Fabbro
 
 import sys
 import traceback
@@ -21,7 +23,6 @@ from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2
 
 commands = OrderedDict()
 i = 0
-commands['0'] = 'stop'
 commands['1'] = 'runSimulation'
 commands['2'] = 'getIRRDistributionInfo'
 commands['3'] = 'report_isbscf'
@@ -37,6 +38,7 @@ commands['12'] = 'simulationsLog'
 commands['13'] = 'deleteSimulation'
 commands['14'] = 'generateWeatherData'  #daily insolation and Temperature
 commands['15'] = 'generateElectricityMarketPrice'  #daily electricty market prices
+commands['0'] = 'stop'
 
 class Interface():
     def __init__(self):
@@ -128,21 +130,27 @@ class Interface():
         """field - dict [short_name] = database name"""
         simulation_no = self.get_input_simulation("%s correlations charts: " %field.keys()[0])
         plot_correlation_tornado(field, simulation_no)
+
     @memoize
     def getMirr(self):
         return Mirr()
+
     def get_number_iterations(self, text="", default=""):
         return  get_input_int("Please select number of iterations to run (or press Enter to use default %s) : " %default, default)
+
     def get_input_simulation(self, text=""):
         last_simulation = self.db.get_last_simulation_no()
         return  get_input_int("Please input ID of simulation for %s (or press Enter to use last-run %s): " %(text, last_simulation), last_simulation)
+
     def get_input_iteration(self, text, simulation_no):
         iterations = "[1-%s]" % (self.db.get_iterations_number(simulation_no)+1)
         return  get_input_int("Please enter iteration of Simulation %s for %s from %s (or press Enter to use first): " %(simulation_no, text, iterations), 1)
+
     def get_simulation_iteration_nums(self, text):
         simulation_no =  self.get_input_simulation(text)
         iteration_no =  self.get_input_iteration(text, simulation_no )
         return (simulation_no, iteration_no)
+    
     def get_inputs(self):
         def_start = self.getMirr().main_config.getStartDate()
         def_end = self.getMirr().main_config.getEndDate()
@@ -158,8 +166,10 @@ class Interface():
         return (start_date, end_date, resolution)
     def stop(self):
         raise KeyboardInterrupt("Exit command selected")
+
     def no_such_method(self):
         print "No such function. Try again from allowed %s" % commands.values()
+
     def help(self):
         print "Alowed commands (Short name = full name) "
         for k, v in (commands.items()):
