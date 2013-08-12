@@ -22,8 +22,8 @@ from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2
 commands = OrderedDict()
 i = 0
 commands['0'] = 'stop'
-commands['1'] = 'run_simulation'
-commands['2'] = 'irr_distribution'
+commands['1'] = 'runSimulation'
+commands['2'] = 'getIRRDistribution'
 commands['3'] = 'report_isbscf'
 commands['4'] = 'charts'
 commands['5'] = 'print_equipment'
@@ -43,7 +43,7 @@ class Interface():
         self.db = Database()
         self.main_config = MainConfig()
 
-    def run_simulation(self, iterations_no=None, comment=None):
+    def runSimulation(self, iterations_no=None, comment=None):
         """Running simulation and saving results"""
         if iterations_no is None:
             iterations_no = self.get_number_iterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)
@@ -53,7 +53,7 @@ class Interface():
         simulation_no = run_save_simulation(iterations_no, comment)
 
 
-    def irr_distribution(self, simulation_no=None):
+    def getIRRDistribution(self, simulation_no=None):
         """Shows last N irrs distribution from database"""
         if simulation_no is  None:
             simulation_no =  self.get_input_simulation("plotting IRR distribution ")
