@@ -32,11 +32,11 @@ commands['7'] = 'outputElectricityProduction'
 commands['8'] = 'irr_correlations'
 commands['9'] = 'irr_scatter_charts'
 commands['10'] = 'npv_correlations'
-commands['11'] = 'stochastic_distributions'
-commands['12'] = 'simulations_log'
-commands['13'] = 'delete_simulation'
-commands['14'] = 'generate_weather_data'  #daily insolation and Temperature
-commands['15'] = 'generate_electricity_price'  #daily insolation and Temperature
+commands['11'] = 'distributionOfInputVariables'
+commands['12'] = 'simulationsLog'
+commands['13'] = 'deleteSimulation'
+commands['14'] = 'generateWeatherData'  #daily insolation and Temperature
+commands['15'] = 'generateElectricityMarketPrice'  #daily electricty market prices
 
 class Interface():
     def __init__(self):
@@ -96,29 +96,29 @@ class Interface():
     def npv_correlations(self):
         self._run_correlations(CORRELLATION_NPV_FIELD)
 
-    def stochastic_distributions(self, simulation_no=None):
+    def distributionOfInputVariables(self, simulation_no=None):
         if simulation_no is None:
             simulation_no = self.get_input_simulation("stochastic distribution charts: ")
         plotsave_stochastic_values_by_simulation(simulation_no)
 
-    def simulations_log(self, last=None):
+    def simulationsLog(self, last=None):
         default = 10
         if last is  None:
             last = get_input_int("Please input number of number of last simulations to display (or press Enter to use default %s) : " %default, default)
         self.db.get_last_simulations_log(last)
 
-    def delete_simulation(self, simulation_no=None):
+    def deleteSimulation(self, simulation_no=None):
         if simulation_no is  None:
             simulation_no = self.get_input_simulation("DELETING: ")
         self.db.delete_simulation(simulation_no)
 
-    def generate_weather_data(self):
+    def generateWeatherData(self):
         simulations_no = 100
         period = self.main_config.getAllDates()
         simulations = WeatherSimulations(period, simulations_no)
         simulations.simulate()
 
-    def generate_electricity_price(self):
+    def generateElectricityMarketPrice(self):
         simulations_no = 100
         period = self.main_config.getAllDates()
         simulations = ElectricitySimulations(period, simulations_no)
