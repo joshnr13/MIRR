@@ -29,28 +29,21 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.calc_electricity_production_lifetime()
 
 
-    def calc_config_values(self):
-        self.investments = self.technology_module.getInvestmentCost()
-        self.investments_monthly = OrderedDefaultdict(int)
-        self.investmentEquipment = self.investments
-        self.debt = self.debt_share * self.investments
-        self.capital = self.investments - self.debt
+    def calc_config_values(self): #init of the module
+        self.investments = self.technology_module.getInvestmentCost() #gets the value of the whole investment from the technology module
+        self.investments_monthly = OrderedDefaultdict(int) 
+        self.investmentEquipment = self.technology_module.getInvestmentCost() #sets the investment in equipment as the whole investment in technology
+        self.debt = self.debt_share * self.investments #calculates the amount of debt based on share of debt in financing
+        self.capital = self.investments - self.debt #calculates the amount of capital based on the amount of debt
 
-    def calc_electricity_production_lifetime(self):
+    def calc_electricity_production_lifetime(self): #gets the electricty production for the whole lifetime of the project as provided by the techology module
         self.electricity_production = self.technology_module.generateElectricityProductionLifeTime()
 
-    def get_electricity_prices_lifetime(self):
+    def get_electricity_prices_lifetime(self): #reads random time sequence of electricity market prices from database 
         self.electricity_prices = self.db.get_electricity_prices(self.electricity_prices_rnd_simulation)
         if not self.electricity_prices:
             raise ValueError("Please generate first Electricity prices before using it")
-        #price = self.market_price
-        #growth = 1 + self.price_groth_rate
-        #dates = self.all_dates
-        #start_year = self.start_date_project.year
-        #last_day_construction = self.last_day_construction
-
-        #self.electricity_prices = OrderedDict((date, price* (growth**(date.year-start_year) if date>last_day_construction else 0))  for date in dates)
-
+        
     def get_electricity_production_lifetime(self):
         return  self.electricity_production
 
