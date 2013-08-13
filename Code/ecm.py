@@ -17,7 +17,7 @@ from collections import OrderedDict
 from database import Database
 
 
-class ElectricityMarketPriceSimulation():
+class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     S0 = 70  #EUR/MWh
     k = 5
     theta = 70  #EUR/MWh

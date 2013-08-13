@@ -215,7 +215,20 @@ class EconomicModuleConfigReader():
 
         self.deprication_duration = _config.getfloat('Amortization', 'duration')
 
+        ######################### ElectricityMarketPriceSimulation ############
+
+        self.S0 = _config.getfloat('ElectricityMarketPriceSimulation', 'S0')
+        self.dt =  _config.getfloat('ElectricityMarketPriceSimulation', 'dt')
+        self.Lambda = _config.getfloat('ElectricityMarketPriceSimulation', 'Lambda')
+        self.y = _config.getfloat('ElectricityMarketPriceSimulation', 'y')
+        self.delta_q = _config.getfloat('ElectricityMarketPriceSimulation', 'delta_q')
+        self.theta = _config.getfloat('ElectricityMarketPriceSimulation', 'theta')
+        self.k = _config.getfloat('ElectricityMarketPriceSimulation', 'k')
+        self.sigma = _config.getfloat('ElectricityMarketPriceSimulation', 'sigma')
+
         self.configs = get_configs(self.__dict__)
+
+
 
     def getConfigsValues(self):
         return  self.configs
