@@ -174,7 +174,7 @@ class TechnologyModuleConfigReader():
 
 
 class EconomicModuleConfigReader():
-    def __init__(self,  _filename='ecm_config.ini'):
+    def __init__(self, start_date_project, _filename='ecm_config.ini'):
         """Reads module config file
         @self.insuranceLastDayEquipment - last day when we need to pay for insurance
         """
@@ -188,7 +188,7 @@ class EconomicModuleConfigReader():
         self.insuranceFeeEquipment = _config.getfloat('Costs', 'insuranceFeeEquipment') / 100
         self.insuranceDurationEquipment = _config.getfloat('Costs', 'insuranceDurationEquipment')
 
-        self.insuranceLastDayEquipment = add_x_years(self.start_date_project, self.insuranceDurationEquipment)
+        self.insuranceLastDayEquipment = add_x_years(start_date_project, self.insuranceDurationEquipment)
 
         self.developmentCostDuringPermitProcurement = _config.getfloat('Costs', 'developmentCostDuringPermitProcurement')
         self.developmentCostDuringConstruction = _config.getfloat('Costs', 'developmentCostDuringConstruction')
@@ -242,6 +242,8 @@ class EnergyModuleConfigReader():
 
         self.mean = _config.getfloat('NormalDistribution', 'mean')
         self.stdev = _config.getfloat('NormalDistribution', 'stdev_percent') * self.mean / 100
+        self.TMin = _config.getfloat('WeatherSimulation', 'TMin')
+        self.TMax = _config.getfloat('WeatherSimulation', 'TMax')
 
         self.configs = get_configs(self.__dict__)
 

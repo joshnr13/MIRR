@@ -18,16 +18,10 @@ from database import Database
 
 
 class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
-    S0 = 70  #EUR/MWh
-    k = 5
-    theta = 70  #EUR/MWh
-    Lambda = 24  # Lambda for the Poisson process used for price jumps
-    sigma = 0.5
-    y = 0.02  #is the annual escalation factor
-    delta_q = 0.5  #random variable with Poisson distribution with lambda 24.26
-    dt = 1.0 / 365  #1day
 
     def __init__(self, period, simulations_no):
+        start_date_project = period[0]
+        EconomicModuleConfigReader.__init__(self, start_date_project)
         self.N = len(period)
         self.period = period
         self.simulations_no = simulations_no
@@ -127,7 +121,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def __init__(self, config_module, technology_module, subside_module):
         BaseClassConfig.__init__(self, config_module)
-        EconomicModuleConfigReader.__init__(self)
+        EconomicModuleConfigReader.__init__(self, self.start_date_project)
         self.db = Database()
         self.technology_module = technology_module
         self.subside_module = subside_module

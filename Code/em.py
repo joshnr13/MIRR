@@ -99,14 +99,12 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         pylab.step(x, y)
         pylab.show()
 
-class WeatherSimulation():
+class WeatherSimulation(EnergyModuleConfigReader):
     def __init__(self, period, simulations_no):
         """
         @period - list dates for simulation
         """
-        config = EnergyModuleConfigReader()
-        self.mean = config.mean
-        self.stdev = config.stdev
+        EnergyModuleConfigReader.__init__(self)
         self.period = period
         self.simulations_no = simulations_no
         self.inputs = EmInputsReader()
@@ -140,11 +138,25 @@ class WeatherSimulation():
         """
         generates insolation and temperature for given_data
         - each time new random factor used
+
+        ALGO:
+          Tries up to 100 times to generate temperature in bounds [TMin, TMax]
+          if T not in bounds tries next time,
+          else uses generated value
+
         return  2 values:  insolation, temperature
         """
-        rnd_factor = self.getRandomFactor()
-        insolation = self.getAvMonthInsolation(date) * rnd_factor
-        temperature = self.getAvMonthTemperature(date) * rnd_factor
+        av_temperature = self.getAvMonthTemperature(date)
+        av_insolation = self.getAvMonthInsolation(date)
+
+        for i in range(100):
+            rnd_factor = self.getRandomFactor()
+            temperature = av_temperature * rnd_factor
+            insolation =  av_insolation * rnd_factor
+            if temperature < self.TMin or temperature > self.TMax:
+                continue
+            else:
+                break
 
         return  insolation, temperature
 
