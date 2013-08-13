@@ -5,7 +5,7 @@ import csv
 import numpy as np
 
 from _mirr import Mirr
-from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv, get_only_digits_list, calc_statistics, get_report_dates
+from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv, get_only_digits_list, get_report_dates
 from collections import OrderedDict, defaultdict
 from database import Database
 from config_readers import MainConfig, EmInputsReader, EnergyModuleConfigReader
@@ -13,7 +13,7 @@ from report_output import ReportOutput
 from numbers import Number
 from charts import show_irr_charts, plot_histograms
 from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, report_directory, CORRELLATION_FIELDS, TESTMODE
-
+from rm import calcStatistics
 
 
 db = Database()
@@ -226,7 +226,7 @@ class Simulation():
             result['field'] = field
             result['digit_values'] = digit_irr
             result[field] = irr
-            result.update(calc_statistics(digit_irr))
+            result.update(calcStatistics(digit_irr))
             results.append(result)
 
         return  results
@@ -362,7 +362,7 @@ def save_stochastic_values_by_simulation(dic_values, simulation_no):
     for name, values in dic_values.items():
         row = [name] + values
         rows_values.append(row)
-        stats_dic = calc_statistics(values)
+        stats_dic = calcStatistics(values)
         stats = [name] + stats_dic.values()
         rows_stats.append(stats)
 

@@ -1,6 +1,6 @@
 import numpy as np
 import pylab
-from annex import calc_statistics
+from rm import calcStatistics
 
 """
 We use the Mean-reverting jump diffusion model (formula 4 - see comments)
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     poisson_steps = Poisson_step(Lambda, size=N)
     price = calc_price_for_period(S0)
 
-    stats = calc_statistics(price)
+    stats = calcStatistics(price)
     fig = pylab.figure()
 
     ax1 = fig.add_subplot(211)
