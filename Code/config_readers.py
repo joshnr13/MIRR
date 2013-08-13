@@ -250,6 +250,21 @@ class EnergyModuleConfigReader():
     def getConfigsValues(self):
         return  self.configs
 
+class RiskModuleConfigReader():
+    def __init__(self, _filename='rm_config.ini'):
+        _config = ConfigParser.ConfigParser()
+        _filepath = os.path.join(os.getcwd(), 'configs', _filename)
+        _config.read(_filepath)
+
+        self.riskFreeRate = _config.getfloat('RISK', 'riskFreeRate')
+        self.benchmarkSharpeRatio = _config.getfloat('RISK', 'benchmarkSharpeRatio')
+        self.benchmarkModifiedSharpeRatio = _config.getfloat('RISK', 'benchmarkModifiedSharpeRatio')
+
+        self.configs = get_configs(self.__dict__)
+
+    def getConfigsValues(self):
+        return  self.configs
+
 
 class EmInputsReader():
     def __init__(self):

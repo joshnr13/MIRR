@@ -1,8 +1,10 @@
 from numpy import corrcoef, around, isnan, std, mean, median
 from  scipy.stats import skew, kurtosis
 from collections import OrderedDict
+from config_readers import RiskModuleConfigReader
 
 def calcStatistics(values):
+
     """input @list of values
     output @dict with keys - stat name, value=stat_value
     """
@@ -29,3 +31,16 @@ def calcStatistics(values):
         result['median'] = median(values)
         result['variance'] = result['std'] ** 0.5
     return  result
+
+def  calculateRequiredRateOfReturn(irr_values):
+    """return  riskFreeRate(const) + benchmarkSharpeRatio(const) x standard deviation of IRR @irr_values"""
+
+    config_values = RiskModuleConfigReader().getConfigsValues()
+    riskFreeRate = config_values['riskFreeRate']
+    benchmarkSharpeRatio = config_values['benchmarkSharpeRatio']
+    irr_stdev = calcStatistics(irr_values)['std']
+
+    return  riskFreeRate + benchmarkSharpeRatio * irr_stdev
+
+if __name__ == '__main__':
+    print calculateRequiredRateOfReturn([0.1, 0.2, 0.3])
