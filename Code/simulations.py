@@ -392,111 +392,6 @@ def save_stochastic_values_by_simulation(dic_values, simulation_no):
     convert2excel(source=output_filename, output=xls_output_filename)
     print "Stochastic Report outputed to file %s" % (xls_output_filename)
 
-class Poisson_step():
-    """class for holding generated Poisson values"""
-    def __init__(self, lam, size):
-        self.lam = lam
-        self.size = size
-        self.generate_values()
-        self.make_step()
-        self.make_function()
-
-    def generate_values(self):
-        """Generate poisson values"""
-        self.vals = self.poisson_distribution_value(self.size)
-
-    def make_step(self):
-        """Make step (path) from generated poisson values"""
-        self.step_vals = np.cumsum(self.vals)
-
-    def make_function(self):
-        """Make function - dict
-        where key in integers from x value,
-        value - current iteration no, ie y value
-        """
-        result = {}
-        x0 = 0
-        for i, x in enumerate(self.step_vals):
-            vals_range = xrange(x0, x)
-            for k in vals_range:
-                result[k] = i
-            x0 = x
-        self.function = result
-
-    def get_delta(self, index):
-        """return  delta between current index and previous"""
-        return  self.function[index] - self.function[index-1]
-
-    def poisson_distribution_value(self, size=None):
-        """return  Poisson disribution with @lam
-        if size is None - return 1 value (numerical)
-        otherwise return list with values with length = size
-        """
-        return  np.random.poisson(self.lam, size)
-
-class ElectricitySimulations():
-    S0 = 70  #EUR/MWh
-    k = 5
-    theta = 70  #EUR/MWh
-    Lambda = 24  # Lambda for the Poisson process used for price jumps
-    sigma = 0.5
-    y = 0.02  #is the annual escalation factor
-    delta_q = 0.5  #random variable with Poisson distribution with lambda 24.26
-    dt = 1.0 / 365  #1day
-
-    def __init__(self, period, simulations_no):
-        self.N = len(period)
-        self.period = period
-        self.simulations_no = simulations_no
-        self.db = Database()
-
-    def clean_prev_data(self):
-        print "Cleaning previous data"
-        self.db.clean_previous_electricity_price_data()
-
-    def write_electricity_price_data(self, data):
-        self.db.write_electricity_prices(data)
-        print 'Writing electricity price simulation %s' % data["simulation_no"]
-
-    def simulate(self):
-        self.clean_prev_data()
-        for simulation_no in range(1, self.simulations_no+1):
-            data = self.generate_one_simulation(simulation_no)
-            self.write_electricity_price_data(data)
-
-    def generate_one_simulation(self, simulation_no):
-        days_dict = OrderedDict()
-        self.poisson_steps = Poisson_step(self.Lambda, size=self.N)
-        prices = self.calc_price_for_period(self.S0)
-
-        for date, price in zip(self.period, prices):
-            date_str = date.strftime("%Y-%m-%d")
-            days_dict[date_str] = price / 1000.0
-        simulation_result = {"simulation_no": simulation_no, "data": days_dict}
-        return  simulation_result
-
-    def calc_J(self):
-        """Calcultation of J as random with mean=loc and std=scale"""
-        return  np.random.normal(loc=0,scale=1)  #loc means - mean, scale -std
-
-
-
-    def calc_price_delta(self, prev_price, iteration_no):
-        """Calculated delta price based on @prev_price"""
-        delta_Z = np.random.normal(loc=0, scale=0.4)
-        J = self.calc_J()
-        delta_q = self.poisson_steps.get_delta(iteration_no)
-        delta_price = self.k * (self.theta * (1 + self.y*iteration_no/365)- prev_price) * self.dt + self.sigma * delta_Z + (J*(1 + self.y*iteration_no/365)) * delta_q
-        return  delta_price
-
-    def calc_price_for_period(self, prev_price):
-        """Calculate price for whole period"""
-        result = []
-        for i in range(1, self.N+1):
-            price = prev_price + self.calc_price_delta(prev_price, i)
-            prev_price = price
-            result.append(price)
-        return  result
 
 
 class WeatherSimulations():
@@ -595,8 +490,6 @@ if __name__ == '__main__':
     #s = WeatherSimulations(period, 100)
     ##s.simulate()
     #print s.db.get_weather_data(1)
-    s = ElectricitySimulations(period, 100)
-    print s.generate_one_simulation(1)
 
 
 

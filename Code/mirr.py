@@ -9,9 +9,11 @@ import openpyxl
 from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize, get_input_comment
 from database import Database
-
+from ecm import ElectricityMarketPriceSimulation
 from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution, print_equipment_db, plotsave_stochastic_values_by_simulation
-from simulations import WeatherSimulations, ElectricitySimulations
+
+from simulations import WeatherSimulations
+
 from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts, step_chart
 from report_output import ReportOutput
 from config_readers import MainConfig
@@ -123,7 +125,7 @@ class Interface():
     def generateElectricityMarketPrice(self):
         simulations_no = 100
         period = self.main_config.getAllDates()
-        simulations = ElectricitySimulations(period, simulations_no)
+        simulations = ElectricityMarketPriceSimulation(period, simulations_no)
         simulations.simulate()
 
     def _run_correlations(self, field):
@@ -150,7 +152,7 @@ class Interface():
         simulation_no =  self.get_input_simulation(text)
         iteration_no =  self.get_input_iteration(text, simulation_no )
         return (simulation_no, iteration_no)
-    
+
     def get_inputs(self):
         def_start = self.getMirr().main_config.getStartDate()
         def_end = self.getMirr().main_config.getEndDate()
