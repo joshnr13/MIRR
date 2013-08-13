@@ -10,9 +10,8 @@ from collections import  OrderedDict
 from annex import get_input_date, get_input_int, cached_property, memoize, get_input_comment
 from database import Database
 from ecm import ElectricityMarketPriceSimulation
+from em import WeatherSimulation
 from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution, print_equipment_db, plotsave_stochastic_values_by_simulation
-
-from simulations import WeatherSimulations
 
 from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts, step_chart
 from report_output import ReportOutput
@@ -119,7 +118,7 @@ class Interface():
     def generateWeatherData(self):
         simulations_no = 100
         period = self.main_config.getAllDates()
-        simulations = WeatherSimulations(period, simulations_no)
+        simulations = WeatherSimulation(period, simulations_no)
         simulations.simulate()
 
     def generateElectricityMarketPrice(self):
