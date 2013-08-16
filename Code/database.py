@@ -43,9 +43,9 @@ class Database():
         if simulation_no == self.get_last_simulation_no():
             self.simulation_numbers.update({'_id':'seq'}, {'$inc':{'seq':-1}}, upsert=True)
 
-    def insert_simulation(self,  line):
+    def insert_simulation(self, record):
         """Safe inserts simulation line to DB"""
-        self.simulations.insert(line, safe=True)
+        self.simulations.insert(record, safe=True)
 
     def insert_iteration(self,  line):
         """Safe inserts iterations line to DB"""

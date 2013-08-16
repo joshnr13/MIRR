@@ -5,25 +5,21 @@
 
 import sys
 import traceback
-import openpyxl
+
 from collections import  OrderedDict
-from annex import get_input_date, get_input_int, cached_property, memoize, get_input_comment
+from annex import get_input_date, get_input_int, memoize, get_input_comment
 from database import Database
 from ecm import ElectricityMarketPriceSimulation
 from em import WeatherSimulation
-from simulations import  run_save_simulation, save_irr_values_xls, show_save_irr_distribution, print_equipment_db, plotsave_stochastic_values_by_simulation
-
-from charts import plot_charts, show_irr_charts, plot_correlation_tornado, irr_scatter_charts, step_chart
+from simulations import  run_save_simulation
+from _mirr import Mirr
+from charts import plot_charts, plot_correlation_tornado, irr_scatter_charts, step_chart
 from report_output import ReportOutput
 from config_readers import MainConfig
-from _mirr import Mirr
-from numpy import isnan
-from numbers import Number
 from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD,  REPORT_DEFAULT_NUMBER_SIMULATIONS, REPORT_DEFAULT_NUMBER_ITERATIONS
-from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2
+from rm import  show_save_irr_distribution, plotsave_stochastic_values_by_simulation
 
 commands = OrderedDict()
-i = 0
 commands['1'] = 'runSimulation'
 commands['2'] = 'getIRRDistributionInfo'
 commands['3'] = 'report_isbscf'
@@ -75,7 +71,7 @@ class Interface():
 
     def print_equipment(self):
         simulation_no =  self.get_input_simulation("printing equipment ")
-        print print_equipment_db(simulation_no)
+        print self.db.get_iteration_field(simulation_no, iteration_no=1, field='equipment_description')
 
     def outputPrimaryEnergy(self):
         simulation_no, iteration_no =  self.get_simulation_iteration_nums("for printing chart with Primary Energy ")
@@ -181,6 +177,7 @@ def print_entered(line):
         print "Entered %s - %s" % (line, commands[line])
     else:
         print "Entered %s " % (line, )
+
 def run_method(obj, line):
     if line in commands:
         method = getattr(obj, commands[line])

@@ -1,9 +1,16 @@
+import os
+import csv
+import datetime
+from database import Database
 from numpy import corrcoef, around, isnan, std, mean, median
 from scipy.stats import skew, kurtosis
 from collections import OrderedDict
 from config_readers import RiskModuleConfigReader
 from math import sqrt
 import scipy.stats as stat
+from constants import report_directory, CORRELLATION_FIELDS
+from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, get_only_digits_list
+from charts import show_irr_charts, plot_histograms
 
 def calcStatistics(values):
 
@@ -92,6 +99,154 @@ def JarqueBeraTest(values):
     """calculates JarqueBeraTest and return probability list"""
     jb_stat_value = calcJbStats(values)
     return  calcJbProbability(jb_stat_value)
+
+def show_save_irr_distribution(simulation_no, yearly=False):
+    """
+    1 Gets from DB yearly values of irr
+    2 Saves in xls report & Charts
+
+    """
+    field = 'irr_stats'
+    db = Database()
+    irr_values_lst = db.get_simulation_values_from_db(simulation_no, [field])
+    irr_values_lst = irr_values_lst[field][0]
+
+    save_irr_values_xls(irr_values_lst, simulation_no, yearly)  #was irr_values[:]
+    show_irr_charts(irr_values_lst, simulation_no, yearly) #was irr_values[:]
+    print_irr_stats(irr_values_lst)
+
+def print_irr_stats(irr_values_lst):
+    """Prints statistics of irr values"""
+    for dic in irr_values_lst:
+        print "Statistics for %s" % dic.get('field', None)
+        print "\tSt.deviation value %s" % dic.get('std', None)
+        print "\tVariance value %s" % dic.get('variance', None)
+        print "\tMin value %s" % dic.get('min', None)
+        print "\tMax value %s" % dic.get('max', None)
+        print "\tMedium value %s" % dic.get('median', None)
+        print "\tMean value %s" % dic.get('mean', None)
+        print "\tSkew value %s" % dic.get('skew', None)
+        print "\tKurtosis value %s" % dic.get('kurtosis', None)
+
+def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
+    """Saves IRR values to excel file
+    @irr_values_lst - list  with 2 complicated dicts inside """
+
+    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    report_name = "{cur_date}_irr_values_s{simulation_no}.csv".format(**locals())
+    report_full_name = os.path.join(report_directory, report_name)
+    output_filename = uniquify_filename(report_full_name)
+
+    blank_row = [""]
+    field1 = irr_values_lst[0]['field']
+    field2 = irr_values_lst[1]['field']
+
+    irr_values1 = [field1] + irr_values_lst[0][field1]
+    irr_values2 = [field2] + irr_values_lst[1][field2]
+
+    iterations = ["Iteration number"] + list(range(1, len(irr_values1)))
+    simulation_info = ["Simulation number"] + [simulation_no]
+
+    stat_params = ['min', 'max', 'median', 'mean', 'variance', 'std','skew', 'kurtosis']
+    stat_fields = ['field'] + stat_params
+
+    stat_info1 = [field1]
+    stat_info2 = [field2]
+
+    for key in stat_params:
+        stat_info1.append(irr_values_lst[0][key])
+        stat_info2.append(irr_values_lst[1][key])
+
+    with open(output_filename,'ab') as f:
+
+        w = csv.writer(f, delimiter=';')
+        w.writerow(simulation_info)
+        w.writerow(blank_row)
+
+        w.writerow(iterations)
+        w.writerow(irr_values1)
+        w.writerow(irr_values2)
+
+        w.writerow(blank_row)
+        w.writerow(stat_fields)
+        w.writerow(stat_info1)
+        w.writerow(stat_info2)
+
+    xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
+    xls_output_filename = uniquify_filename(xls_output_filename)
+
+    convert2excel(source=output_filename, output=xls_output_filename)
+    print "CSV Report outputed to file %s" % (xls_output_filename)
+
+
+def plotsave_stochastic_values_by_simulation(simulation_no, yearly=True):
+    """"""
+    fields = CORRELLATION_FIELDS.values()
+    results = Database().get_iteration_values_from_db(simulation_no, fields=[], yearly=yearly , not_changing_fields=fields)
+    plot_histograms(results, simulation_no, yearly)
+    save_stochastic_values_by_simulation(results, simulation_no)
+
+def save_stochastic_values_by_simulation(dic_values, simulation_no):
+    """Saves IRR values to excel file
+    @irr_values_lst - list  with 2 complicated dicts inside """
+
+    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    report_name = "{cur_date}_stochastic_s{simulation_no}.csv".format(**locals())
+    report_full_name = os.path.join(report_directory, report_name)
+    output_filename = uniquify_filename(report_full_name)
+    rows_values = []
+    rows_stats = []
+
+    for name, values in dic_values.items():
+        row = [name] + values
+        rows_values.append(row)
+        stats_dic = calcStatistics(values)
+        stats = [name] + stats_dic.values()
+        rows_stats.append(stats)
+
+
+    blank_row = [""]
+
+    iterations = ["Iteration number"] + list(range(1, len(values)+1))
+    simulation_info = ["Simulation number"] + [simulation_no]
+    stat_info = ["Statistics"] + stats_dic.keys()
+
+    with open(output_filename,'ab') as f:
+
+        w = csv.writer(f, delimiter=';')
+        w.writerow(simulation_info)
+        w.writerow(blank_row)
+
+        w.writerow(iterations)
+        w.writerows(rows_values)
+
+        w.writerow(blank_row)
+        w.writerow(stat_info)
+        w.writerows(rows_stats)
+
+    xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
+    xls_output_filename = uniquify_filename(xls_output_filename)
+
+    convert2excel(source=output_filename, output=xls_output_filename)
+    print "Stochastic Report outputed to file %s" % (xls_output_filename)
+
+def caclIrrsStatisctics(field_names, irr_values):
+    """
+    inputs: @field_names - list of irr field names for @irr_values
+    output: list of dicts for each irr_type
+    """
+    results = []
+    for field_name, irr in zip(field_names, irr_values):
+        result = {}
+        digit_irr = get_only_digits_list(irr)
+        result['field'] = field_name
+        result['digit_values'] = digit_irr
+        result[field_name] = irr
+        stats = calcStatistics(digit_irr)
+        result.update(stats)
+        results.append(result)
+
+    return  results
 
 
 if __name__ == '__main__':

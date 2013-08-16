@@ -1,22 +1,14 @@
-import os, sys
+import sys
 import datetime
-import pylab
 import csv
-import numpy as np
 
 from _mirr import Mirr
-from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, transponse_csv, get_only_digits_list, get_report_dates
-from collections import OrderedDict, defaultdict
+from annex import convert_value
+from collections import defaultdict
 from database import Database
-from config_readers import MainConfig, EmInputsReader, EnergyModuleConfigReader
 from report_output import ReportOutput
-from numbers import Number
-from charts import show_irr_charts, plot_histograms
-from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, report_directory, CORRELLATION_FIELDS, TESTMODE
-from rm import calcStatistics
-
-
-db = Database()
+from rm import caclIrrsStatisctics
+from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2
 
 class Simulation():
 
@@ -194,8 +186,8 @@ class Simulation():
             sys.stdout.flush()
         print "\n"
 
-        irr_stats = self.calc_irr_statistics()
-        self.add_irr_results_to_simulation(irr_stats)
+        self.calc_irr_statistics()
+        self.add_irr_results_to_simulation()
         self.db.insert_simulation(self.simulation_record)
 
     def init_simulation_record(self, iterations_number):
@@ -209,31 +201,19 @@ class Simulation():
     def write_iteration_to_db(self):
         self.simulation_record['iterations'].append(self.line)
 
-    def add_irr_results_to_simulation(self, irr_results):
+    def add_irr_results_to_simulation(self):
         """Adding irr results to dict with simulation data"""
-        self.simulation_record['irr_stats'] = irr_results
+        self.simulation_record['irr_stats'] = self.irr_stats
 
     def calc_irr_statistics(self):
         """    for each simulation batch calculate, display and save the standard deviation of IRR (both of owners and project - separately)
         - skweness : http://en.wikipedia.org/wiki/Skewness
         - kurtosis: http://en.wikipedia.org/wiki/Kurtosis
         """
-        results = []
-        for i, irr in enumerate([self.irrs0, self.irrs1]):
-            result = {}
-            digit_irr = self.get_filtered_irrs(irr)
-            field = IRR_REPORT_FIELD if i == 0 else IRR_REPORT_FIELD2
-            result['field'] = field
-            result['digit_values'] = digit_irr
-            result[field] = irr
-            result.update(calcStatistics(digit_irr))
-            results.append(result)
+        irr_values = [self.irrs0, self.irrs1]
+        fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2]
+        self.irr_stats =  caclIrrsStatisctics(fields, irr_values)
 
-        return  results
-
-    def get_filtered_irrs(self, obj):
-        """return  filtered irrs"""
-        return  get_only_digits_list(obj)
 
     def add_result_irrs(self):
         """Adds irr results to attrributes"""
@@ -248,9 +228,6 @@ class Simulation():
         self.convert_results()
         self.add_result_irrs()
 
-def print_equipment_db(simulation_no, iteration_no=1):
-    return  db.get_iteration_field(simulation_no, iteration_no, 'equipment_description')
-
 def run_save_simulation(iterations_no, comment):
     """
     1) Runs multiple iterations @iterations_number with @comment
@@ -260,161 +237,6 @@ def run_save_simulation(iterations_no, comment):
     """
     s = Simulation(comment=comment)
     s.run_simulation(iterations_no)
-    #process_irr_values(s.calc_irr_statistics(), s.get_simulation_no())
     return  s.get_simulation_no()
-
-def show_save_irr_distribution(simulation_no, yearly=False):
-    """
-    1 Gets from DB yearly values of irr
-    2 Saves in xls report & Charts
-
-    """
-    field = 'irr_stats'
-    irr_values_lst = db.get_simulation_values_from_db(simulation_no, [field])
-    irr_values_lst = irr_values_lst[field][0]
-
-    save_irr_values_xls(irr_values_lst, simulation_no, yearly)  #was irr_values[:]
-    show_irr_charts(irr_values_lst, simulation_no, yearly) #was irr_values[:]
-    print_irr_stats(irr_values_lst)
-
-def print_irr_stats(irr_values_lst):
-    """Prints statistics of irr values"""
-    for dic in irr_values_lst:
-        print "Statistics for %s" % dic.get('field', None)
-        print "\tSt.deviation value %s" % dic.get('std', None)
-        print "\tVariance value %s" % dic.get('variance', None)
-        print "\tMin value %s" % dic.get('min', None)
-        print "\tMax value %s" % dic.get('max', None)
-        print "\tMedium value %s" % dic.get('median', None)
-        print "\tMean value %s" % dic.get('mean', None)
-        print "\tSkew value %s" % dic.get('skew', None)
-        print "\tKurtosis value %s" % dic.get('kurtosis', None)
-
-def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
-    """Saves IRR values to excel file
-    @irr_values_lst - list  with 2 complicated dicts inside """
-
-    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    report_name = "{cur_date}_irr_values_s{simulation_no}.csv".format(**locals())
-    report_full_name = os.path.join(report_directory, report_name)
-    output_filename = uniquify_filename(report_full_name)
-
-    blank_row = [""]
-    field1 = irr_values_lst[0]['field']
-    field2 = irr_values_lst[1]['field']
-
-    irr_values1 = [field1] + irr_values_lst[0][field1]
-    irr_values2 = [field2] + irr_values_lst[1][field2]
-
-    iterations = ["Iteration number"] + list(range(1, len(irr_values1)))
-    simulation_info = ["Simulation number"] + [simulation_no]
-
-    stat_params = ['min', 'max', 'median', 'mean', 'variance', 'std','skew', 'kurtosis']
-    stat_fields = ['field'] + stat_params
-
-    stat_info1 = [field1]
-    stat_info2 = [field2]
-
-    for key in stat_params:
-        stat_info1.append(irr_values_lst[0][key])
-        stat_info2.append(irr_values_lst[1][key])
-
-    with open(output_filename,'ab') as f:
-
-        w = csv.writer(f, delimiter=';')
-        w.writerow(simulation_info)
-        w.writerow(blank_row)
-
-        w.writerow(iterations)
-        w.writerow(irr_values1)
-        w.writerow(irr_values2)
-
-        w.writerow(blank_row)
-        w.writerow(stat_fields)
-        w.writerow(stat_info1)
-        w.writerow(stat_info2)
-
-    xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
-    xls_output_filename = uniquify_filename(xls_output_filename)
-
-    convert2excel(source=output_filename, output=xls_output_filename)
-    print "CSV Report outputed to file %s" % (xls_output_filename)
-
-
-def plotsave_stochastic_values_by_simulation(simulation_no, yearly=True):
-    """"""
-    fields = CORRELLATION_FIELDS.values()
-    results = db.get_iteration_values_from_db(simulation_no, fields=[], yearly=yearly , not_changing_fields=fields)
-    plot_histograms(results, simulation_no, yearly)
-    save_stochastic_values_by_simulation(results, simulation_no)
-
-def save_stochastic_values_by_simulation(dic_values, simulation_no):
-    """Saves IRR values to excel file
-    @irr_values_lst - list  with 2 complicated dicts inside """
-
-    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    report_name = "{cur_date}_stochastic_s{simulation_no}.csv".format(**locals())
-    report_full_name = os.path.join(report_directory, report_name)
-    output_filename = uniquify_filename(report_full_name)
-    rows_values = []
-    rows_stats = []
-
-    for name, values in dic_values.items():
-        row = [name] + values
-        rows_values.append(row)
-        stats_dic = calcStatistics(values)
-        stats = [name] + stats_dic.values()
-        rows_stats.append(stats)
-
-
-    blank_row = [""]
-
-    iterations = ["Iteration number"] + list(range(1, len(values)+1))
-    simulation_info = ["Simulation number"] + [simulation_no]
-    stat_info = ["Statistics"] + stats_dic.keys()
-
-    with open(output_filename,'ab') as f:
-
-        w = csv.writer(f, delimiter=';')
-        w.writerow(simulation_info)
-        w.writerow(blank_row)
-
-        w.writerow(iterations)
-        w.writerows(rows_values)
-
-        w.writerow(blank_row)
-        w.writerow(stat_info)
-        w.writerows(rows_stats)
-
-    xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
-    xls_output_filename = uniquify_filename(xls_output_filename)
-
-    convert2excel(source=output_filename, output=xls_output_filename)
-    print "Stochastic Report outputed to file %s" % (xls_output_filename)
-
-
-
-
-
-if __name__ == '__main__':
-    #run_all_iterations()
-    #plot_correlation_tornado()
-    #irr_scatter_charts(100)
-    #plot_charts(20)
-    #test_100_iters()
-    #irr_scatter_charts()
-    #s.run_simulations(10)
-
-    #show_save_irr_distribution(2)
-    #plotsave_stochastic_values_by_simulation(60)
-    from annex import get_list_dates
-    date_start = datetime.date(2001, 1, 1)
-    date_end = datetime.date(2051, 1, 1)
-    #period =get_report_dates(date_start, date_end)[0].values()
-    period = get_list_dates(date_start, date_end)
-    #s = WeatherSimulations(period, 100)
-    ##s.simulate()
-    #print s.db.get_weather_data(1)
-
 
 
