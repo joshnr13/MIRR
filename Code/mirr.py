@@ -21,7 +21,7 @@ from rm import  analyseSimulationResults, plotsave_stochastic_values_by_simulati
 
 commands = OrderedDict()
 commands['1'] = 'runSimulation'
-commands['2'] = 'getIRRDistributionInfo'
+commands['2'] = 'analyseSimulationResults'
 commands['3'] = 'report_isbscf'
 commands['4'] = 'charts'
 commands['5'] = 'print_equipment'
@@ -51,8 +51,7 @@ class Interface():
 
         simulation_no = run_save_simulation(iterations_no, comment)
 
-
-    def getIRRDistributionInfo(self, simulation_no=None):
+    def analyseSimulationResults(self, simulation_no=None):
         """Shows last N irrs distribution from database"""
         if simulation_no is  None:
             simulation_no =  self.get_input_simulation("plotting IRR distribution ")
