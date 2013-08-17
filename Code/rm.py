@@ -12,6 +12,7 @@ from constants import report_directory, CORRELLATION_FIELDS
 from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, get_only_digits_list
 from charts import show_irr_charts, plot_histograms
 
+
 def calcStatistics(values):
 
     """input @list of values
@@ -41,15 +42,15 @@ def calcStatistics(values):
         result['variance'] = result['std'] ** 0.5
     return  result
 
-def  calculateRequiredRateOfReturn(irr_values):
+def calculateRequiredRateOfReturn(irr_values):
     """return  riskFreeRate(const) + benchmarkSharpeRatio(const) x standard deviation of IRR @irr_values"""
-
     config_values = RiskModuleConfigReader().getConfigsValues()
     riskFreeRate = config_values['riskFreeRate']
     benchmarkSharpeRatio = config_values['benchmarkSharpeRatio']
-    irr_stdev = calcStatistics(irr_values)['std']
+    irr_stdev = std(irr_values)
 
     return  riskFreeRate + benchmarkSharpeRatio * irr_stdev
+
 
 def jbCritValue(p):
     """Calculate critical value fo x2 distribution for checking JB
@@ -86,9 +87,9 @@ def calcJbProbability(jb_stat_value, levels=(95, 99, 99.9)):
     """
 
     percent_levels = [l / 100.0 for l in levels]
-    result = {}
+    result = OrderedDict()
     for level in percent_levels:
-        str_level = str(round(level, 3))
+        str_level = str(round(level, 3)).replace('.', ',')
         if jb_stat_value >= jbCritValue(level):
             result[str_level] = True
         else:
@@ -100,20 +101,7 @@ def JarqueBeraTest(values):
     jb_stat_value = calcJbStats(values)
     return  calcJbProbability(jb_stat_value)
 
-def show_save_irr_distribution(simulation_no, yearly=False):
-    """
-    1 Gets from DB yearly values of irr
-    2 Saves in xls report & Charts
 
-    """
-    field = 'irr_stats'
-    db = Database()
-    irr_values_lst = db.get_simulation_values_from_db(simulation_no, [field])
-    irr_values_lst = irr_values_lst[field][0]
-
-    save_irr_values_xls(irr_values_lst, simulation_no, yearly)  #was irr_values[:]
-    show_irr_charts(irr_values_lst, simulation_no, yearly) #was irr_values[:]
-    print_irr_stats(irr_values_lst)
 
 def print_irr_stats(irr_values_lst):
     """Prints statistics of irr values"""
@@ -127,6 +115,8 @@ def print_irr_stats(irr_values_lst):
         print "\tMean value %s" % dic.get('mean', None)
         print "\tSkew value %s" % dic.get('skew', None)
         print "\tKurtosis value %s" % dic.get('kurtosis', None)
+        print "\tRequired rate of return value %s" % dic.get('required_rate_of_return', None)
+        print "\tJB test values %s" % dic.get('JBTest', None)
 
 def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
     """Saves IRR values to excel file
@@ -147,15 +137,18 @@ def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
     iterations = ["Iteration number"] + list(range(1, len(irr_values1)))
     simulation_info = ["Simulation number"] + [simulation_no]
 
-    stat_params = ['min', 'max', 'median', 'mean', 'variance', 'std','skew', 'kurtosis']
+    stat_params = ['min', 'max', 'median', 'mean', 'variance', 'std','skew', 'kurtosis', 'required_rate_of_return']
     stat_fields = ['field'] + stat_params
-
     stat_info1 = [field1]
     stat_info2 = [field2]
 
+    jb_fileds = ['JB_TEST'] + irr_values_lst[0]['JBTest'].keys()
+    jb_values1 = [field1] + irr_values_lst[0]['JBTest'].values()
+    jb_values2 = [field2] + irr_values_lst[1]['JBTest'].values()
+
     for key in stat_params:
-        stat_info1.append(irr_values_lst[0][key])
-        stat_info2.append(irr_values_lst[1][key])
+        stat_info1.append(irr_values_lst[0].get(key, ''))
+        stat_info2.append(irr_values_lst[1].get(key, ''))
 
     with open(output_filename,'ab') as f:
 
@@ -171,6 +164,12 @@ def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
         w.writerow(stat_fields)
         w.writerow(stat_info1)
         w.writerow(stat_info2)
+
+        w.writerow(blank_row)
+        w.writerow(jb_fileds)
+        w.writerow(jb_values1)
+        w.writerow(jb_values2)
+
 
     xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
     xls_output_filename = uniquify_filename(xls_output_filename)
@@ -233,21 +232,38 @@ def save_stochastic_values_by_simulation(dic_values, simulation_no):
 def caclIrrsStatisctics(field_names, irr_values):
     """
     inputs: @field_names - list of irr field names for @irr_values
-    output: list of dicts for each irr_type
+    output: list of dicts with irr statistics for each irr_type
     """
     results = []
     for field_name, irr in zip(field_names, irr_values):
-        result = {}
         digit_irr = get_only_digits_list(irr)
+
+        result = {}
+        result[field_name] = irr
         result['field'] = field_name
         result['digit_values'] = digit_irr
-        result[field_name] = irr
-        stats = calcStatistics(digit_irr)
-        result.update(stats)
+        result['JBTest'] = JarqueBeraTest(digit_irr)
+        result['required_rate_of_return'] = calculateRequiredRateOfReturn(digit_irr)
+        result.update(calcStatistics(digit_irr))
+
         results.append(result)
 
     return  results
 
+
+def analyseSimulationResults(simulation_no, yearly=False):
+    """
+    1 Gets from DB yearly values of irr
+    2 Saves in xls report & Charts
+
+    """
+    field = 'irr_stats'
+    db = Database()
+    irr_values_lst = db.get_simulation_values_from_db(simulation_no, [field])[field][0]
+
+    save_irr_values_xls(irr_values_lst, simulation_no, yearly)
+    show_irr_charts(irr_values_lst, simulation_no, yearly)
+    print_irr_stats(irr_values_lst)
 
 if __name__ == '__main__':
     X = [0.1, 0.2, 0.3]

@@ -62,7 +62,6 @@ class OrderedDefaultdict(OrderedDict):
         args = self.default_factory if self.default_factory else tuple()
         return type(self), args, None, None, self.items()
 
-
 import time
 def timer(f):
     def wrapper(*args, **kwargs):
@@ -615,11 +614,6 @@ def convert_value(value):
 def convert_list(input_lst):
     """part of deep_serilization of LISTS and TUPLES"""
     return [convert_value(v) for v in input_lst]
-    #result = []
-    #for v in input_lst:
-        #converted = convert_value(v)
-        #result.append(converted)
-    #return result
 
 
 def _discf(rate, pmts, ):

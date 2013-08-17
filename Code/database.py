@@ -340,6 +340,7 @@ class Database():
     def write_electricity_prices(self, data):
         self.electricity_prices.insert(data, safe=True)
 
+
     def get_electricity_prices(self, simulation_no):
         result = self.electricity_prices.find_one({"simulation_no": simulation_no}, {"_id": False})
         if result:

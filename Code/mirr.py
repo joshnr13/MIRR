@@ -17,7 +17,7 @@ from charts import plot_charts, plot_correlation_tornado, irr_scatter_charts, st
 from report_output import ReportOutput
 from config_readers import MainConfig
 from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD,  REPORT_DEFAULT_NUMBER_SIMULATIONS, REPORT_DEFAULT_NUMBER_ITERATIONS
-from rm import  show_save_irr_distribution, plotsave_stochastic_values_by_simulation
+from rm import  analyseSimulationResults, plotsave_stochastic_values_by_simulation
 
 commands = OrderedDict()
 commands['1'] = 'runSimulation'
@@ -57,7 +57,7 @@ class Interface():
         if simulation_no is  None:
             simulation_no =  self.get_input_simulation("plotting IRR distribution ")
 
-        show_save_irr_distribution(simulation_no, yearly=True)
+        analyseSimulationResults(simulation_no, yearly=True)
 
     def report_isbscf(self):
         params = self.get_simulation_iteration_nums("for getting ISBS excel report ")
