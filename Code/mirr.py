@@ -13,7 +13,7 @@ from ecm import ElectricityMarketPriceSimulation
 from em import WeatherSimulation
 from simulations import  run_save_simulation
 from _mirr import Mirr
-from charts import plot_charts, plot_correlation_tornado, irr_scatter_charts, step_chart
+from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRScatterChart, plotStepChart
 from report_output import ReportOutput
 from config_readers import MainConfig
 from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD,  REPORT_DEFAULT_NUMBER_SIMULATIONS, REPORT_DEFAULT_NUMBER_ITERATIONS
@@ -65,8 +65,8 @@ class Interface():
 
     def charts(self):
         simulation_no, iteration_no =  self.get_simulation_iteration_nums("for plotting revenue-costs charts ")
-        plot_charts(simulation_no, iteration_no, yearly=False)
-        plot_charts(simulation_no, iteration_no, yearly=True)
+        plotRevenueCostsChart(simulation_no, iteration_no, yearly=False)
+        plotRevenueCostsChart(simulation_no, iteration_no, yearly=True)
 
     def print_equipment(self):
         simulation_no =  self.get_input_simulation("printing equipment ")
@@ -75,12 +75,12 @@ class Interface():
     def outputPrimaryEnergy(self):
         simulation_no, iteration_no =  self.get_simulation_iteration_nums("for printing chart with Primary Energy ")
         start_date, end_date, resolution = self.get_inputs()
-        step_chart(simulation_no, iteration_no, start_date, end_date, resolution, field= 'insolations_daily')
+        plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field= 'insolations_daily')
 
     def outputElectricityProduction(self):
         simulation_no, iteration_no =  self.get_simulation_iteration_nums("for printing chart with Electricity Production ")
         start_date, end_date, resolution = self.get_inputs()
-        step_chart(simulation_no, iteration_no, start_date, end_date, resolution, field= 'electricity_production_daily')
+        plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field= 'electricity_production_daily')
 
     def irr_correlations(self):
         self._run_correlations(CORRELLATION_IRR_FIELD)
@@ -88,8 +88,8 @@ class Interface():
     def irr_scatter_charts(self, simulation_no=None):
         if simulation_no is None:
             simulation_no = self.get_input_simulation("IRR scatter_chart: ")
-        irr_scatter_charts(simulation_no, 'irr_project', yearly=True)
-        irr_scatter_charts(simulation_no, 'irr_owners', yearly=True)
+        plotIRRScatterChart(simulation_no, 'irr_project', yearly=True)
+        plotIRRScatterChart(simulation_no, 'irr_owners', yearly=True)
 
     def npv_correlations(self):
         self._run_correlations(CORRELLATION_NPV_FIELD)
@@ -125,7 +125,7 @@ class Interface():
     def _run_correlations(self, field):
         """field - dict [short_name] = database name"""
         simulation_no = self.get_input_simulation("%s correlations charts: " %field.keys()[0])
-        plot_correlation_tornado(field, simulation_no)
+        plotCorrelationTornadoChart(field, simulation_no)
 
     @memoize
     def getMirr(self):

@@ -4,14 +4,14 @@ import datetime
 
 from collections import OrderedDict
 from database import Database
-from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD, IRR_REPORT_FIELD, IRR_REPORT_FIELD2, CORRELLATION_NPV_FIELD, BINS
+from constants import report_directory, BINS
 from annex import addYearlyPrefix, getResolutionStartEnd
 from itertools import izip_longest
 
-
 db = Database()
 
-def plot_charts(simulation_no, iteration_no=1, yearly=False):
+def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False):
+    """Plots 'revenue', 'cost', 'ebitda', 'deprication' chart"""
 
     fields = ['revenue', 'cost', 'ebitda', 'deprication']
     results = Database().get_iteration_values_from_db(simulation_no, fields, yearly, iteration_no=iteration_no)
@@ -37,8 +37,8 @@ def plot_charts(simulation_no, iteration_no=1, yearly=False):
     pylab.axhline()
     pylab.axvline()
 
-    title_add = get_title_period(yearly)
-    x_axis_title = get_x_axis_title(yearly)
+    title_add = getTitleBasedOnPeriod(yearly)
+    x_axis_title = getAxisTitleBasedOnPeriod(yearly)
 
     title = 'Simulation %s - iteration %s . %s' % (simulation_no, iteration_no, title_add)
     pylab.xlabel(x_axis_title)
@@ -46,7 +46,7 @@ def plot_charts(simulation_no, iteration_no=1, yearly=False):
     pylab.title(title)
     pylab.show()
 
-def show_irr_charts(irr_values_lst, simulation_no, yearly):
+def plotIRRChart(irr_values_lst, simulation_no, yearly):
     """
     figures : <title, figure> dictionary
     """
@@ -71,7 +71,7 @@ def show_irr_charts(irr_values_lst, simulation_no, yearly):
                 y = pylab.normpdf( bins, mu, sigma)
                 axeslist.ravel()[ind].plot(bins, y, 'r--', linewidth=1)
             else:
-                limx, limy = get_limit_values(range(len(values)), values)
+                limx, limy = getLimitValues(range(len(values)), values)
                 axeslist.ravel()[ind].plot(values, 'o')
                 axeslist.ravel()[ind].set_xlim(limx)
                 axeslist.ravel()[ind].set_ylim(limy)
@@ -80,8 +80,7 @@ def show_irr_charts(irr_values_lst, simulation_no, yearly):
 
     pylab.show()
 
-
-def plot_histograms(dic_values, simulation_no, yearly):
+def plotHistogramsChart(dic_values, simulation_no, yearly):
     """
     figures : <title, figure> dictionary
     """
@@ -107,9 +106,7 @@ def plot_histograms(dic_values, simulation_no, yearly):
 
     pylab.show()
 
-
-
-def plot_correlation_tornado(field_dic, simulation_id, yearly=False):
+def plotCorrelationTornadoChart(field_dic, simulation_id, yearly=False):
     """Plot tornado chart with correlation of field and other stochastic variables"""
 
     values = []
@@ -149,8 +146,8 @@ def plot_correlation_tornado(field_dic, simulation_id, yearly=False):
 
     sorted_list = sorted(values, key=abs)
     used = []
-    pos1 = [get_pos_no(value, sorted_list, used) for value in v1]
-    pos2 = [get_pos_no(value, sorted_list, used) for value in v2]
+    pos1 = [getPosNo(value, sorted_list, used) for value in v1]
+    pos2 = [getPosNo(value, sorted_list, used) for value in v2]
 
     ax.barh(pos1,v1, align='center', color='g')
     ax.barh(pos2,v2, align='center', color='r')
@@ -180,7 +177,7 @@ def plot_correlation_tornado(field_dic, simulation_id, yearly=False):
 
     pylab.show()
 
-def irr_scatter_charts(simulation_no, field, yearly=False):
+def plotIRRScatterChart(simulation_no, field, yearly=False):
     """
     Plots XY chart for correlation @field with CORRELLATION_FIELDS
     figures : <title, figure> dictionary
@@ -215,7 +212,7 @@ def irr_scatter_charts(simulation_no, field, yearly=False):
             obj.set_title(plot_title)
             obj.set_xlabel(real_field_shortname)
 
-            limx, limy = get_limit_values(irrs, values)
+            limx, limy = getLimitValues(irrs, values)
 
             obj.set_xlim(limx)
             obj.set_ylim(limy)
@@ -225,56 +222,18 @@ def irr_scatter_charts(simulation_no, field, yearly=False):
             obj.set_axis_off()
 
 
-    title = "Simulation %s. Scatter charts '%s'. %s" % (simulation_no, addYearlyPrefix(field, yearly), get_title_period(yearly))
+    title = "Simulation %s. Scatter charts '%s'. %s" % (simulation_no, addYearlyPrefix(field, yearly), getTitleBasedOnPeriod(yearly))
     fig = pylab.gcf()
     fig.suptitle(title, fontsize=14)
 
     pylab.show()
 
-##################################### ANNEX CHARTS FUNCTIONS ###################
-
-def get_pos_no(value, sorted_list, used):
-    for i, v in enumerate(sorted_list):
-        if v == value and i not in used:
-            used.append(i)
-            return i
-
-def get_limit_values(x, y):
-    min_irr = min(x)
-    max_irr = max(x)
-    irr_range = max_irr - min_irr
-
-    min_val = min(y)
-    max_val = max(y)
-    val_range = max_val - min_irr
-
-    delta_x = 0.05
-    delta_y = 0.05
-
-    min_irr = min_irr - delta_x * irr_range
-    max_irr = max_irr + delta_x * irr_range
-
-    min_val = min_val - delta_y * val_range
-    max_val = max_val + delta_y * val_range
-
-    return ((min_irr, max_irr), (min_val, max_val))
-
-
-def get_title_period(yearly):
-    if yearly:
-        title = 'Yearly data'
-    else :
-        title = "Monthly data"
-    return title
-
-def get_x_axis_title(yearly):
-    if yearly:
-        title = 'years'
-    else :
-        title = "months"
-    return title
-
-def step_chart(simulation_no, iteration_no, start_date, end_date, resolution, field):
+def plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field):
+    """Plots step chart based on database data, recieved based on inputs
+    simulation_no and iteration_no
+    start_date and end_date, date resolution
+    field - field which used for chart
+    """
 
     dates_range = getResolutionStartEnd(start_date, end_date, resolution)
     y_all_values = db.get_iteration_field(simulation_no, iteration_no, field)
@@ -305,11 +264,56 @@ def step_chart(simulation_no, iteration_no, start_date, end_date, resolution, fi
     pylab.title(title, fontsize=12)
     pylab.show()
 
+
+##################################### ANNEX CHARTS FUNCTIONS ###################
+
+def getPosNo(value, sorted_list, used):
+    """Gets free position on chart with multi-internal charts"""
+    for i, v in enumerate(sorted_list):
+        if v == value and i not in used:
+            used.append(i)
+            return i
+
+def getLimitValues(x, y):
+    """Calculates limits for chart borders"""
+    min_irr = min(x)
+    max_irr = max(x)
+    irr_range = max_irr - min_irr
+
+    min_val = min(y)
+    max_val = max(y)
+    val_range = max_val - min_irr
+
+    delta_x = 0.05
+    delta_y = 0.05
+
+    min_irr = min_irr - delta_x * irr_range
+    max_irr = max_irr + delta_x * irr_range
+
+    min_val = min_val - delta_y * val_range
+    max_val = max_val + delta_y * val_range
+
+    return ((min_irr, max_irr), (min_val, max_val))
+
+def getTitleBasedOnPeriod(yearly):
+    if yearly:
+        title = 'Yearly data'
+    else :
+        title = "Monthly data"
+    return title
+
+def getAxisTitleBasedOnPeriod(yearly):
+    if yearly:
+        title = 'years'
+    else :
+        title = "months"
+    return title
+
+
 if __name__ == '__main__':
     import datetime as dt
     start_date = dt.date(2013, 1, 1)
     end_date = dt.date(2017, 12, 31)
     #plot_charts(61, True)
     #irr_scatter_charts(11, 'irr_project', True)
-    step_chart(60, 1, start_date, end_date, 10, 'insolations_daily')
-    #plot_correlation_tornado(CORRELLATION_NPV_FIELD, 66)
+    plotStepChart(60, 1, start_date, end_date, 10, 'insolations_daily')

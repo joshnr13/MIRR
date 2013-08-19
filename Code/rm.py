@@ -10,7 +10,7 @@ from math import sqrt
 import scipy.stats as stat
 from constants import report_directory, CORRELLATION_FIELDS
 from annex import getOnlyDigits,  convertValue, convert2excel, uniquifyFilename, getOnlyDigitsList
-from charts import show_irr_charts, plot_histograms
+from charts import plotIRRChart, plotHistogramsChart
 
 
 def calcStatistics(values):
@@ -182,7 +182,7 @@ def plotsave_stochastic_values_by_simulation(simulation_no, yearly=True):
     """"""
     fields = CORRELLATION_FIELDS.values()
     results = Database().get_iteration_values_from_db(simulation_no, fields=[], yearly=yearly , not_changing_fields=fields)
-    plot_histograms(results, simulation_no, yearly)
+    plotHistogramsChart(results, simulation_no, yearly)
     save_stochastic_values_by_simulation(results, simulation_no)
 
 def save_stochastic_values_by_simulation(dic_values, simulation_no):
@@ -262,7 +262,7 @@ def analyseSimulationResults(simulation_no, yearly=False):
     irr_values_lst = db.get_simulation_values_from_db(simulation_no, [field])[field][0]
 
     save_irr_values_xls(irr_values_lst, simulation_no, yearly)
-    show_irr_charts(irr_values_lst, simulation_no, yearly)
+    plotIRRChart(irr_values_lst, simulation_no, yearly)
     print_irr_stats(irr_values_lst)
 
 if __name__ == '__main__':
