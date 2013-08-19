@@ -7,7 +7,7 @@ import sys
 import traceback
 
 from collections import  OrderedDict
-from annex import get_input_date, get_input_int, memoize, get_input_comment
+from annex import getInputDate, getInputInt, memoize, getInputComment
 from database import Database
 from ecm import ElectricityMarketPriceSimulation
 from em import WeatherSimulation
@@ -47,7 +47,7 @@ class Interface():
         if iterations_no is None:
             iterations_no = self.get_number_iterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)
         if comment is  None:
-            comment = get_input_comment()
+            comment = getInputComment()
 
         simulation_no = run_save_simulation(iterations_no, comment)
 
@@ -102,7 +102,7 @@ class Interface():
     def simulationsLog(self, last=None):
         default = 10
         if last is  None:
-            last = get_input_int("Please input number of number of last simulations to display (or press Enter to use default %s) : " %default, default)
+            last = getInputInt("Please input number of number of last simulations to display (or press Enter to use default %s) : " %default, default)
         self.db.get_last_simulations_log(last)
 
     def deleteSimulation(self, simulation_no=None):
@@ -132,15 +132,15 @@ class Interface():
         return Mirr()
 
     def get_number_iterations(self, text="", default=""):
-        return  get_input_int("Please select number of iterations to run (or press Enter to use default %s) : " %default, default)
+        return  getInputInt("Please select number of iterations to run (or press Enter to use default %s) : " %default, default)
 
     def get_input_simulation(self, text=""):
         last_simulation = self.db.get_last_simulation_no()
-        return  get_input_int("Please input ID of simulation for %s (or press Enter to use last-run %s): " %(text, last_simulation), last_simulation)
+        return  getInputInt("Please input ID of simulation for %s (or press Enter to use last-run %s): " %(text, last_simulation), last_simulation)
 
     def get_input_iteration(self, text, simulation_no):
         iterations = "[1-%s]" % (self.db.get_iterations_number(simulation_no)+1)
-        return  get_input_int("Please enter iteration of Simulation %s for %s from %s (or press Enter to use first): " %(simulation_no, text, iterations), 1)
+        return  getInputInt("Please enter iteration of Simulation %s for %s from %s (or press Enter to use first): " %(simulation_no, text, iterations), 1)
 
     def get_simulation_iteration_nums(self, text):
         simulation_no =  self.get_input_simulation(text)
@@ -155,9 +155,9 @@ class Interface():
         memo = " (from %s to %s)" % (def_start,def_end)
         memo_res = "Please select resolution of graph in days (or press Enter to use default %s) : " % def_res
 
-        start_date =  get_input_date(text="Start date" + memo, default=def_start)
-        end_date =  get_input_date(text="End date" + memo, default=def_end)
-        resolution = get_input_int(memo_res, default=def_res)
+        start_date =  getInputDate(text="Start date" + memo, default=def_start)
+        end_date =  getInputDate(text="End date" + memo, default=def_end)
+        resolution = getInputInt(memo_res, default=def_res)
 
         return (start_date, end_date, resolution)
     def stop(self):

@@ -5,7 +5,7 @@ import datetime
 from collections import OrderedDict
 from database import Database
 from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD, IRR_REPORT_FIELD, IRR_REPORT_FIELD2, CORRELLATION_NPV_FIELD, BINS
-from annex import invert_dict, add_yearly_prefix, getResolutionStartEnd
+from annex import addYearlyPrefix, getResolutionStartEnd
 from itertools import izip_longest
 
 
@@ -191,7 +191,7 @@ def irr_scatter_charts(simulation_no, field, yearly=False):
     rows = 2
     prefix = ''
     main = prefix + field
-    real_field_shortname = add_yearly_prefix(field, yearly)
+    real_field_shortname = addYearlyPrefix(field, yearly)
 
     figures = Database().get_iteration_values_from_db(simulation_no, [main], yearly, not_changing_fields=CORRELLATION_FIELDS.values())
 
@@ -225,7 +225,7 @@ def irr_scatter_charts(simulation_no, field, yearly=False):
             obj.set_axis_off()
 
 
-    title = "Simulation %s. Scatter charts '%s'. %s" % (simulation_no, add_yearly_prefix(field, yearly), get_title_period(yearly))
+    title = "Simulation %s. Scatter charts '%s'. %s" % (simulation_no, addYearlyPrefix(field, yearly), get_title_period(yearly))
     fig = pylab.gcf()
     fig.suptitle(title, fontsize=14)
 

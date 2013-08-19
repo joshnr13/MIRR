@@ -2,7 +2,7 @@ import os
 import random
 import numpy
 
-from annex import memoize, last_day_month
+from annex import memoize, lastDayMonth
 from collections import defaultdict
 from config_readers import  EmInputsReader
 from datetime import date
@@ -342,7 +342,7 @@ class PlantEquipment():
         av_insolations = []
         days = []
         for i in range(1, 13):
-            last_month_date = last_day_month(date(2000,  i, 1))
+            last_month_date = lastDayMonth(date(2000,  i, 1))
             av_insolations.append(inputs.getAvMonthInsolation_month(i-1))
             days.append(last_month_date.day)
 

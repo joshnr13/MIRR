@@ -5,7 +5,7 @@ import os
 import random
 import datetime
 import ConfigParser
-from annex import add_x_months, add_x_years, get_report_dates, get_configs, float_range, get_list_dates, cached_property
+from annex import addXMonths, addXYears, getReportDates, getConfigs, floatRange, getListDates, cached_property
 from constants import TESTMODE
 import numpy
 
@@ -34,13 +34,13 @@ class ModuleConfigReader():
             self.real_permit_procurement_duration = random.randrange(_permit_procurement_duration_lower_limit, _permit_procurement_duration_upper_limit+1)
             self.real_construction_duration = random.randrange(_construction_duration_lower_limit, _construction_duration_upper_limit+1)
 
-        self.last_day_construction = add_x_months(self.start_date, self.real_permit_procurement_duration+self.real_construction_duration)
-        self.last_day_permit_procurement = add_x_months(self.start_date, self.real_permit_procurement_duration)
-        self.end_date = add_x_years(self.start_date, self.lifetime)
-        self.report_dates, self.report_dates_y = get_report_dates(self.start_date, self.end_date)
+        self.last_day_construction = addXMonths(self.start_date, self.real_permit_procurement_duration+self.real_construction_duration)
+        self.last_day_permit_procurement = addXMonths(self.start_date, self.real_permit_procurement_duration)
+        self.end_date = addXYears(self.start_date, self.lifetime)
+        self.report_dates, self.report_dates_y = getReportDates(self.start_date, self.end_date)
 
         self.simulation_number = _config.getint('Simulation', 'simulation_number')
-        self.configs = get_configs(self.__dict__)
+        self.configs = getConfigs(self.__dict__)
 
     def getConfigsValues(self):
         return  self.configs
@@ -83,7 +83,7 @@ class MainConfig():
         return self.configs["report_dates_y"]
 
     def getAllDates(self):
-        return  get_list_dates(self.getStartDate(), self.getEndDate())
+        return  getListDates(self.getStartDate(), self.getEndDate())
 
     def getConfigsValues(self):
         """return  dict with config names and values
@@ -120,13 +120,13 @@ class SubsidyModuleConfigReader():
             self.subsidy_duration = (_subsidy_duration_upper_limit + _subsidy_duration_lower_limit) / 2.0
         else:
             self.subsidy_delay = random.randint(_subsidy_delay_lower_limit, _subsidy_delay_upper_limit)
-            self.kWh_subsidy = random.choice(float_range(_kWh_subsidy_lower_limit ,_kWh_subsidy_upper_limit, 0.001, True))
+            self.kWh_subsidy = random.choice(floatRange(_kWh_subsidy_lower_limit ,_kWh_subsidy_upper_limit, 0.001, True))
             self.subsidy_duration = random.randint(_subsidy_duration_lower_limit, _subsidy_duration_upper_limit )
 
-        self.first_day_subsidy = add_x_months(self.last_day_construction+datetime.timedelta(days=1), self.subsidy_delay)
-        self.last_day_subsidy = add_x_months(self.first_day_subsidy, self.subsidy_duration)
+        self.first_day_subsidy = addXMonths(self.last_day_construction+datetime.timedelta(days=1), self.subsidy_delay)
+        self.last_day_subsidy = addXMonths(self.first_day_subsidy, self.subsidy_duration)
 
-        self.configs = get_configs(self.__dict__)
+        self.configs = getConfigs(self.__dict__)
 
     def getConfigsValues(self):
         return  self.configs
@@ -167,7 +167,7 @@ class TechnologyModuleConfigReader():
         self.inverter_power_efficiency = _config.getfloat('Inverter', 'inverter_power_efficiency') / 100
         self.transformer_power_efficiency = _config.getfloat('Transformer', 'transformer_power_efficiency') / 100
 
-        self.configs = get_configs(self.__dict__)
+        self.configs = getConfigs(self.__dict__)
 
     def getConfigsValues(self):
         return  self.configs
@@ -188,7 +188,7 @@ class EconomicModuleConfigReader():
         self.insuranceFeeEquipment = _config.getfloat('Costs', 'insuranceFeeEquipment') / 100
         self.insuranceDurationEquipment = _config.getfloat('Costs', 'insuranceDurationEquipment')
 
-        self.insuranceLastDayEquipment = add_x_years(start_date_project, self.insuranceDurationEquipment)
+        self.insuranceLastDayEquipment = addXYears(start_date_project, self.insuranceDurationEquipment)
 
         self.developmentCostDuringPermitProcurement = _config.getfloat('Costs', 'developmentCostDuringPermitProcurement')
         self.developmentCostDuringConstruction = _config.getfloat('Costs', 'developmentCostDuringConstruction')
@@ -226,7 +226,7 @@ class EconomicModuleConfigReader():
         self.k = _config.getfloat('ElectricityMarketPriceSimulation', 'k')
         self.sigma = _config.getfloat('ElectricityMarketPriceSimulation', 'sigma')
 
-        self.configs = get_configs(self.__dict__)
+        self.configs = getConfigs(self.__dict__)
 
 
 
@@ -245,7 +245,7 @@ class EnergyModuleConfigReader():
         self.TMin = _config.getfloat('WeatherSimulation', 'TMin')
         self.TMax = _config.getfloat('WeatherSimulation', 'TMax')
 
-        self.configs = get_configs(self.__dict__)
+        self.configs = getConfigs(self.__dict__)
 
     def getConfigsValues(self):
         return  self.configs
@@ -260,7 +260,7 @@ class RiskModuleConfigReader():
         self.benchmarkSharpeRatio = _config.getfloat('RISK', 'benchmarkSharpeRatio')
         self.benchmarkModifiedSharpeRatio = _config.getfloat('RISK', 'benchmarkModifiedSharpeRatio')
 
-        self.configs = get_configs(self.__dict__)
+        self.configs = getConfigs(self.__dict__)
 
     def getConfigsValues(self):
         return  self.configs

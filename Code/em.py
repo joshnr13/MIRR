@@ -13,7 +13,7 @@ from base_class import BaseClassConfig
 from config_readers import MainConfig, EnergyModuleConfigReader, EmInputsReader
 from constants import TESTMODE
 from collections import OrderedDict
-from annex import get_configs, memoize, getResolutionStartEnd
+from annex import getConfigs, memoize, getResolutionStartEnd
 from database import  Database
 from numpy.random import normal as gauss
 

@@ -9,7 +9,7 @@ from config_readers import RiskModuleConfigReader
 from math import sqrt
 import scipy.stats as stat
 from constants import report_directory, CORRELLATION_FIELDS
-from annex import get_only_digits,  convert_value, convert2excel, uniquify_filename, get_only_digits_list
+from annex import getOnlyDigits,  convertValue, convert2excel, uniquifyFilename, getOnlyDigitsList
 from charts import show_irr_charts, plot_histograms
 
 
@@ -125,7 +125,7 @@ def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
     cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
     report_name = "{cur_date}_irr_values_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
-    output_filename = uniquify_filename(report_full_name)
+    output_filename = uniquifyFilename(report_full_name)
 
     blank_row = [""]
     field1 = irr_values_lst[0]['field']
@@ -172,7 +172,7 @@ def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
 
 
     xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
-    xls_output_filename = uniquify_filename(xls_output_filename)
+    xls_output_filename = uniquifyFilename(xls_output_filename)
 
     convert2excel(source=output_filename, output=xls_output_filename)
     print "CSV Report outputed to file %s" % (xls_output_filename)
@@ -192,7 +192,7 @@ def save_stochastic_values_by_simulation(dic_values, simulation_no):
     cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
     report_name = "{cur_date}_stochastic_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
-    output_filename = uniquify_filename(report_full_name)
+    output_filename = uniquifyFilename(report_full_name)
     rows_values = []
     rows_stats = []
 
@@ -224,7 +224,7 @@ def save_stochastic_values_by_simulation(dic_values, simulation_no):
         w.writerows(rows_stats)
 
     xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
-    xls_output_filename = uniquify_filename(xls_output_filename)
+    xls_output_filename = uniquifyFilename(xls_output_filename)
 
     convert2excel(source=output_filename, output=xls_output_filename)
     print "Stochastic Report outputed to file %s" % (xls_output_filename)
@@ -236,7 +236,7 @@ def caclIrrsStatisctics(field_names, irr_values):
     """
     results = []
     for field_name, irr in zip(field_names, irr_values):
-        digit_irr = get_only_digits_list(irr)
+        digit_irr = getOnlyDigitsList(irr)
 
         result = {}
         result[field_name] = irr

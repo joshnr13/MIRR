@@ -7,8 +7,8 @@ import pylab
 import datetime
 
 from constants import report_directory, BS, IS, CF, NPV, REPORT_ROUNDING, ELPROD, SOURCE
-from annex import uniquify_filename, transponse_csv, add_header_csv, add_yearly_prefix, invert_dict
-from annex import convert2excel, combine_files, get_only_digits, add_second_sheet_excel
+from annex import uniquifyFilename, transponseCsv, addHeaderCsv, addYearlyPrefix
+from annex import convert2excel, combineFiles, getOnlyDigits, addSecondSheetXls
 from collections import OrderedDict
 from database import Database
 
@@ -77,7 +77,7 @@ class ReportOutput():
         for field in fields:
             if not field:
                 continue
-            field = add_yearly_prefix(field, yearly)
+            field = addYearlyPrefix(field, yearly)
             d = OrderedDict( (date,round_value(value)) for date,value in zip(report_header,db_values[field]) )
             result.append(d)
 
@@ -98,11 +98,11 @@ class ReportOutput():
         self.write_report(self.ss_rows, self.ss_header, self.ss_filename)
 
         combine_list = [self.bs_filename, self.is_filename, self.ss_filename, self.cf_filename, self.npv_filename]
-        combine_files(combine_list, self.output_filename)
+        combineFiles(combine_list, self.output_filename)
 
         xls_output_filename = self.get_report_filename(self.report_name, 'xlsx', yearly=yearly)
         self.output_filename = convert2excel(source=self.output_filename, output=xls_output_filename)
-        add_second_sheet_excel(self.output_filename, self.source_filename )
+        addSecondSheetXls(self.output_filename, self.source_filename )
 
     def prepare_report_IS_BS_CF_IRR(self, from_db=False,  yearly=False, ):
         self.prepare_report_filenames(yearly, from_db)
@@ -147,9 +147,9 @@ class ReportOutput():
             w.writeheader()
             w.writerows(rows)
 
-        transponse_csv(output_filename)
-        add_header_csv(output_filename, header)
-        transponse_csv(output_filename)
+        transponseCsv(output_filename)
+        addHeaderCsv(output_filename, header)
+        transponseCsv(output_filename)
 
 
     def get_report_filename(self, name, extension='csv', yearly=False):
@@ -160,7 +160,7 @@ class ReportOutput():
             report_name = "%s_%s_monthly.%s" % (cur_date, name, extension)
         report_name = os.path.join(report_directory, report_name)
 
-        output_filename = uniquify_filename(report_name)
+        output_filename = uniquifyFilename(report_name)
         return output_filename
 
 
@@ -188,9 +188,9 @@ if __name__ == '__main__':
     import os.path
 
     from collections import OrderedDict
-    from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, uniquify_filename, transponse_csv, add_header_csv, last_day_previous_month
-    from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, OrderedDefaultdict
-    from annex import add_start_project_values, get_months_range, csv2xlsx, month_number_days, timer
+    from annex import Annuitet, lastDayMonth, firstDayMonth, cached_property, uniquifyFilename, transponseCsv, addHeaderCsv, lastDayPrevMonth
+    from annex import memoize, OrderedDefaultdict, isLastDayYear, OrderedDefaultdict
+    from annex import csv2xlsx, nubmerDaysInMonth, timer
 
     from constants import PROJECT_START, report_directory, REPORT_ROUNDING
     from tm import TechnologyModule

@@ -3,7 +3,7 @@ import  pymongo
 import pylab
 from collections import defaultdict
 from numbers import Number
-from annex import add_yearly_prefix, convert_dict_dates
+from annex import addYearlyPrefix, convertDictDates
 from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD
 from numpy import corrcoef, around, isnan
 
@@ -69,7 +69,7 @@ class Database():
         return  self.iterations.find_one({'simulation': simulation_no, 'iteration': iteration_no}, {field: 1}).get(field, "no-result or error")
 
     def get_report_header(self,simulation_no, iteration_no, yearly=False ):
-        return  self.get_iteration_field(simulation_no, iteration_no, add_yearly_prefix('report_header', yearly))
+        return  self.get_iteration_field(simulation_no, iteration_no, addYearlyPrefix('report_header', yearly))
 
     def get_next_simulation_no(self):
         """Get next simulation number
@@ -89,7 +89,7 @@ class Database():
         get_values = {}
 
         for field in fields:
-            field = add_yearly_prefix(field, yearly)
+            field = addYearlyPrefix(field, yearly)
             select_by[field] = { '$exists' : True }
             get_values[field] = True
 
@@ -99,7 +99,7 @@ class Database():
             values = defaultdict(list)
             for doc in results:
                 for field in fields:
-                    field = add_yearly_prefix(field, yearly)
+                    field = addYearlyPrefix(field, yearly)
                     if "." in field:
                         names = field.split('.')[::-1]
                         value = doc[names.pop()]
@@ -125,7 +125,7 @@ class Database():
             if not field:
                 continue
             if field not in not_changing_fields:
-                field = add_yearly_prefix(field, yearly)
+                field = addYearlyPrefix(field, yearly)
             select_by[field] = { '$exists' : True }
             get_values[field] = True
         return  select_by, get_values
@@ -172,7 +172,7 @@ class Database():
 
                 field_name = splitted_field[-1]
                 if field_name not in not_changing_fields and field not in not_changing_fields:
-                    field_name = add_yearly_prefix(field_name, yearly)
+                    field_name = addYearlyPrefix(field_name, yearly)
                 fields_names.append(field_name)
 
             sub_keys = set(sub_keys)
@@ -260,7 +260,7 @@ class Database():
         result = []
 
         for field in fields:
-            field = add_yearly_prefix(field, yearly)
+            field = addYearlyPrefix(field, yearly)
             value = dic_values[field]
             row = filter(lambda x :isinstance(x, (Number, list)), value)
             if row:
@@ -335,7 +335,7 @@ class Database():
     def get_weather_data(self, simulation_no):
         result = self.weater_data.find_one({"simulation_no": simulation_no}, {"_id": False})
         if result:
-            return convert_dict_dates(result['data'])
+            return convertDictDates(result['data'])
 
     def write_electricity_prices(self, data):
         self.electricity_prices.insert(data, safe=True)
@@ -344,7 +344,7 @@ class Database():
     def get_electricity_prices(self, simulation_no):
         result = self.electricity_prices.find_one({"simulation_no": simulation_no}, {"_id": False})
         if result:
-            return convert_dict_dates(result['data'])
+            return convertDictDates(result['data'])
 
 
 

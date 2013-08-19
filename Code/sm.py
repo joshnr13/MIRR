@@ -6,7 +6,7 @@ import ConfigParser
 import os
 import random
 
-from annex import add_x_years, add_x_months, get_configs, float_range
+from annex import addXYears, addXMonths, getConfigs, floatRange
 from constants import TESTMODE
 from base_class import BaseClassConfig
 from config_readers import MainConfig, SubsidyModuleConfigReader

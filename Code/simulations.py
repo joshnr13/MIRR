@@ -3,7 +3,7 @@ import datetime
 import csv
 
 from _mirr import Mirr
-from annex import convert_value
+from annex import convertValue
 from collections import defaultdict
 from database import Database
 from report_output import ReportOutput
@@ -43,7 +43,7 @@ class Simulation():
 
     def convert_results(self):
         """Processing results before inserting to DB"""
-        self.line = convert_value(self.prepared_line)
+        self.line = convertValue(self.prepared_line)
 
     def prepare_iteration_results(self, iteration, iteration_number):
         obj = self.r

@@ -12,7 +12,7 @@ import os
 from em import EnergyModule
 from config_readers import MainConfig, TechnologyModuleConfigReader
 from base_class import BaseClassConfig
-from annex import get_configs, memoize, get_list_dates, years_between_1Jan, getResolutionStartEnd
+from annex import getConfigs, memoize, getListDates, yearsBetween1Jan, getResolutionStartEnd
 from tm_equipment import PlantEquipment
 from collections import OrderedDict
 
@@ -74,7 +74,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def calc_degradation_coefficients(self):
         degradation_coefficients = OrderedDict()
         for date in self.date_list:
-            degradation_coefficients[date] = (1-self.degradation_yearly)**years_between_1Jan(self.start_date_project, date)
+            degradation_coefficients[date] = (1-self.degradation_yearly)**yearsBetween1Jan(self.start_date_project, date)
         self.degradation_coefficients = degradation_coefficients
 
     def get_module_degradation(self, date):
@@ -82,7 +82,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         return  self.degradation_coefficients[date]
 
     def calc_project_datelist(self):
-        self.date_list = get_list_dates(self.start_date_project, self.end_date_project)
+        self.date_list = getListDates(self.start_date_project, self.end_date_project)
 
     def generateElectiricityProduction(self, date):
         insolation = self.energy_module.get_insolation(date)
@@ -92,7 +92,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def getElectricityProduction(self, date_start, date_end):
         """return sum of electricity in kWh for each day for the selected period"""
-        date_list = get_list_dates(date_start, date_end)
+        date_list = getListDates(date_start, date_end)
         s = self.plant.getElectricityProductionPlant1Day
         i = self.energy_module.insolations
         d = self.degradation_coefficients

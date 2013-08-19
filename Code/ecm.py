@@ -9,8 +9,8 @@ import numpy as np
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, getDaysNoInMonth, years_between_1Jan, months_between, last_day_month, get_list_dates
-from annex import add_x_years,add_x_months, month_number_days, last_day_next_month, get_configs,  OrderedDefaultdict, memoize
+from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, getListDates
+from annex import addXYears,addXMonths, nubmerDaysInMonth, lastDayNextMonth, getConfigs,  OrderedDefaultdict, memoize
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
 from collections import OrderedDict
@@ -171,7 +171,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         revenue_electricity = 0
         revenue_subside = 0
         cur_date = date_start
-        date_list = get_list_dates(date_start, date_end)
+        date_list = getListDates(date_start, date_end)
 
         for cur_date in date_list:
             electricity_production = self.getElectricityProduction(cur_date)
@@ -210,10 +210,10 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def calcDepricationMonthly(self, date):
         """Calcultation of amortization in current month"""
-        cur_month = months_between(self.start_date_project, date)
+        cur_month = monthsBetween(self.start_date_project, date)
         deprication_duration_months = self.deprication_duration * 12
 
-        cur_month = months_between(self.last_day_construction+datetime.timedelta(days=1), date)
+        cur_month = monthsBetween(self.last_day_construction+datetime.timedelta(days=1), date)
         if cur_month <= 0:
             return 0
         elif cur_month <= deprication_duration_months:
@@ -236,17 +236,17 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
         ####### FIRST - 30% 2 month before the start of construction
         part1 = 0.3
-        start_date1 = last_day_month(add_x_months(self.first_day_construction, -2))
+        start_date1 = lastDayMonth(addXMonths(self.first_day_construction, -2))
         self.calc_paidin_investment(start_date1, part1)
 
         ####### SECOND - 50% - at start of construction
         part2 = 0.5
-        start_date2 = last_day_month(self.first_day_construction)
+        start_date2 = lastDayMonth(self.first_day_construction)
         self.calc_paidin_investment(start_date2, part2)
 
         ####### THIRD - 20% - at the end of construction
         part3 = 0.2
-        start_date3 = last_day_month(self.last_day_construction)
+        start_date3 = lastDayMonth(self.last_day_construction)
         self.calc_paidin_investment(start_date3, part3)
 
     def getPaidInDelta(self, date):
@@ -305,11 +305,11 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def _getDevelopmentCostDuringPermitProcurement(self, date):
         """costs for developing phase of project at given date (1day) - part permit procurement"""
-        return self.developmentCostDuringPermitProcurement / month_number_days(date)
+        return self.developmentCostDuringPermitProcurement / nubmerDaysInMonth(date)
 
     def _getDevelopmentCostDuringConstruction(self, date):
         """costs for developing phase of project at given date (1day) - part construction"""
-        return self.developmentCostDuringConstruction / month_number_days(date)
+        return self.developmentCostDuringConstruction / nubmerDaysInMonth(date)
 
     def _getOperationalCosts(self, date):
         """Operational costs at given date (1day)"""
@@ -320,7 +320,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def _getAdministrativeCosts(self, date):
         """return administrative costs at given date (1day)"""
-        yearNumber = years_between_1Jan(self.start_date_project, date)
+        yearNumber = yearsBetween1Jan(self.start_date_project, date)
         return self.administrativeCosts * ((1 + self.administrativeCostsGrowth_rate) ** yearNumber) / getDaysNoInMonth(date)
 
     def _getInsuranceCosts(self, date):
@@ -358,7 +358,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def getSomeCostsRange(self, cost_function, date_start, date_end):
         """basic function to calculate range costs"""
         cur_date = date_start
-        list_dates = get_list_dates(date_start, date_end)
+        list_dates = getListDates(date_start, date_end)
         return sum([cost_function(date) for date in list_dates])
 
         #while cur_date <= date_end:

@@ -6,9 +6,9 @@ import numpy
 import os.path
 
 from collections import  OrderedDict
-from annex import Annuitet, last_day_month, next_month, first_day_month, cached_property, add_header_csv, last_day_previous_month
-from annex import accumulate, memoize, OrderedDefaultdict, is_last_day_year, OrderedDefaultdict
-from annex import add_start_project_values, get_months_range,  month_number_days, get_only_digits, last_year, get_list_dates
+from annex import Annuitet, lastDayMonth, firstDayMonth, cached_property, addHeaderCsv, lastDayPrevMonth
+from annex import memoize, OrderedDefaultdict, isLastDayYear, OrderedDefaultdict
+from annex import nubmerDaysInMonth, getOnlyDigits, sameDayLastYear, getListDates
 from financial_analysis import irr, npv, npv_pv
 
 from constants import PROJECT_START, REPORT_ROUNDING
@@ -37,14 +37,14 @@ class Report(BaseClassConfig):
 
         for start_day, end_day in self.report_dates.items():
             self.calc_monthly_values_part1(start_day, end_day)
-            if is_last_day_year(end_day):
+            if isLastDayYear(end_day):
                 self.calc_yearly_values_part1(end_day)
             self.calc_monthly_values_part2(start_day, end_day)
             self.calc_helper_values_monthly(end_day)
             self.calc_fcf_monthly(end_day)
             self.check_balance_sheet(end_day)
 
-            if is_last_day_year(end_day):
+            if isLastDayYear(end_day):
                 self.calc_yearly_values_part2(end_day)
                 self.calc_yearly_values_part3(end_day)
 
@@ -244,7 +244,7 @@ class Report(BaseClassConfig):
 
         for start_day_m, end_day_m in self.report_dates_y[end_day_y]:
             Y = end_day_y
-            Y1 =  last_year(end_day_y)#previous_year
+            Y1 =  sameDayLastYear(end_day_y)#previous_year
             M = end_day_m
 
             ############## SUM #################
@@ -266,7 +266,7 @@ class Report(BaseClassConfig):
         """Main function to calc yearly value for reports P2"""
 
         Y = end_day_y
-        Y1 =  last_year(end_day_y)#previous_year
+        Y1 =  sameDayLastYear(end_day_y)#previous_year
 
         ########### LAST MONTH ###############
         self.electricity_prices_y[Y] = self.electricity_prices[Y]
@@ -291,7 +291,7 @@ class Report(BaseClassConfig):
     def get_prev_month_value(self, obj, date):
         """Get previous month value of @obj with current date @date"""
         M = date
-        pM = last_day_previous_month(date)
+        pM = lastDayPrevMonth(date)
         if pM < self.start_date_project:
             pM = PROJECT_START
         return obj[pM]
@@ -340,7 +340,7 @@ class Report(BaseClassConfig):
         """Calculation of monthly FCF, it depends what period is now
         - first time or others"""
         M = end_day
-        if M == last_day_month(self.start_date_project):
+        if M == lastDayMonth(self.start_date_project):
 
             self.fcf_project[M] = (self.net_earning[M] -
                                    self.get_delta_cur_prev(self.fixed_asset, M) -
@@ -368,11 +368,11 @@ class Report(BaseClassConfig):
         """Calculating IRR for project and owners, using numpy.IRR function
         both Montly and Yearly values
         """
-        fcf_owners_values = get_only_digits(self.fcf_owners)
-        fcf_project_values = get_only_digits(self.fcf_project)
+        fcf_owners_values = getOnlyDigits(self.fcf_owners)
+        fcf_project_values = getOnlyDigits(self.fcf_project)
 
-        fcf_owners_values_y = get_only_digits(self.fcf_owners_y)
-        fcf_project_y = get_only_digits(self.fcf_project_y)
+        fcf_owners_values_y = getOnlyDigits(self.fcf_owners_y)
+        fcf_project_y = getOnlyDigits(self.fcf_project_y)
 
         self.irr_owners = irr(fcf_owners_values)
         self.irr_project = irr(fcf_project_values)
@@ -398,11 +398,11 @@ class Report(BaseClassConfig):
     def calc_npv(self):
         """Calculation of monthly and yearly NPV for owners and project"""
 
-        fcf_owners_values = get_only_digits(self.fcf_owners)
-        fcf_project_values = get_only_digits(self.fcf_project)
+        fcf_owners_values = getOnlyDigits(self.fcf_owners)
+        fcf_project_values = getOnlyDigits(self.fcf_project)
 
-        fcf_owners_values_y = get_only_digits(self.fcf_owners_y)
-        fcf_project_y = get_only_digits(self.fcf_project_y)
+        fcf_owners_values_y = getOnlyDigits(self.fcf_owners_y)
+        fcf_project_y = getOnlyDigits(self.fcf_project_y)
 
         self.npv_owners, pv_owners_list = npv_pv(self.wacc, fcf_owners_values)
         self.npv_project, pv_project_list = npv_pv(self.wacc, fcf_project_values)
@@ -444,7 +444,7 @@ class Report(BaseClassConfig):
 
     def _calc_unallocated_earnings(self, date):
         """Calculating accumulated earnings = previous (net_earning+unallocated_earning) """
-        prev_month_date = last_day_previous_month(date)
+        prev_month_date = lastDayPrevMonth(date)
         if prev_month_date < self.start_date_project:
             prev_month_date = PROJECT_START
         prev_unallocated_earning = self.unallocated_earning[prev_month_date]
@@ -540,7 +540,7 @@ class Report(BaseClassConfig):
         tax = taxrate * max(EBT*50%; EBT - accumulated loss)
         entered only in december
         """
-        if is_last_day_year(date):
+        if isLastDayYear(date):
             accumulated_earnings = self.accumulated_earnings_to(date)
             year_ebt = self.ebt_y[date]
 
@@ -555,7 +555,7 @@ class Report(BaseClassConfig):
             return 0
 
     def _calc_paid_in(self, date):
-        prev_month_date = last_day_previous_month(date)
+        prev_month_date = lastDayPrevMonth(date)
         if prev_month_date < self.start_date_project:
             prev_month_date = PROJECT_START
         prev_paid_in = self.paid_in_capital[prev_month_date]
@@ -578,7 +578,7 @@ class Report(BaseClassConfig):
         """calculating fixed assests as diff between investment and deprication
         return  cur_investments + prev_fixed_asset - cur_deprication
         """
-        prev_month_date = last_day_previous_month(date)
+        prev_month_date = lastDayPrevMonth(date)
         if prev_month_date < self.start_date_project:
             prev_month_date = PROJECT_START
         prev_fixed_asset = self.fixed_asset[prev_month_date] #.get(prev_month_last_day, 0)
@@ -592,7 +592,7 @@ class Report(BaseClassConfig):
         """Calculation Monthly operating_receivable using following rule
         Revenue is paid in 60 days - so at the end of the month you have for two months of recievables
         """
-        prev1_date = last_day_previous_month(date)
+        prev1_date = lastDayPrevMonth(date)
 
         if prev1_date < self.start_date_project:
             prev1_value = 0
@@ -606,7 +606,7 @@ class Report(BaseClassConfig):
     def _calc_short_term_debt_suppliers(self,  date):
         """Calculation Monthly Short-Term Debt to Suppliers using same rule as for operating_receivable
         """
-        prev1_date = last_day_previous_month(date)
+        prev1_date = lastDayPrevMonth(date)
 
         if prev1_date < self.start_date_project:
             prev1_value = 0
@@ -623,7 +623,7 @@ class Report(BaseClassConfig):
         """
         results = OrderedDict()
         for start_day, end_day in self.report_dates.items():
-            results[end_day] = sum([dic[date] for date in get_list_dates(start_day, end_day)])
+            results[end_day] = sum([dic[date] for date in getListDates(start_day, end_day)])
         return results
 
     def calc_report_monthly_values4(self, dic):
