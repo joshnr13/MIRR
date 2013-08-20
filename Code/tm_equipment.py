@@ -255,7 +255,6 @@ class EquipmentGroup():
 
 ################################ PLANT #######################
 
-
 class PlantEquipment():
     """Class for whole plant equipment"""
     def __init__(self, network_available_probability ):

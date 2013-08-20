@@ -4,6 +4,7 @@ BEST_GUESSES = [-0.1, -0.01, 0.01,  0.1]
 SMALL = 0.00000001
 
 class CashFlows():
+    """class holds info about cashflow and calculats NPV and IRR"""
     def __init__(self, cashflows):
         """@cashflows - list of cashflow values
            @npvs - dict with calcultaned npv with different rates
@@ -14,12 +15,12 @@ class CashFlows():
         self.pv = []
 
     def derivative_npv(self,  rate):
-        small = SMALL
+        """calculate derivative npv """
         total = 0.0
         rate_plus_1 = 1 + rate
         cf = self.cashflows[1:]
         for i, cashflow in enumerate(cf):
-            val = (-1 * (i) * cashflow / (rate_plus_1** (i + 1)+small))
+            val = (-1 * (i) * cashflow / (rate_plus_1** (i + 1)+SMALL))
             total += val
 
         return total

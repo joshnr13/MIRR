@@ -2,19 +2,17 @@ import os
 import csv
 import datetime
 from database import Database
-from numpy import corrcoef, around, isnan, std, mean, median
+from numpy import corrcoef, isnan, std, mean, median
 from scipy.stats import skew, kurtosis
 from collections import OrderedDict
 from config_readers import RiskModuleConfigReader
-from math import sqrt
 import scipy.stats as stat
 from constants import report_directory, CORRELLATION_FIELDS
-from annex import getOnlyDigits,  convertValue, convert2excel, uniquifyFilename, getOnlyDigitsList
+from annex import convert2excel, uniquifyFilename, getOnlyDigitsList
 from charts import plotIRRChart, plotHistogramsChart
 
 
 def calcStatistics(values):
-
     """input @list of values
     output @dict with keys - stat name, value=stat_value
     """
@@ -101,9 +99,7 @@ def JarqueBeraTest(values):
     jb_stat_value = calcJbStats(values)
     return  calcJbProbability(jb_stat_value)
 
-
-
-def print_irr_stats(irr_values_lst):
+def printIRRStats(irr_values_lst):
     """Prints statistics of irr values"""
     for dic in irr_values_lst:
         print "Statistics for %s" % dic.get('field', None)
@@ -118,7 +114,7 @@ def print_irr_stats(irr_values_lst):
         print "\tRequired rate of return value %s" % dic.get('required_rate_of_return', None)
         print "\tJB test values %s" % dic.get('JBTest', None)
 
-def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
+def saveIRRValuesXls(irr_values_lst, simulation_no, yearly):
     """Saves IRR values to excel file
     @irr_values_lst - list  with 2 complicated dicts inside """
 
@@ -178,14 +174,14 @@ def save_irr_values_xls(irr_values_lst, simulation_no, yearly):
     print "CSV Report outputed to file %s" % (xls_output_filename)
 
 
-def plotsave_stochastic_values_by_simulation(simulation_no, yearly=True):
-    """"""
+def plotSaveStochasticValuesSimulation(simulation_no, yearly=True):
+    """plots simulation stochastic values and saves them in xls"""
     fields = CORRELLATION_FIELDS.values()
     results = Database().get_iteration_values_from_db(simulation_no, fields=[], yearly=yearly , not_changing_fields=fields)
     plotHistogramsChart(results, simulation_no, yearly)
-    save_stochastic_values_by_simulation(results, simulation_no)
+    saveStochasticValuesSimulation(results, simulation_no)
 
-def save_stochastic_values_by_simulation(dic_values, simulation_no):
+def saveStochasticValuesSimulation(dic_values, simulation_no):
     """Saves IRR values to excel file
     @irr_values_lst - list  with 2 complicated dicts inside """
 
@@ -250,7 +246,6 @@ def caclIrrsStatisctics(field_names, irr_values):
 
     return  results
 
-
 def analyseSimulationResults(simulation_no, yearly=False):
     """
     1 Gets from DB yearly values of irr
@@ -261,9 +256,9 @@ def analyseSimulationResults(simulation_no, yearly=False):
     db = Database()
     irr_values_lst = db.get_simulation_values_from_db(simulation_no, [field])[field][0]
 
-    save_irr_values_xls(irr_values_lst, simulation_no, yearly)
+    saveIRRValuesXls(irr_values_lst, simulation_no, yearly)
     plotIRRChart(irr_values_lst, simulation_no, yearly)
-    print_irr_stats(irr_values_lst)
+    printIRRStats(irr_values_lst)
 
 if __name__ == '__main__':
     X = [0.1, 0.2, 0.3]
