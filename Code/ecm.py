@@ -9,7 +9,7 @@ import numpy as np
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, getListDates
+from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth
 from annex import addXYears,addXMonths, nubmerDaysInMonth, lastDayNextMonth, getConfigs,  OrderedDefaultdict, memoize
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
@@ -130,7 +130,6 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.get_electricity_prices_lifetime()
         self.calc_electricity_production_lifetime()
 
-
     def calc_config_values(self): #init of the module
         self.investments = self.technology_module.getInvestmentCost() #gets the value of the whole investment from the technology module
         self.investments_monthly = OrderedDefaultdict(int)
@@ -171,9 +170,8 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         revenue_electricity = 0
         revenue_subside = 0
         cur_date = date_start
-        date_list = getListDates(date_start, date_end)
 
-        for cur_date in date_list:
+        for cur_date in self.all_project_dates:
             electricity_production = self.getElectricityProduction(cur_date)
             day_revenue_electricity = electricity_production * self.getPriceKwh(cur_date)
             day_revenue_subsidy = electricity_production * self.subside_module.subsidyProduction(cur_date)
@@ -357,14 +355,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def getSomeCostsRange(self, cost_function, date_start, date_end):
         """basic function to calculate range costs"""
-        cur_date = date_start
-        list_dates = getListDates(date_start, date_end)
-        return sum([cost_function(date) for date in list_dates])
-
-        #while cur_date <= date_end:
-            #costs += cost_function(cur_date)
-            #cur_date += datetime.timedelta(days=1)
-        #return costs
+        return sum([cost_function(date) for date in self.all_project_dates])
 
     def getTaxRate(self):
         """return taxrate in float"""

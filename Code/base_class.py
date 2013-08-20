@@ -12,6 +12,10 @@ class BaseClassConfig():
         return self._config_module.getEndDate()
 
     @property
+    def all_project_dates(self):
+        return self._config_module.getAllDates()
+
+    @property
     def real_permit_procurement_duration(self):
         return self._config_module.getPermitProcurementDuration()
 

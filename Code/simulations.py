@@ -151,7 +151,7 @@ class Simulation():
         #########################################
         line["project_days"] = self.ecm.electricity_prices.keys()
 
-        line["equipment_description"] = self.tm.get_equipment_description()
+        line["equipment_description"] = self.tm.equipmentDescription()
 
         line["insolations_daily"] = self.em.get_insolations_lifetime().values()
         line["electricity_production_daily"] = self.ecm.electricity_production.values()
