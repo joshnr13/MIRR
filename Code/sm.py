@@ -1,20 +1,14 @@
 #!/usr/bin/env python
 # -*- coding utf-8 -*-
 
-import datetime
-import ConfigParser
-import os
-import random
-
-from annex import addXYears, addXMonths, getConfigs, floatRange
-from constants import TESTMODE
 from base_class import BaseClassConfig
 from config_readers import MainConfig, SubsidyModuleConfigReader
 
 class SubsidyModule(BaseClassConfig, SubsidyModuleConfigReader):
+    """Module for calculation subside values for production electricity"""
     def __init__(self, config_module):
-        BaseClassConfig.__init__(self, config_module)
-        SubsidyModuleConfigReader.__init__(self)
+        BaseClassConfig.__init__(self, config_module)  #init base class config to have ability to use all main config values
+        SubsidyModuleConfigReader.__init__(self)  #load config values for current module
 
     def subsidyProduction(self, date):
         """return subsidy in EUR for production 1Kwh on given @date"""
