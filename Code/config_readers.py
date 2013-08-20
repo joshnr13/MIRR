@@ -9,7 +9,9 @@ from annex import addXMonths, addXYears, getReportDates, getConfigs, floatRange,
 from constants import TESTMODE
 import numpy
 
-class ModuleConfigReader():
+class MainConfig():
+    """Module for reading configs from main config file"""
+
     def __init__(self, _filename='main_config.ini'):
         """Reads main config file """
 
@@ -42,45 +44,38 @@ class ModuleConfigReader():
         self.simulation_number = _config.getint('Simulation', 'simulation_number')
         self.configs = getConfigs(self.__dict__)
 
-    def getConfigsValues(self):
-        return  self.configs
-
-class MainConfig():
-    def __init__(self):
-        self.configs = ModuleConfigReader().getConfigsValues()
-
     def getStartDate(self):
-        return self.configs["start_date"]
+        return self.start_date
 
     def getEndDate(self):
-        return self.configs["end_date"]
+        return self.end_date
 
     def getPermitProcurementDuration(self):
-        return  self.configs["real_permit_procurement_duration"]
+        return  self.real_permit_procurement_duration
 
     def getConstructionDuration(self):
-        return  self.configs["real_construction_duration"]
+        return  self.real_construction_duration
 
     def getLastDayPermitProcurement(self):
-        return  self.configs["last_day_permit_procurement"]
+        return  self.last_day_permit_procurement
 
     def getFirstDayConstruction(self):
-        return  self.configs["last_day_permit_procurement"] + datetime.timedelta(days=1)
+        return  self.last_day_permit_procurement + datetime.timedelta(days=1)
 
     def getLastDayConstruction(self):
-        return  self.configs["last_day_construction"]
+        return  self.last_day_construction
 
     def getResolution(self):
-        return  self.configs["resolution"]
+        return  self.resolution
 
     def getLifeTime(self):
-        return  self.configs["lifetime"]
+        return  self.lifetime
 
     def getReportDates(self):
-        return self.configs["report_dates"]
+        return self.report_dates
 
     def getReportDatesY(self):
-        return self.configs["report_dates_y"]
+        return self.report_dates_y
 
     def getAllDates(self):
         return  getListDates(self.getStartDate(), self.getEndDate())
@@ -93,13 +88,22 @@ class MainConfig():
 
     @cached_property
     def weather_data_rnd_simulation(self):
+        """return  random number which weather simulation will be used
+        calculated only 1 time """
         return random.randint(1, 100)
 
     @cached_property
     def electricity_price_rnd_simulation(self):
+        """return  random number which electricity simulation will be used
+        calculated only 1 time
+        """
         return random.randint(1, 100)
 
+    def getConfigsValues(self):
+        return  self.configs
+
 class SubsidyModuleConfigReader():
+    """Module for reading Subsidy configs from file"""
     def __init__(self, _filename='sm_config.ini'):
         """Reads module config file"""
         _config = ConfigParser.ConfigParser()
@@ -133,10 +137,9 @@ class SubsidyModuleConfigReader():
 
 
 
-
 class TechnologyModuleConfigReader():
+    """Module fore reading Technology configs from file"""
     def __init__(self, _filename='tm_config.ini'):
-        """Reads module config file"""
         _config = ConfigParser.ConfigParser()
         _filepath = os.path.join(os.getcwd(), 'configs', _filename)
         _config.read(_filepath)
@@ -174,6 +177,7 @@ class TechnologyModuleConfigReader():
 
 
 class EconomicModuleConfigReader():
+    """Module for reading Economic configs from file"""
     def __init__(self, start_date_project, _filename='ecm_config.ini'):
         """Reads module config file
         @self.insuranceLastDayEquipment - last day when we need to pay for insurance
@@ -228,13 +232,12 @@ class EconomicModuleConfigReader():
 
         self.configs = getConfigs(self.__dict__)
 
-
-
     def getConfigsValues(self):
         return  self.configs
 
 
 class EnergyModuleConfigReader():
+    """Module fore reading Energy configs from file"""
     def __init__(self, _filename='em_config.ini'):
         _config = ConfigParser.ConfigParser()
         _filepath = os.path.join(os.getcwd(), 'configs', _filename)
@@ -251,6 +254,7 @@ class EnergyModuleConfigReader():
         return  self.configs
 
 class RiskModuleConfigReader():
+    """Module fore reading Risk configs from file"""
     def __init__(self, _filename='rm_config.ini'):
         _config = ConfigParser.ConfigParser()
         _filepath = os.path.join(os.getcwd(), 'configs', _filename)
@@ -267,6 +271,7 @@ class RiskModuleConfigReader():
 
 
 class EmInputsReader():
+    """Module for reading Inputs for Energy Module"""
     def __init__(self):
         """Loads inputs to memory"""
         filepath = os.path.join(os.getcwd(), 'inputs', 'em_input.txt')
@@ -274,17 +279,17 @@ class EmInputsReader():
         self.inputs_insolations = [i[1] for i in self.inputs]
         self.inputs_temperature = [i[2] for i in self.inputs]
 
-    def getAvMonthInsolation_month(self, month):
+    def getAvMonthInsolationMonth(self, month):
         """Returns average daily insolation in given date"""
         return self.inputs_insolations[month]
 
-    def getAvMonthTemperature_month(self, month):
+    def getAvMonthTemperatureMonth(self, month):
         """Returns average daily insolation in given date"""
         return self.inputs_temperature[month]
 
 if __name__ == '__main__':
 
-    m = ModuleConfigReader()
+    m = MainConfig()
     print m.getConfigsValues()
 
 
