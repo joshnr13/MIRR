@@ -17,7 +17,7 @@ from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRSc
 from report_output import ReportOutput
 from config_readers import MainConfig
 from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD,  REPORT_DEFAULT_NUMBER_SIMULATIONS, REPORT_DEFAULT_NUMBER_ITERATIONS
-from rm import  analyseSimulationResults, plotsave_stochastic_values_by_simulation
+from rm import  analyseSimulationResults, plotSaveStochasticValuesSimulation
 
 commands = OrderedDict()
 commands['1'] = 'runSimulation'
@@ -97,7 +97,7 @@ class Interface():
     def distributionOfInputVariables(self, simulation_no=None):
         if simulation_no is None:
             simulation_no = self.get_input_simulation("stochastic distribution charts: ")
-        plotsave_stochastic_values_by_simulation(simulation_no)
+        plotSaveStochasticValuesSimulation(simulation_no)
 
     def simulationsLog(self, last=None):
         default = 10
