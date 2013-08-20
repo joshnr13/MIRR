@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding utf-8 -*-
 
+import numpy
 from em import EnergyModule
 from config_readers import MainConfig, TechnologyModuleConfigReader
 from base_class import BaseClassConfig
@@ -36,17 +37,17 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def addSolarModulesAndInverter(self):
         """Adds solar module and inverter in each group"""
         for i in range(self.groups_number):
-            eq_group = self.plant.add_Solar_group()
-            eq_group.add_inverter(self.inverter_price, self.inverter_reliability, self.inverter_power_efficiency)
+            eq_group = self.plant.addSolarGroup()
+            eq_group.addInverter(self.inverter_price, self.inverter_reliability, self.inverter_power_efficiency)
             for j in range(self.modules_in_group):
-                eq_group.add_solar_module(self.module_price, self.module_reliability, self.module_power_efficiency, self.module_power)
+                eq_group.addSolarModule(self.module_price, self.module_reliability, self.module_power_efficiency, self.module_power)
 
     def addACTransmission(self):
         """add transformer and connection grid to plant"""
-        actransmission_group = self.plant.add_AC_group()  #adds new group for that kind of equipment
-        actransmission_group.add_connection_grid(self.connection_grip_cost)
+        actransmission_group = self.plant.addACGroup()  #adds new group for that kind of equipment
+        actransmission_group.addConnectionGrid(self.connection_grip_cost)
         if self.transformer_present:
-            actransmission_group.add_transformer(self.transformer_price, self.transformer_reliability, self.transformer_power_efficiency)  #add transformer
+            actransmission_group.addTransformer(self.transformer_price, self.transformer_reliability, self.transformer_power_efficiency)  #add transformer
 
     def getInvestmentCost(self):
         """return  investment costs of all plant"""
@@ -58,7 +59,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         eqipment_price = self.getInvestmentCost()
         description.append("\nEquipment investment cost - Total: %s" % eqipment_price)
         description.append(str(self.plant))
-        for i, group_info in enumerate(self.plant.get_groups()):
+        for i, group_info in enumerate(self.plant.getPlantGroups()):
             description.append("Group: %s" % (i + 1))
             description.append(str(group_info))
         return "\n".join(description)
