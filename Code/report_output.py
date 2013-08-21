@@ -15,9 +15,9 @@ from database import Database
 db = Database()
 
 class ReportOutput():
+    """class for preparing data for XLS report from DB and writing it to file """
     def __init__(self, report_data):
         self.r = report_data
-
 
     def prepare_report_filenames(self, yearly, from_db):
         self.report_name = 'IS-BS-CF'
@@ -113,9 +113,7 @@ class ReportOutput():
 
     def get_report_fields(self, rows_str, yearly):
         postfix = "" if not yearly else "_y"
-        obj = self.r
-
-        rows = [getattr(obj, attr+postfix) for attr in rows_str if attr]
+        rows = [getattr(self.r, attr+postfix) for attr in rows_str if attr]
         return rows
 
     def round_rows_dicts(self, rows):

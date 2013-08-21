@@ -58,11 +58,6 @@ class Interface():
 
         analyseSimulationResults(simulation_no, yearly=True)
 
-    def report_isbscf(self):
-        params = self.get_simulation_iteration_nums("for getting ISBS excel report ")
-        ReportOutput(0).prepare_report_IS_BS_CF_IRR(params, yearly=False)
-        ReportOutput(0).prepare_report_IS_BS_CF_IRR(params, yearly=True)
-
     def charts(self):
         simulation_no, iteration_no =  self.get_simulation_iteration_nums("for plotting revenue-costs charts ")
         plotRevenueCostsChart(simulation_no, iteration_no, yearly=False)
