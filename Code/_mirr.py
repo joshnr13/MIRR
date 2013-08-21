@@ -19,16 +19,6 @@ class Mirr():
         self.economic_module = EconomicModule(main_config, self.technology_module, self.subside_module)
         self.r = Report(main_config, self.economic_module)
 
-    @property
-    def o(self):
-        """Cached output - calculated and simulated results"""
-        if getattr(self, '_o', None)  == None:
-            self.r.calc_report_values()
-            self._o = ReportOutput(self.r)
-            return  self._o
-        else:
-            return  self._o
-
     def getMainConfig(self):
         """return  link to main config"""
         return  self.main_config
@@ -54,6 +44,12 @@ class Mirr():
         return  self.r
 
     def getOutputModule(self):
-        """return  link to report output module"""
-        return  self.o
+        """return  link to report output module
+        first we prepare (calculate) report values and after
+        that initing new cls
+        """
+        self.r.calc_report_values()
+        return ReportOutput(self.r)
+
+
 

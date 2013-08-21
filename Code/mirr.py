@@ -193,7 +193,5 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print sys.exc_info()[1]
     except:
-        #print sys.exc_info()
-        var = traceback.format_exc()
-        print var
+        print traceback.format_exc()
 
