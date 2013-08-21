@@ -8,6 +8,8 @@ from report_output import ReportOutput
 from annex import cached_property
 
 class Mirr():
+    """Main class for combining all modules together
+    """
     def __init__(self):
         main_config = MainConfig()
         self.main_config = main_config
@@ -19,7 +21,7 @@ class Mirr():
 
     @property
     def o(self):
-        """Cached output"""
+        """Cached output - calculated and simulated results"""
         if getattr(self, '_o', None)  == None:
             self.r.calc_report_values()
             self._o = ReportOutput(self.r)
@@ -28,23 +30,30 @@ class Mirr():
             return  self._o
 
     def getMainConfig(self):
+        """return  link to main config"""
         return  self.main_config
 
     def getEnergyModule(self):
+        """return  link to energy module"""
         return  self.energy_module
 
     def getTechnologyModule(self):
+        """return  link to technology module"""
         return  self.technology_module
 
     def getSubsideModule(self):
+        """return  link to subside module"""
         return  self.subside_module
 
     def getEconomicModule(self):
+        """return  link to economic module"""
         return  self.economic_module
 
     def getReportModule(self):
+        """return  link to report module"""
         return  self.r
 
     def getOutputModule(self):
+        """return  link to report output module"""
         return  self.o
 

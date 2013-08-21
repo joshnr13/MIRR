@@ -214,11 +214,10 @@ class Simulation():
         fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2]
         self.irr_stats =  caclIrrsStatisctics(fields, irr_values)
 
-
     def add_result_irrs(self):
         """Adds irr results to attrributes"""
-        self.irrs0.append(getattr(self.o.r, IRR_REPORT_FIELD))
-        self.irrs1.append(getattr(self.o.r, IRR_REPORT_FIELD2))
+        self.irrs0.append(getattr(self.r, IRR_REPORT_FIELD))
+        self.irrs1.append(getattr(self.r, IRR_REPORT_FIELD2))
 
     def run_one_iteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""

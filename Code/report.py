@@ -35,7 +35,6 @@ class Report(BaseClassConfig):
         self.init_attrs()
         self.init_helper_attrs()
         self.init_fcf_args()
-        i = 0
         for start_day, end_day in self.report_dates.items():
             self.calc_monthly_values_part1(start_day, end_day)
             if isLastDayYear(end_day):
@@ -48,8 +47,6 @@ class Report(BaseClassConfig):
             if isLastDayYear(end_day):
                 self.calc_yearly_values_part2(end_day)
                 self.calc_yearly_values_part3(end_day)
-            i += 1;
-            if i > 5:break
 
         self.calc_irr()
         self.calc_wacc()
