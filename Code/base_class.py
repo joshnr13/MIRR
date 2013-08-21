@@ -52,10 +52,6 @@ class BaseClassConfig():
         return  self._config_module.getReportDatesY()
 
     @property
-    def all_dates(self):
-        return  self._config_module.getAllDates()
-
-    @property
     def weather_data_rnd_simulation(self):
         return  self._config_module.weather_data_rnd_simulation
 

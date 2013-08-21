@@ -9,7 +9,7 @@ import numpy as np
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth
+from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates
 from annex import addXYears,addXMonths, nubmerDaysInMonth, lastDayNextMonth, getConfigs,  OrderedDefaultdict, memoize
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
@@ -171,7 +171,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         revenue_subside = 0
         cur_date = date_start
 
-        for cur_date in self.all_project_dates:
+        for cur_date in get_list_dates(date_start, date_end):
             electricity_production = self.getElectricityProduction(cur_date)
             day_revenue_electricity = electricity_production * self.getPriceKwh(cur_date)
             day_revenue_subsidy = electricity_production * self.subside_module.subsidyProduction(cur_date)
@@ -355,7 +355,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def getSomeCostsRange(self, cost_function, date_start, date_end):
         """basic function to calculate range costs"""
-        return sum([cost_function(date) for date in self.all_project_dates])
+        return sum([cost_function(date) for date in get_list_dates(date_start, date_end)])
 
     def getTaxRate(self):
         """return taxrate in float"""

@@ -8,7 +8,7 @@ import os.path
 from collections import  OrderedDict
 from annex import Annuitet, lastDayMonth, firstDayMonth, cached_property, addHeaderCsv, lastDayPrevMonth
 from annex import memoize, OrderedDefaultdict, isLastDayYear, OrderedDefaultdict
-from annex import nubmerDaysInMonth, getOnlyDigits, sameDayLastYear
+from annex import nubmerDaysInMonth, getOnlyDigits, sameDayLastYear, get_list_dates
 from financial_analysis import irr, npv, npv_pv
 
 from constants import PROJECT_START, REPORT_ROUNDING
@@ -626,7 +626,7 @@ class Report(BaseClassConfig):
         """
         results = OrderedDict()
         for start_day, end_day in self.report_dates.items():
-            results[end_day] = sum([dic[date] for date in self.all_project_dates])
+            results[end_day] = sum([dic[date] for date in get_list_dates(start_day, end_day)])
         return results
 
     def calc_report_monthly_values4(self, dic):

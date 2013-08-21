@@ -72,7 +72,7 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         """Calculating insolations for whole project"""
         last_day_construction = self.last_day_construction
         insolations = OrderedDict()
-        for date in self.all_dates:
+        for date in self.all_project_dates:
             insolations[date] = self.weather_data[date][0] if date > last_day_construction else 0
         self.insolations = insolations
 

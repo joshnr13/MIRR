@@ -91,11 +91,11 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         s = self.plant.getElectricityProductionPlant1Day
         i = self.energy_module.insolations
         d = self.degradation_coefficients
-        return sum([s(1)*i[date]*d[date] for date in self.all_project_dates])
+        return sum([s(1)*i[date]*d[date] for date in get_list_dates(date_start, date_end)])
 
     def generateElectricityProductionLifeTime(self):
         """generates electricity production for whole project lifetime"""
-        dates = self.all_dates
+        dates = self.all_project_dates
         sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) if day > self.last_day_construction else 0 for day in dates ])
         insolations = self.energy_module.insolations.values()
         degrodations = numpy.array(self.degradation_coefficients.values())

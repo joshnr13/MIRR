@@ -159,6 +159,12 @@ def getDaysNoInMonth(date):
     days = monthrange(date.year, date.month)[1]
     return days
 
+@memoized
+def get_list_dates( date_start, date_end):
+    duration_days = (date_end - date_start).days
+    list_dates = list([(date_start+timedelta(days=i)) for i in range(duration_days+1)])
+    return list_dates
+
 def monthsBetween(date1,date2):
     """return full month number since date2 till date1"""
     if date1>date2:
