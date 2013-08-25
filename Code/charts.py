@@ -235,32 +235,24 @@ def plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution,
     field - field which used for chart
     """
 
-    dates_range = getResolutionStartEnd(start_date, end_date, resolution)
-    y_all_values = db.get_iteration_field(simulation_no, iteration_no, field)
-    keys = db.get_iteration_field(simulation_no, iteration_no, 'project_days')
-
-    keys = map(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').date(), keys)
-    y_all_values = dict((x, y) for x, y in zip(keys, y_all_values))  #was @!! y_all_values = dict((x, y) for x, y in zip(keys, y_all_values[1:]))
-
-    def sum_period(start, days):
-        return
+    y_all_values = db.get_iteration_field(simulation_no, iteration_no, field)  #get all 'field' values from database
+    keys = db.get_iteration_field(simulation_no, iteration_no, 'project_days')  #get dates for filed from database
+    keys = map(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').date(), keys)  #converting string dates into datetime
+    y_all_values = dict((x, y) for x, y in zip(keys, y_all_values))  #getting dict [date]=field value
 
     x_values = []
     y_values = []
     sm = 0
 
-    for day_from, day_to in dates_range:
+    for day_from, day_to in getResolutionStartEnd(start_date, end_date, resolution): #get dates for axis using resolution value
         delta = (day_to - day_from).days
         sum_period = sum([y_all_values[day_from+datetime.timedelta(days=days)] for days in range(delta)])
         y_values.append(sum_period)
         x_values.append(sm+delta)
         sm += delta
 
-    #print x_values
-    #print y_values
-
+    title = "Sim. N. {simulation_no}; Iter. N. {iteration_no}. {field} from {start_date} to {end_date} - res. {resolution} days".format(**locals())
     pylab.step(x_values, y_values)
-    title = "Sim. N. {simulation_no}; Iter. N. {iteration_no}. Electricity production from {start_date} to {end_date} - res. {resolution} days".format(**locals())
     pylab.title(title, fontsize=12)
     pylab.show()
 

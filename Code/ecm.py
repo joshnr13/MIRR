@@ -9,7 +9,7 @@ import numpy as np
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates
+from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property
 from annex import addXYears,addXMonths, nubmerDaysInMonth, lastDayNextMonth, getConfigs,  OrderedDefaultdict, memoize
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
@@ -127,8 +127,8 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.subside_module = subside_module
         self.calc_config_values()
         self.calcDebtPercents()
-        self.get_electricity_prices_lifetime()
-        self.calc_electricity_production_lifetime()
+        #self.get_electricity_prices_lifetime()
+        #self.calc_electricity_production_lifetime()
 
     def calc_config_values(self): #init of the module
         self.investments = self.technology_module.getInvestmentCost() #gets the value of the whole investment from the technology module
@@ -137,13 +137,18 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.debt = self.debt_share * self.investments #calculates the amount of debt based on share of debt in financing
         self.capital = self.investments - self.debt #calculates the amount of capital based on the amount of debt
 
-    def calc_electricity_production_lifetime(self): #gets the electricty production for the whole lifetime of the project as provided by the techology module
-        self.electricity_production = self.technology_module.generateElectricityProductionLifeTime()
+    @cached_property
+    def electricity_production(self):
+        """gets the electricty production for the whole lifetime of the project as provided by the techology module"""
+        return   self.technology_module.generateElectricityProductionLifeTime()
 
-    def get_electricity_prices_lifetime(self): #reads random time sequence of electricity market prices from database
-        self.electricity_prices = self.db.get_electricity_prices(self.electricity_prices_rnd_simulation)
-        if not self.electricity_prices:
+    @cached_property
+    def electricity_prices(self):
+        """reads random time sequence of electricity market prices from database"""
+        result = self.db.get_electricity_prices(self.electricity_prices_rnd_simulation)
+        if not result:
             raise ValueError("Please generate first Electricity prices before using it")
+        return  result
 
     def get_electricity_production_lifetime(self):
         return  self.electricity_production

@@ -248,7 +248,7 @@ def getListDates( date_start, date_end):
 
 def convertDictDates(dic):
     """Converts dates from string to object Date"""
-    return dict((dt.datetime.strptime(x, '%Y-%m-%d').date(), y) for x, y in dic.items())
+    return OrderedDict((dt.datetime.strptime(x, '%Y-%m-%d').date(), y) for x, y in sorted(dic.items()))
 
 def uniquifyFilename(path, sep = ''):
     """Return free filename, if file name is Busy adds suffix _number

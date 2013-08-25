@@ -199,9 +199,7 @@ def saveStochasticValuesSimulation(dic_values, simulation_no):
         stats = [name] + stats_dic.values()
         rows_stats.append(stats)
 
-
     blank_row = [""]
-
     iterations = ["Iteration number"] + list(range(1, len(values)+1))
     simulation_info = ["Simulation number"] + [simulation_no]
     stat_info = ["Statistics"] + stats_dic.keys()
