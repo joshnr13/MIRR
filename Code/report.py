@@ -9,7 +9,7 @@ from collections import  OrderedDict
 from annex import Annuitet, lastDayMonth, firstDayMonth, cached_property, addHeaderCsv, lastDayPrevMonth
 from annex import memoize, OrderedDefaultdict, isLastDayYear, OrderedDefaultdict
 from annex import nubmerDaysInMonth, getOnlyDigits, sameDayLastYear, get_list_dates
-from financial_analysis import irr, npv, npv_pv
+from financial_analysis import irr, npvPv
 
 from constants import PROJECT_START, REPORT_ROUNDING
 from tm import TechnologyModule
@@ -404,11 +404,11 @@ class Report(BaseClassConfig):
         fcf_owners_values_y = getOnlyDigits(self.fcf_owners_y)
         fcf_project_y = getOnlyDigits(self.fcf_project_y)
 
-        self.npv_owners, pv_owners_list = npv_pv(self.wacc, fcf_owners_values)
-        self.npv_project, pv_project_list = npv_pv(self.wacc, fcf_project_values)
+        self.npv_owners, pv_owners_list = npvPv(self.wacc, fcf_owners_values)
+        self.npv_project, pv_project_list = npvPv(self.wacc, fcf_project_values)
 
-        self.npv_owners_y, pv_owners_list_y = npv_pv(self.wacc_y, fcf_owners_values_y)
-        self.npv_project_y, pv_project_list_y = npv_pv(self.wacc_y, fcf_project_y)
+        self.npv_owners_y, pv_owners_list_y = npvPv(self.wacc_y, fcf_owners_values_y)
+        self.npv_project_y, pv_project_list_y = npvPv(self.wacc_y, fcf_project_y)
 
         self.pv_owners = self.map_pv_dates(pv_owners_list, [self.wacc, self.npv_owners])
         self.pv_owners_y = self.map_pv_dates(pv_owners_list_y, [self.wacc_y,self.npv_owners_y], yearly=True)
