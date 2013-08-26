@@ -278,6 +278,32 @@ class Report(BaseClassConfig):
         self.unallocated_earning_y[Y] = prev_un_er + prev_ret_er
         self.control_y[Y] = self.asset_y[Y] - self.liability_y[Y]
 
+    def calcReportMonthlyValues1(self, func):
+        """Calculates monthly values using 1 date - last_day in month
+        return  dict[end_day] = value"""
+        return OrderedDict((end_day, func(end_day)) for end_day in self.report_dates.values())
+
+    def calcReportMonthlyValues2(self, func):
+        """Calculates monthly values using 2 dates -first_day and last_day in month
+        return  dict[end_day] = value
+        """
+        return OrderedDict((end_day, func(start_day, end_day)) for start_day, end_day in self.report_dates.items())
+
+    def calcReportMonthlyValues3(self, dic):
+        """Calculates monthly values using 2 dates -first_day and last_day in month
+        return  dict[end_day] = value base on dict with all dates
+        """
+        results = OrderedDict()
+        for start_day, end_day in self.report_dates.items():
+            results[end_day] = sum([dic[date] for date in get_list_dates(start_day, end_day)])
+        return results
+
+    def calcReportMonthlyValues4(self, dic):
+        """Calculates monthly values using 2 dates -first_day and last_day in month
+        return  dict[end_day] = value base on dict with all dates
+        """
+        return OrderedDict((end_day, dic[end_day]) for end_day in self.report_dates.values())
+
     def getPrevMonthValue(self, obj, date):
         """Get previous month value of @obj with current date @date"""
         M = date
@@ -603,32 +629,6 @@ class Report(BaseClassConfig):
 
         return  prev1_value + cur_value
 
-    def calcReportMonthlyValues3(self, dic):
-        """Calculates monthly values using 2 dates -first_day and last_day in month
-        return  dict[end_day] = value base on dict with all dates
-        """
-        results = OrderedDict()
-        for start_day, end_day in self.report_dates.items():
-            results[end_day] = sum([dic[date] for date in get_list_dates(start_day, end_day)])
-        return results
-
-    def calcReportMonthlyValues4(self, dic):
-        """Calculates monthly values using 2 dates -first_day and last_day in month
-        return  dict[end_day] = value base on dict with all dates
-        """
-        return OrderedDict((end_day, dic[end_day]) for end_day in self.report_dates.values())
-
-    def calcReportMonthlyValues2(self, func):
-        """Calculates monthly values using 2 dates -first_day and last_day in month
-        return  dict[end_day] = value
-        """
-        return OrderedDict((end_day, func(start_day, end_day)) for start_day, end_day in self.report_dates.items())
-
-    def calcReportMonthlyValues1(self, func):
-        """Calculates monthly values using 1 date - last_day in month
-        return  dict[end_day] = value"""
-        return OrderedDict((end_day, func(end_day)) for end_day in self.report_dates.values())
-
     def checkBalanceSheet(self, date):
         """Checks balance sheet Assets - Liabilities should be 0
         return  Nothing if all it OK,
@@ -638,6 +638,7 @@ class Report(BaseClassConfig):
             self.control[date] = 0
         else:
             self.control[date] = self.asset[date] - self.liability[date]
+
 
 if __name__ == '__main__':
     mainconfig = MainConfig()
