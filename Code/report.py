@@ -444,7 +444,7 @@ class Report(BaseClassConfig):
         eanings = 0
         for date in self.report_dates.values():
             if date < to_date:  #!!! NOT EQUAL
-                eanings += self._calc_net_earning(date)
+                eanings += self.calcNetEarning(date)
         return eanings
 
     @cached_property

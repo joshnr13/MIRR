@@ -48,7 +48,7 @@ class Mirr():
         first we prepare (calculate) report values and after
         that initing new cls
         """
-        self.r.calc_report_values()
+        self.r.calcReportValues()
         return ReportOutput(self.r)
 
 

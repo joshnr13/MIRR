@@ -11,6 +11,7 @@ import errno
 import types
 import numpy as np; np.seterr(all='raise')
 import sys
+import time
 
 from functools import partial
 from calendar import monthrange
@@ -21,6 +22,14 @@ from decimal import Decimal
 from scipy.optimize import newton
 from openpyxl import Workbook, load_workbook
 from openpyxl.cell import get_column_letter
+
+def timer(f):
+    def wrapper(*args, **kwargs):
+        t = time.time()
+        res = f(*args, **kwargs)
+        print ("Func %s Execution time: %f sec" % (f.__name__, time.time()-t))
+        return res
+    return wrapper
 
 class NullDevice():
     """Class for hiding all output"""
@@ -58,14 +67,6 @@ class OrderedDefaultdict(OrderedDict):
         args = self.default_factory if self.default_factory else tuple()
         return type(self), args, None, None, self.items()
 
-import time
-def timer(f):
-    def wrapper(*args, **kwargs):
-        t = time.time()
-        res = f(*args, **kwargs)
-        print ("Execution time: %f sec" % (time.time()-t))
-        return res
-    return wrapper
 
 class memoize(object):
     """cache the return value of a method
