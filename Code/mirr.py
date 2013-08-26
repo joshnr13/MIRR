@@ -11,7 +11,7 @@ from annex import getInputDate, getInputInt, memoize, getInputComment
 from database import Database
 from ecm import ElectricityMarketPriceSimulation
 from em import WeatherSimulation
-from simulations import  run_save_simulation
+from simulations import  runAndSaveSimulation
 from _mirr import Mirr
 from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRScatterChart, plotStepChart
 from report_output import ReportOutput
@@ -50,7 +50,7 @@ class Interface():
         if comment is  None:
             comment = getInputComment()
 
-        simulation_no = run_save_simulation(iterations_no, comment)
+        simulation_no = runAndSaveSimulation(iterations_no, comment)
 
     def analyseSimulationResults(self, simulation_no=None):
         """

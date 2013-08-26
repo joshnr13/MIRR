@@ -1,32 +1,33 @@
 import sys
 import datetime
-import csv
 
 from _mirr import Mirr
 from annex import convertValue
 from collections import defaultdict
 from database import Database
-from report_output import ReportOutput
 from rm import caclIrrsStatisctics
 from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2
 
 class Simulation():
-
+    """Class for preparing, runinning and saving simulations to Database"""
     def __init__(self, comment=''):
-        self.db =  Database()
+        """@comment - user inputed comment"""
+        self.db =  Database()  #connection to Db
         self.comment = comment
-        self.simulation_no = self.get_next_simulation_no()
+        self.simulation_no = self.getNextSimulationNo()  #load last simulation no from db
         self.irrs0 = []
         self.irrs1 = []
 
-    def get_simulation_no(self):
+    def getSimulationNo(self):
+        """return  current simulation no"""
         return  self.simulation_no
 
-    def get_next_simulation_no(self):
+    def getNextSimulationNo(self):
+        """return  next simulation no from db"""
         return  self.db.get_next_simulation_no()
 
-    def prepare_data(self):
-        self.i = Mirr()
+    def prepareLinks(self):
+        """create short links to prepared modules"""
         self.config = self.i.getMainConfig()
         self.ecm = self.i.getEconomicModule()
         self.tm = self.i.getTechnologyModule()
@@ -41,11 +42,12 @@ class Simulation():
         self.sm_configs = self.sm.getConfigsValues()
         self.em_configs = self.em.getConfigsValues()
 
-    def convert_results(self):
+    def convertResults(self):
         """Processing results before inserting to DB"""
         self.line = convertValue(self.prepared_line)
 
-    def prepare_iteration_results(self, iteration, iteration_number):
+    def prepareIterationResults(self, iteration):
+        """prepare each iteration (@iteration number) results before saving to database"""
         obj = self.r
         line = dict()
 
@@ -156,7 +158,6 @@ class Simulation():
         line["insolations_daily"] = self.em.get_insolations_lifetime().values()
         line["electricity_production_daily"] = self.ecm.electricity_production.values()
 
-
         line["sun_insolation"] = obj.sun_insolation.values()
         line["sun_insolation_y"] = obj.sun_insolation_y.values()
 
@@ -174,23 +175,23 @@ class Simulation():
 
         self.prepared_line = line
 
-    def run_simulation(self,  iterations_number):
-        """Run multiple simulations"""
+    def runSimulation(self,  iterations_number):
+        """Run Simulation with multiple @iterations_number """
 
-        self.init_simulation_record(iterations_number)
+        self.initSimulationRecord(iterations_number)
         for i in range(iterations_number):
             percent = (i + 1) * 100 / float(iterations_number)
-            self.run_one_iteration(i+1, iterations_number)
+            self.runOneIteration(i+1, iterations_number)
             self.db.insert_iteration(self.line)
             sys.stdout.write("\r%d%%" %percent)    # or print >> sys.stdout, "\r%d%%" %i,
             sys.stdout.flush()
         print "\n"
 
-        self.calc_irr_statistics()
-        self.add_irr_results_to_simulation()
+        self.addIrrStatsToSimulation()
         self.db.insert_simulation(self.simulation_record)
 
-    def init_simulation_record(self, iterations_number):
+    def initSimulationRecord(self, iterations_number):
+        """Prepare atributes for saving simulation records"""
         print "%s - runing simulation %s with %s number of iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
         self.simulation_record = defaultdict(list)
         self.simulation_record["simulation"] = self.simulation_no
@@ -198,36 +199,34 @@ class Simulation():
         self.simulation_record["comment"] = self.comment
         self.simulation_record["iterations_number"] = iterations_number
 
-    def write_iteration_to_db(self):
-        self.simulation_record['iterations'].append(self.line)
-
-    def add_irr_results_to_simulation(self):
+    def addIrrStatsToSimulation(self):
         """Adding irr results to dict with simulation data"""
-        self.simulation_record['irr_stats'] = self.irr_stats
-
-    def calc_irr_statistics(self):
         """    for each simulation batch calculate, display and save the standard deviation of IRR (both of owners and project - separately)
         - skweness : http://en.wikipedia.org/wiki/Skewness
         - kurtosis: http://en.wikipedia.org/wiki/Kurtosis
         """
         irr_values = [self.irrs0, self.irrs1]
         fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2]
-        self.irr_stats =  caclIrrsStatisctics(fields, irr_values)
+        self.simulation_record['irr_stats'] = caclIrrsStatisctics(fields, irr_values)
 
-    def add_result_irrs(self):
+    def runOneIteration(self, iteration_no, total_iteration_number):
+        """runs 1 iteration, prepares new data and saves it to db"""
+        self.prepareMirr()
+        self.prepareLinks()
+        self.prepareIterationResults(iteration_no)
+        self.convertResults()
+        self.addIterationIrrs()
+
+    def prepareMirr(self):
+        """prepare modules for simulation"""
+        self.i = Mirr()
+
+    def addIterationIrrs(self):
         """Adds irr results to attrributes"""
         self.irrs0.append(getattr(self.r, IRR_REPORT_FIELD))
         self.irrs1.append(getattr(self.r, IRR_REPORT_FIELD2))
 
-    def run_one_iteration(self, iteration_no, total_iteration_number):
-        """runs 1 iteration, prepares new data and saves it to db"""
-        #print "\tRunning iteration %s of %s" % (iteration_no, total_iteration_number)
-        self.prepare_data()
-        self.prepare_iteration_results(iteration_no, total_iteration_number)
-        self.convert_results()
-        self.add_result_irrs()
-
-def run_save_simulation(iterations_no, comment):
+def runAndSaveSimulation(iterations_no, comment):
     """
     1) Runs multiple iterations @iterations_number with @comment
     2) Shows charts
@@ -235,7 +234,7 @@ def run_save_simulation(iterations_no, comment):
     return  simulation_no
     """
     s = Simulation(comment=comment)
-    s.run_simulation(iterations_no)
-    return  s.get_simulation_no()
+    s.runSimulation(iterations_no)
+    return  s.getSimulationNo()
 
 
