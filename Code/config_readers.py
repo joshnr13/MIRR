@@ -243,8 +243,8 @@ class EnergyModuleConfigReader():
         _filepath = os.path.join(os.getcwd(), 'configs', _filename)
         _config.read(_filepath)
 
-        self.mean = _config.getfloat('NormalDistribution', 'mean')
-        self.stdev = _config.getfloat('NormalDistribution', 'stdev_percent') * self.mean / 100
+        self.mean = _config.getfloat('NormalDistribution', 'mean')  #mean value for distribution of random factor for generating temperature
+        self.stdev = _config.getfloat('NormalDistribution', 'stdev_percent') * self.mean / 100 #stdev value for distribution of random factor for generating temperature
         self.TMin = _config.getfloat('WeatherSimulation', 'TMin')
         self.TMax = _config.getfloat('WeatherSimulation', 'TMax')
 

@@ -81,7 +81,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def generateElectiricityProduction(self, date):
         """generates electricity production at given @date"""
-        insolation = self.energy_module.get_insolation(date)
+        insolation = self.energy_module.getInsolation(date)
         degradation = self.degradationAtDate(date)
         production = self.plant.getElectricityProductionPlant1Day(insolation)
         return  production * degradation

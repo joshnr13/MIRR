@@ -491,7 +491,7 @@ class Report(BaseClassConfig):
     @cached_property
     def solar_insolations_monthly(self):
         """return volume of for insolations MONTHLY"""
-        return self.calcReportMonthlyValues3(self.energy_module.get_insolations_lifetime())
+        return self.calcReportMonthlyValues3(self.energy_module.getInsolationsLifetime())
 
     def calcLtLoans(self, end_day):
         """Monthly calculation of  Long-Term Loans"""
