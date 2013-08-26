@@ -155,7 +155,7 @@ class Simulation():
 
         line["equipment_description"] = self.tm.equipmentDescription()
 
-        line["insolations_daily"] = self.em.get_insolations_lifetime().values()
+        line["insolations_daily"] = self.em.getInsolationsLifetime().values()
         line["electricity_production_daily"] = self.ecm.electricity_production.values()
 
         line["sun_insolation"] = obj.sun_insolation.values()
