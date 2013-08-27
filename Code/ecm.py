@@ -2,49 +2,51 @@
 # -*- coding utf-8 -*-
 
 import datetime
-import ConfigParser
-import os
 import numpy as np
 
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
 from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property
-from annex import addXYears,addXMonths, nubmerDaysInMonth, lastDayNextMonth, getConfigs,  OrderedDefaultdict, memoize
+from annex import addXMonths, nubmerDaysInMonth, getConfigs,  OrderedDefaultdict
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
 from collections import OrderedDict
 from database import Database
 
-
 class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
-
+    """class for generating Electricity prices"""
     def __init__(self, period, simulations_no):
-        start_date_project = period[0]
-        EconomicModuleConfigReader.__init__(self, start_date_project)
-        self.N = len(period)
+        """
+        @period - list of dates from start to end
+        @simulations_no - number of needed simulations
+        """
+        EconomicModuleConfigReader.__init__(self, period[0])
         self.period = period
+        self.N = len(period)  #number of days
         self.simulations_no = simulations_no
         self.db = Database()
 
-    def clean_prev_data(self):
+    def cleanPreviousData(self):
         print "Cleaning previous data"
         self.db.clean_previous_electricity_price_data()
 
-    def write_electricity_price_data(self, data):
+    def writeElectricityPriceData(self, data):
+        """writing to database Electricity Prices"""
         self.db.write_electricity_prices(data)
         print 'Writing electricity price simulation %s' % data["simulation_no"]
 
     def simulate(self):
-        self.clean_prev_data()
+        self.cleanPreviousData()
         for simulation_no in range(1, self.simulations_no+1):
-            data = self.generate_one_simulation(simulation_no)
-            self.write_electricity_price_data(data)
+            data = self.generateOneSimulation(simulation_no)
+            self.writeElectricityPriceData(data)
 
-    def generate_one_simulation(self, simulation_no):
+    def generateOneSimulation(self, simulation_no):
+        """Main method for generating prices and preparing them to posting to database"""
         days_dict = OrderedDict()
         self.poisson_steps = Poisson_step(self.Lambda, size=self.N)
-        prices = self.calc_price_for_period(self.S0)
+        prices = self.calcPriceWholePeriod(self.S0)
 
         for date, price in zip(self.period, prices):
             date_str = date.strftime("%Y-%m-%d")
@@ -52,25 +54,23 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         simulation_result = {"simulation_no": simulation_no, "data": days_dict}
         return  simulation_result
 
-    def calc_J(self):
-        """Calcultation of J as random with mean=loc and std=scale"""
+    def calcJ(self):
+        """Calcultation of J (normaly distibuted Jump size) as random with mean=loc and std=scale"""
         return  np.random.normal(loc=0,scale=1)  #loc means - mean, scale -std
 
-
-
-    def calc_price_delta(self, prev_price, iteration_no):
-        """Calculated delta price based on @prev_price"""
+    def calcPriceDelta(self, prev_price, iteration_no):
+        """Calculated delta price (dp) based on @prev_price"""
         delta_Z = np.random.normal(loc=0, scale=0.4)
-        J = self.calc_J()
-        delta_q = self.poisson_steps.get_delta(iteration_no)
+        J = self.calcJ()
+        delta_q = self.poisson_steps.getDelta(iteration_no)
         delta_price = self.k * (self.theta * (1 + self.y*iteration_no/365)- prev_price) * self.dt + self.sigma * delta_Z + (J*(1 + self.y*iteration_no/365)) * delta_q
         return  delta_price
 
-    def calc_price_for_period(self, prev_price):
-        """Calculate price for whole period"""
+    def calcPriceWholePeriod(self, prev_price):
+        """Calculate price for whole period from start date to end"""
         result = []
         for i in range(1, self.N+1):
-            price = prev_price + self.calc_price_delta(prev_price, i)
+            price = prev_price + self.calcPriceDelta(prev_price, i)
             prev_price = price
             result.append(price)
         return  result
@@ -80,19 +80,15 @@ class Poisson_step():
     def __init__(self, lam, size):
         self.lam = lam
         self.size = size
-        self.generate_values()
-        self.make_step()
-        self.make_function()
+        self.generatePoissonDistributionValues()
+        self.makeStep()
+        self.makeFunction()
 
-    def generate_values(self):
-        """Generate poisson values"""
-        self.vals = self.poisson_distribution_value(self.size)
-
-    def make_step(self):
+    def makeStep(self):
         """Make step (path) from generated poisson values"""
         self.step_vals = np.cumsum(self.vals)
 
-    def make_function(self):
+    def makeFunction(self):
         """Make function - dict
         where key in integers from x value,
         value - current iteration no, ie y value
@@ -106,31 +102,37 @@ class Poisson_step():
             x0 = x
         self.function = result
 
-    def get_delta(self, index):
+    def getDelta(self, index):
         """return  delta between current index and previous"""
         return  self.function[index] - self.function[index-1]
 
-    def poisson_distribution_value(self, size=None):
-        """return  Poisson disribution with @lam
+    def generatePoissonDistributionValues(self):
+        """Generate poisson values
+        return  Poisson disribution with @lam
         if size is None - return 1 value (numerical)
         otherwise return list with values with length = size
         """
-        return  np.random.poisson(self.lam, size)
+        self.vals =  np.random.poisson(self.lam, self.size)
 
 class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
+    """Module for holding all economic values calculation"""
 
     def __init__(self, config_module, technology_module, subside_module):
+        """
+        @config_module - link to main config module
+        @technology_module - link to technology module
+        @subside_module - link to subside module
+        """
         BaseClassConfig.__init__(self, config_module)
         EconomicModuleConfigReader.__init__(self, self.start_date_project)
         self.db = Database()
         self.technology_module = technology_module
         self.subside_module = subside_module
-        self.calc_config_values()
+        self.calcBaseValues()
         self.calcDebtPercents()
-        #self.get_electricity_prices_lifetime()
-        #self.calc_electricity_production_lifetime()
 
-    def calc_config_values(self): #init of the module
+    def calcBaseValues(self):
+        """caclulation of initial values"""
         self.investments = self.technology_module.getInvestmentCost() #gets the value of the whole investment from the technology module
         self.investments_monthly = OrderedDefaultdict(int)
         self.investmentEquipment = self.technology_module.getInvestmentCost() #sets the investment in equipment as the whole investment in technology
@@ -150,7 +152,8 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
             raise ValueError("Please generate first Electricity prices before using it")
         return  result
 
-    def get_electricity_production_lifetime(self):
+    def getElectricityProductionLifetime(self):
+        """return  all values dict [date]=electricity production for that date"""
         return  self.electricity_production
 
     def isConstructionStarted(self, date):
@@ -239,18 +242,18 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
         ####### FIRST - 30% 2 month before the start of construction
         part1 = 0.3
-        start_date1 = lastDayMonth(addXMonths(self.first_day_construction, -2))
-        self.calc_paidin_investment(start_date1, part1)
+        start_date1 = lastDayMonth(addXMonths(self.first_day_construction, -2))  #get start date of first step
+        self.calc_paidin_investment(start_date1, part1)  #calculation of paid-in for first step
 
         ####### SECOND - 50% - at start of construction
         part2 = 0.5
-        start_date2 = lastDayMonth(self.first_day_construction)
-        self.calc_paidin_investment(start_date2, part2)
+        start_date2 = lastDayMonth(self.first_day_construction)  # get start date of second step
+        self.calc_paidin_investment(start_date2, part2)  #calculation of paid-in for second step
 
         ####### THIRD - 20% - at the end of construction
         part3 = 0.2
-        start_date3 = lastDayMonth(self.last_day_construction)
-        self.calc_paidin_investment(start_date3, part3)
+        start_date3 = lastDayMonth(self.last_day_construction)  #get start date of third step
+        self.calc_paidin_investment(start_date3, part3)  #calculation of paid-in for third step
 
     def getPaidInDelta(self, date):
         """return  current month delta of paid-in capital"""

@@ -481,7 +481,7 @@ class Report(BaseClassConfig):
     @cached_property
     def electricity_monthly(self):
         """return volume of for electricity MONTHLY"""
-        return self.calcReportMonthlyValues3(self.economic_module.get_electricity_production_lifetime())
+        return self.calcReportMonthlyValues3(self.economic_module.getElectricityProductionLifetime())
 
     @cached_property
     def electricity_prices_monthly(self):
