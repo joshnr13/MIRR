@@ -138,6 +138,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.investmentEquipment = self.technology_module.getInvestmentCost() #sets the investment in equipment as the whole investment in technology
         self.debt = self.debt_share * self.investments #calculates the amount of debt based on share of debt in financing
         self.capital = self.investments - self.debt #calculates the amount of capital based on the amount of debt
+        self.deprication_monthly = self.investments / self.deprication_duration  #Calc monthly value for deprication
 
     @cached_property
     def electricity_production(self):
@@ -164,14 +165,10 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         else:
             return  False
 
-    #@memoize
     def isProductionElectricityStarted(self, date):
         """return  True if we recieved all permits, finished construction and can
         sell electricity"""
-        if date > self.last_day_construction :
-            return  True
-        else:
-            return  False
+        return  (date > self.last_day_construction)
 
     def getRevenue(self, date_start, date_end):
         """return revenue from selling electricity and subsides for given period of time"""
@@ -180,12 +177,12 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         cur_date = date_start
 
         for cur_date in get_list_dates(date_start, date_end):
-            electricity_production = self.getElectricityProduction(cur_date)
-            day_revenue_electricity = electricity_production * self.getPriceKwh(cur_date)
-            day_revenue_subsidy = electricity_production * self.subside_module.subsidyProduction(cur_date)
+            electricity_production = self.getElectricityProduction(cur_date)  #get electricity production at current date
+            day_revenue_electricity = electricity_production * self.getPriceKwh(cur_date)  #calc revenue = price*production
+            day_revenue_subsidy = electricity_production * self.subside_module.subsidyProduction(cur_date)  #calc subside
 
-            revenue_electricity += day_revenue_electricity
-            revenue_subside += day_revenue_subsidy
+            revenue_electricity += day_revenue_electricity  #increment revenue for period  date_start - date_end
+            revenue_subside += day_revenue_subsidy  #increment subside for period  date_start - date_end
 
         return revenue_electricity, revenue_subside
 
@@ -193,40 +190,13 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         """return  production of electricity at given date"""
         return  self.electricity_production[date]
 
-
-    def _getDayRevenue_electricity(self, cur_date, electricity_production=None):
-        """Calc revenue per date part: electricity"""
-        return
-
-        if self.isProductionElectricityStarted(cur_date):
-            return electricity_production * self.getPriceKwh(cur_date)
-        else:
-            return 0
-
-    def _getDayRevenue_subsidy(self, cur_date, electricity_production=None):
-        """Calc revenue per date part: subsidy"""
-
-        if self.isProductionElectricityStarted(cur_date):
-
-            subside_kwh = self.subside_module.subsidyProduction(cur_date)
-            return   electricity_production * subside_kwh
-        else:
-            return 0
-
-
     def calcDepricationMonthly(self, date):
         """Calcultation of amortization in current month"""
-        cur_month = monthsBetween(self.start_date_project, date)
-        deprication_duration_months = self.deprication_duration * 12
-
-        cur_month = monthsBetween(self.last_day_construction+datetime.timedelta(days=1), date)
-        if cur_month <= 0:
-            return 0
-        elif cur_month <= deprication_duration_months:
-            return self.investments / deprication_duration_months
+        cur_month = monthsBetween(self.last_day_construction+datetime.timedelta(days=1), date)  #calculating number of months between last_day_construction and cur date
+        if cur_month > 0 and cur_month <= self.deprication_duration:
+            return self.deprication_monthly
         else:
             return 0
-
 
     def calcDebtPercents(self):
         """The investment is spread as follows:
@@ -243,61 +213,64 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         ####### FIRST - 30% 2 month before the start of construction
         part1 = 0.3
         start_date1 = lastDayMonth(addXMonths(self.first_day_construction, -2))  #get start date of first step
-        self.calc_paidin_investment(start_date1, part1)  #calculation of paid-in for first step
+        self.calcPaidInInvestment(start_date1, part1)  #calculation of paid-in for first step
 
         ####### SECOND - 50% - at start of construction
         part2 = 0.5
         start_date2 = lastDayMonth(self.first_day_construction)  # get start date of second step
-        self.calc_paidin_investment(start_date2, part2)  #calculation of paid-in for second step
+        self.calcPaidInInvestment(start_date2, part2)  #calculation of paid-in for second step
 
         ####### THIRD - 20% - at the end of construction
         part3 = 0.2
         start_date3 = lastDayMonth(self.last_day_construction)  #get start date of third step
-        self.calc_paidin_investment(start_date3, part3)  #calculation of paid-in for third step
+        self.calcPaidInInvestment(start_date3, part3)  #calculation of paid-in for third step
 
-    def getPaidInDelta(self, date):
-        """return  current month delta of paid-in capital"""
+    def getPaidInAtDate(self, date):
+        """return  current month new value of paid-in capital"""
         return  self.paid_in_monthly[date]
 
-    def calc_paidin_investment(self, date, part):
-        investment_paid_in = self._calc_paid_investment_part(part)
+    def calcPaidInInvestment(self, date, part):
+        """Calculation of PaidIn and Investments for every month"""
+        investment_paid_in = self.calcPaidInInvestmentPart(part)
         debt_value = self.debt * part - investment_paid_in
 
         a = Annuitet(debt_value, self.debt_rate, self.debt_years, date)
-        a.calculate()
+        a.calculate()  #calculation on Annuitet
 
-        self.investments_monthly[date] = investment_paid_in + debt_value
-        self.paid_in_monthly[date] = investment_paid_in
+        for date, value in a.percent_payments.items():
+            self.debt_percents[date] += value  #making dict [date]=total payments for cur date
 
-        for k, v in a.percent_payments.items():
-            self.debt_percents[k] += v
+        for date, value in a.rest_payments_wo_percents.items():
+            self.debt_rest_payments_wo_percents[date] += value #making dict [date]=total rest payments for cur date
 
-        for k, v in a.rest_payments_wo_percents.items():
-            self.debt_rest_payments_wo_percents[k] += v
+        self.savePaidInInvestment(investment_paid_in, debt_value, date)
 
+    def savePaidInInvestment(self, investment_paid_in, debt_value, date):
+        """saving paidin and investments for report"""
+        self.investments_monthly[date] = investment_paid_in + debt_value  #saving monthly investments
+        self.paid_in_monthly[date] = investment_paid_in  #saveing monthly paid-in
 
-        #self.debt_percents[date] += a.percent_payments.values()
-        #self.debt_rest_payments_wo_percents += a.rest_payments_wo_percents.values()
-
-
-    def _calc_paid_investment_part(self, part):
+    def calcPaidInInvestmentPart(self, part):
+        """Calculation of inverstment value for current part of payments (1,2,3)
+        @part - float value [0.0-1.0] share of current part
+        """
         investment_share = (1 - self.debt_share)
-        invest_value = investment_share*part *self.debt
+        invest_value = investment_share * part * self.debt  #calc investment value in $
 
-        if self.paid_in_rest > 0:
+        if self.paid_in_rest > 0:  #if we have not paid all sum
+
             if invest_value > self.paid_in_rest:
-                self.paid_in_rest = 0
+                self.paid_in_rest = 0  #we dont need to pay more
                 invest_value = invest_value - self.paid_in_rest
             else:
-                self.paid_in_rest -= invest_value
+                self.paid_in_rest -= invest_value  #decreses rest payments
                 invest_value = self.paid_in_rest
-
-        return  invest_value
+            return  invest_value
+        else:
+            return 0
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
-        #if isinstance(date, datetime.date):
-            #date = date.strftime('%Y-%m-%d')
         return  self.electricity_prices[date]
 
     def _getDevelopmentCosts(self, date):
@@ -305,7 +278,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         if self.isProductionElectricityStarted(date):
             return 0  #we have finished with development costs
         elif self.isConstructionStarted(date):
-            return self._getDevelopmentCostDuringConstruction(date)
+            return self._getDevelopmentCostDuringConstruction(date)  #calculate
         else:
             return self._getDevelopmentCostDuringPermitProcurement(date)
 
@@ -372,21 +345,6 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def getMonthlyInvestments(self, date):
         """Gets investments of current date (on month of that date)"""
         return  self.investments_monthly[date]
-
-        #last_day = last_day_month(date)
-        #start_construction = self.first_day_construction
-
-        #if date.month  ==  start_construction.month and date.year == start_construction.year:
-            #return self.investments
-        #else:
-            #return 0
-
-    def getDebtPayment(self, date_start, date_end):
-        """calculate the payment of the debt principal based on constant annuity repayment  - http://en.wikipedia.org/wiki/Fixed_rate_mortgage
-        365.25 - average number of days per year"""
-        number_of_days = (date_end - date_start).days
-        payment = self.debt_rate * self.debt * number_of_days / 365.25
-        return payment
 
     def calculateDebtInterests(self, date):
         """Return monthly debt percents we need to pay"""

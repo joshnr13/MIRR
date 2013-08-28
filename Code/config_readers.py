@@ -217,7 +217,7 @@ class EconomicModuleConfigReader():
 
         ######################### DEPRICATION #################################
 
-        self.deprication_duration = _config.getfloat('Amortization', 'duration')
+        self.deprication_duration = _config.getfloat('Amortization', 'duration') * 12  #convert to months
 
         ######################### ElectricityMarketPriceSimulation ############
 

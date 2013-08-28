@@ -572,7 +572,7 @@ class Report(BaseClassConfig):
         if prev_month_date < self.start_date_project:
             prev_month_date = PROJECT_START
         prev_paid_in = self.paid_in_capital[prev_month_date]
-        return  prev_paid_in + self.economic_module.getPaidInDelta(date)
+        return  prev_paid_in + self.economic_module.getPaidInAtDate(date)
 
     def calcCurrentAssets(self, date):
         """calculating current assests as sum"""
