@@ -16,7 +16,7 @@ from _mirr import Mirr
 from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRScatterChart, plotStepChart
 from report_output import ReportOutput
 from config_readers import MainConfig
-from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD,  REPORT_DEFAULT_NUMBER_SIMULATIONS, REPORT_DEFAULT_NUMBER_ITERATIONS
+from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD,  REPORT_DEFAULT_NUMBER_ITERATIONS
 from rm import  analyseSimulationResults, plotSaveStochasticValuesSimulation
 
 commands = OrderedDict()  #Commands sequence for menu, all commands is method of Interfave class

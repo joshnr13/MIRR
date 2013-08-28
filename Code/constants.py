@@ -5,13 +5,13 @@ import os
 from annex import mkdir_p
 from collections import OrderedDict
 
-TESTMODE = False
-BINS = 20
+TESTMODE = False  #can swith off randomisation in all modules for debug purposese
+BINS = 20  #number of bins for histograms
 
-REPORT_ROUNDING = 2
+REPORT_ROUNDING = 2  #rounding of decimals for xls report
 REPORT_PATH = '~/data/mirr_reports'     #relevent path to storing reports
-report_directory = os.path.expanduser(os.path.normpath(REPORT_PATH))
-mkdir_p(report_directory)
+report_directory = os.path.expanduser(os.path.normpath(REPORT_PATH))  #folder for saving xls reposts
+mkdir_p(report_directory)  #creating this folder (only 1-time)
 
 IS = OrderedDict()  #INCOME STATEMENT , format dic[field_name]=attr_name or blank
 IS["Dates"] = ""
@@ -63,12 +63,10 @@ NPV["Dates"] = ""
 NPV["NPV project"] = "pv_project"
 NPV["NPV owners"] = "pv_owners"
 
-IRR_REPORT_FIELD = 'irr_project_y'
+IRR_REPORT_FIELD = 'irr_project_y'  #Name of IRR values
 IRR_REPORT_FIELD2 = 'irr_owners_y'  #for statistics after simulation
 NPV_REPORT_FIELD = 'npv_project_y'
 
-
-REPORT_DEFAULT_NUMBER_SIMULATIONS = 10
 REPORT_DEFAULT_NUMBER_ITERATIONS = 20
 
 CORRELLATION_FIELDS = OrderedDict() # IRR ONE SHOULD HAVE NAME =IRR and be FIRST ONE
@@ -81,13 +79,13 @@ CORRELLATION_FIELDS["subsidy_duration"] = "sm_configs.subsidy_duration"
 CORRELLATION_IRR_FIELD = {"IRR": IRR_REPORT_FIELD}
 CORRELLATION_NPV_FIELD = {"NPV": NPV_REPORT_FIELD}
 
-ELPROD = OrderedDict()
+ELPROD = OrderedDict()  #BLOCK in EXCEL with data about electricity production
 ELPROD["Dates"] = ""
 ELPROD["Solar insolation"] = "sun_insolation"
 ELPROD["Production of electricity"] = "electricity_production"
 ELPROD["Electricity prices"] = "electricity_prices"
 
-SOURCE = OrderedDict()
+SOURCE = OrderedDict()  #DATA FOR SECOND SHEET EXCEL
 SOURCE["Main config"] = 'main_configs'
 SOURCE["Economic config"] = 'ecm_configs'
 SOURCE["Technology config"] = 'tm_configs'
