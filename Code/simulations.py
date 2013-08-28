@@ -24,7 +24,7 @@ class Simulation():
 
     def getNextSimulationNo(self):
         """return  next simulation no from db"""
-        return  self.db.get_next_simulation_no()
+        return  self.db.getNextSimulationNo()
 
     def prepareLinks(self):
         """create short links to prepared modules"""
@@ -182,13 +182,13 @@ class Simulation():
         for i in range(iterations_number):
             percent = (i + 1) * 100 / float(iterations_number)
             self.runOneIteration(i+1, iterations_number)
-            self.db.insert_iteration(self.line)
+            self.db.insertIteration(self.line)
             sys.stdout.write("\r%d%%" %percent)    # or print >> sys.stdout, "\r%d%%" %i,
             sys.stdout.flush()
         print "\n"
 
         self.addIrrStatsToSimulation()
-        self.db.insert_simulation(self.simulation_record)
+        self.db.insertSimulation(self.simulation_record)
 
     def initSimulationRecord(self, iterations_number):
         """Prepare atributes for saving simulation records"""

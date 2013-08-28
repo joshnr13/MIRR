@@ -55,7 +55,7 @@ class ReportOutput():
         with simulation and iteration keys limitations"""
 
         simulation_no, iteration_no = from_db
-        report_header = self.db.get_report_header(simulation_no, iteration_no, yearly)
+        report_header = self.db.getReportHeader(simulation_no, iteration_no, yearly)
 
         self.bs_rows = self.getProcessReportValuesDb(simulation_no, BS.values(),  yearly, iteration_no, report_header)
         self.is_rows = self.getProcessReportValuesDb(simulation_no, IS.values(),  yearly, iteration_no, report_header)
@@ -86,7 +86,7 @@ class ReportOutput():
             else:
                 return v
 
-        db_values = self.db.get_iteration_values_from_db(simulation_no, fields, yearly, iteration_no=iteration_no)  #load data from db
+        db_values = self.db.getIterationValuesFromDb(simulation_no, fields, yearly, iteration_no=iteration_no)  #load data from db
         result = []
         for field in fields:  #loop for all fields
             if not field:  continue
@@ -173,7 +173,7 @@ class ReportOutput():
         """Prepares second sheet date for excel
         saves data to csv file
         """
-        source = self.db.get_iteration_values_from_db(simulation_no, SOURCE.values(), False, iteration_no=iteration_no)
+        source = self.db.getIterationValuesFromDb(simulation_no, SOURCE.values(), False, iteration_no=iteration_no)
 
         with open(self.source_filename,'wb') as f:
             w = csv.writer(f, delimiter=';')

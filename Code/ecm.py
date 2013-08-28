@@ -29,11 +29,11 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
     def cleanPreviousData(self):
         print "Cleaning previous data"
-        self.db.clean_previous_electricity_price_data()
+        self.db.cleanPreviousElectricityPriceData()
 
     def writeElectricityPriceData(self, data):
         """writing to database Electricity Prices"""
-        self.db.write_electricity_prices(data)
+        self.db.writeElectricityPrices(data)
         print 'Writing electricity price simulation %s' % data["simulation_no"]
 
     def simulate(self):
@@ -148,7 +148,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     @cached_property
     def electricity_prices(self):
         """reads random time sequence of electricity market prices from database"""
-        result = self.db.get_electricity_prices(self.electricity_prices_rnd_simulation)
+        result = self.db.getElectricityPrices(self.electricity_prices_rnd_simulation)
         if not result:
             raise ValueError("Please generate first Electricity prices before using it")
         return  result

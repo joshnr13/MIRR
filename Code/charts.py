@@ -14,7 +14,7 @@ def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False):
     """Plots 'revenue', 'cost', 'ebitda', 'deprication' chart"""
 
     fields = ['revenue', 'cost', 'ebitda', 'deprication']
-    results = Database().get_iteration_values_from_db(simulation_no, fields, yearly, iteration_no=iteration_no)
+    results = Database().getIterationValuesFromDb(simulation_no, fields, yearly, iteration_no=iteration_no)
 
     suffix = '_y' * yearly
     #revenue, cost, ebitda, deprication =  results.values()
@@ -114,7 +114,7 @@ def plotCorrelationTornadoChart(field_dic, simulation_id, yearly=False):
     main_field_name = field_dic.keys()[0]
     main_field_db_name = field_dic.values()[0]
 
-    results = Database().get_correlation_values(main_field_db_name, simulation_id, yearly)
+    results = Database().getCorrelationValues(main_field_db_name, simulation_id, yearly)
 
     if not results:
         return  None
@@ -190,7 +190,7 @@ def plotIRRScatterChart(simulation_no, field, yearly=False):
     main = prefix + field
     real_field_shortname = addYearlyPrefix(field, yearly)
 
-    figures = Database().get_iteration_values_from_db(simulation_no, [main], yearly, not_changing_fields=CORRELLATION_FIELDS.values())
+    figures = Database().getIterationValuesFromDb(simulation_no, [main], yearly, not_changing_fields=CORRELLATION_FIELDS.values())
 
     if not figures:
             print ValueError('No data in Database for simulation %s' %simulation_no)
@@ -235,8 +235,8 @@ def plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution,
     field - field which used for chart
     """
 
-    y_all_values = db.get_iteration_field(simulation_no, iteration_no, field)  #get all 'field' values from database
-    keys = db.get_iteration_field(simulation_no, iteration_no, 'project_days')  #get dates for filed from database
+    y_all_values = db.getIterationField(simulation_no, iteration_no, field)  #get all 'field' values from database
+    keys = db.getIterationField(simulation_no, iteration_no, 'project_days')  #get dates for filed from database
     keys = map(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d').date(), keys)  #converting string dates into datetime
     y_all_values = dict((x, y) for x, y in zip(keys, y_all_values))  #getting dict [date]=field value
 

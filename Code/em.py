@@ -20,7 +20,7 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
     @cached_property
     def weather_data(self):
         """Takes weather data from database lazy, only when they are needed"""
-        result = self.db.get_weather_data(self.weather_data_rnd_simulation)
+        result = self.db.getWeatherData(self.weather_data_rnd_simulation)
         if not result:
             raise ValueError("Please generate first Weather data before using it")
         else:
@@ -59,7 +59,7 @@ class WeatherSimulation(EnergyModuleConfigReader):
     def cleanPreviousData(self):
         """cleaning previous simulation data in database"""
         print "Cleaning previous data"
-        self.db.clean_previous_weather_data()
+        self.db.cleanPreviousWeatherData()
 
     def simulate(self):
         """main method to run simulation"""
@@ -81,7 +81,7 @@ class WeatherSimulation(EnergyModuleConfigReader):
 
     def writeWeatherDataDb(self, data):
         """Saving into db dict"""
-        self.db.write_weather_data(data)
+        self.db.writeWeatherData(data)
         print 'Writing weather data simulation %s' % data["simulation_no"]
 
     def generateWeatherData(self, date):

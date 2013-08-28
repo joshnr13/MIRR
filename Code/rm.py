@@ -177,7 +177,7 @@ def saveIRRValuesXls(irr_values_lst, simulation_no, yearly):
 def plotSaveStochasticValuesSimulation(simulation_no, yearly=True):
     """plots simulation stochastic values and saves them in xls"""
     fields = CORRELLATION_FIELDS.values()
-    results = Database().get_iteration_values_from_db(simulation_no, fields=[], yearly=yearly , not_changing_fields=fields)
+    results = Database().getIterationValuesFromDb(simulation_no, fields=[], yearly=yearly , not_changing_fields=fields)
     plotHistogramsChart(results, simulation_no, yearly)
     saveStochasticValuesSimulation(results, simulation_no)
 
@@ -252,7 +252,7 @@ def analyseSimulationResults(simulation_no, yearly=False):
     """
     field = 'irr_stats'
     db = Database()
-    irr_values_lst = db.get_simulation_values_from_db(simulation_no, [field])[field][0]
+    irr_values_lst = db.getSimulationValuesFromDB(simulation_no, [field])[field][0]
 
     saveIRRValuesXls(irr_values_lst, simulation_no, yearly)
     plotIRRChart(irr_values_lst, simulation_no, yearly)

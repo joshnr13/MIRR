@@ -71,7 +71,7 @@ class Interface():
     def printEquipment(self):
         """Prints equipment of user defined simulation no , used first iteration"""
         simulation_no =  self.getInputSimulation("printing equipment ")
-        print self.db.get_iteration_field(simulation_no, iteration_no=1, field='equipment_description')
+        print self.db.getIterationField(simulation_no, iteration_no=1, field='equipment_description')
 
     def outputPrimaryEnergy(self):
         """Plots solar insolations step chart for user definded simulation no, iteration no and data range"""
@@ -111,13 +111,13 @@ class Interface():
         default = 10
         if last is  None:
             last = getInputInt("Please input number of number of last simulations to display (or press Enter to use default %s) : " %default, default)
-        self.db.get_last_simulations_log(last)
+        self.db.printLastSimulationsLog(last)
 
     def deleteSimulation(self, simulation_no=None):
         """Deletes user entered simulation number"""
         if simulation_no is  None:
             simulation_no = self.getInputSimulation("DELETING: ")
-        self.db.delete_simulation(simulation_no)
+        self.db.deleteSimulation(simulation_no)
 
     def generateWeatherData(self):
         """Generates multi simulations of Weather data for each day in project and saves it to database"""
@@ -149,12 +149,12 @@ class Interface():
 
     def getInputSimulation(self, text=""):
         """User input for choosing simulation no"""
-        last_simulation = self.db.get_last_simulation_no()
+        last_simulation = self.db.getLastSimulationNo()
         return  getInputInt("Please input ID of simulation for %s (or press Enter to use last-run %s): " %(text, last_simulation), last_simulation)
 
     def getInputIteration(self, text, simulation_no):
         """User input for choosing iteration no"""
-        iterations = "[1-%s]" % (self.db.get_iterations_number(simulation_no)+1)
+        iterations = "[1-%s]" % (self.db.getIterationsNumber(simulation_no)+1)
         return  getInputInt("Please enter iteration of Simulation %s for %s from %s (or press Enter to use first): " %(simulation_no, text, iterations), 1)
 
     def getSimulationIterationNums(self, text):
