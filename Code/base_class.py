@@ -1,5 +1,6 @@
 
 class BaseClassConfig():
+    """class Wrapper for configs Module, simply returns some configs as attributes"""
     def __init__(self, config_module):
         self._config_module = config_module
 
