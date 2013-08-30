@@ -199,6 +199,7 @@ def printEntered(line):
         print "Entered %s " % (line, )
 
 def runMethod(obj, line):
+    """run method of Interface class, name of method is taken from GLOBAL dict commands"""
     if line in commands:
         method = getattr(obj, commands[line])
     else:
