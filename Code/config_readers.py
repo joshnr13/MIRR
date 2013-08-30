@@ -139,7 +139,7 @@ class SubsidyModuleConfigReader():
             self.subsidy_duration = random.randint(_subsidy_duration_lower_limit, _subsidy_duration_upper_limit )
 
         #calculate first day of subside by adding subsidy_delay to last_day_construction+1
-        self.first_day_subsidy = addXMonths(self.last_day_construction+datetime.timedelta(days=1), self.)
+        self.first_day_subsidy = addXMonths(self.last_day_construction+datetime.timedelta(days=1), self.subsidy_delay)
         self.last_day_subsidy = addXMonths(self.first_day_subsidy, self.subsidy_duration)
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict

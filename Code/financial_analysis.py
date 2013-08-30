@@ -44,32 +44,26 @@ class CashFlows():
 
     def improve(self,  guess):
         """Tries to improve last guess"""
-        if guess <= min(BEST_GUESSES) and guess <= min(BEST_GUESSES):  ## STRANGE ???
-            self.guesses.append(guess)
-
         result = guess - self.npv(guess) / self.derivativeNpv(guess)
-        if result > 2 or result < -2: return None
-        return result
+        if result < 2 and result > -2:
+            return result
 
     def goodEnough(self,  guess):
         """Finding when NPV is near to zero, is abs < 0.1"""
-        d = self.npv(guess)
-        #print "Cur guess %s , npv %s , abs %s" % (guess, d, (abs(d) <= 0.1))
-        return (abs(d) <= 0.1)
+        return (abs(self.npv(guess)) <= 0.1)  #return True if NPV is near to zero (-0.1--0.1)
 
     def findIrrNewton(self, guess):
         """Finding IRR using Newton method with limited number of iterations =50"""
         stop = self.goodEnough(guess)
         iter_no = 0
-        while(not stop):
+        while (not stop):
             iter_no += 1
-            guess = self.improve(guess)
+            guess = self.improve(guess)  #try to find better guess or IRR
             if guess  != None:
-                #print "Try new", guess
-                stop = self.goodEnough(guess)
+                stop = self.goodEnough(guess)  #is guess good enough?
             else:
                 stop = True
-            if iter_no > 50:
+            if iter_no > 50:  #stop if we have more than 50 iterations - means this guess is wrong
                 guest = None
                 stop = True
         return guess
@@ -94,9 +88,8 @@ class CashFlows():
     def getPossibleIrrs(self):
         """return  list of possible irrs using different guesses from setup"""
         irrs = []
-        for guess_rate in BEST_GUESSES:
-            self.guesses = []  #cleaning guesses list
-            irr = self.findIrrNewton(guess_rate)  #finding irr using newthon method
+        for guess_rate in BEST_GUESSES: #finding irr using newthon method for each guess in best guesses
+            irr = self.findIrrNewton(guess_rate)
             irrs.append(irr)
         return irrs
 
