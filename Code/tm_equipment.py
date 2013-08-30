@@ -245,7 +245,6 @@ class EquipmentGroup():
         else:
             return 0
 
-    #@profile
     def getElectricityProductionGroup(self, insolation):
         """return  ElectiricityProduction for group"""
         group_production = sum([eq.getElectricityProductionEquipment(insolation) for eq in self.getSolarEquipment()])

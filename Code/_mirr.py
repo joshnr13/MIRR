@@ -11,6 +11,7 @@ class Mirr():
     """Main class for combining all modules together
     """
     def __init__(self):
+        """Creates all modules at INIT"""
         main_config = MainConfig()
         self.main_config = main_config
         self.energy_module = EnergyModule(main_config)

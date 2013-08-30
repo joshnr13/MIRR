@@ -9,16 +9,14 @@ from annex import yearsBetween1Jan, getResolutionStartEnd, cached_property
 from tm_equipment import PlantEquipment
 from collections import OrderedDict
 
-
 class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def __init__(self, config_module, energy_module):
-        BaseClassConfig.__init__(self, config_module)
-        TechnologyModuleConfigReader.__init__(self)
+        BaseClassConfig.__init__(self, config_module)  #loading main configs
+        TechnologyModuleConfigReader.__init__(self)  #loading Technology module configs
         self.energy_module = energy_module
-        self.calcTotalPower()
-        self.assembleSystem()
-        self.getInvestmentCost()
-        #self.calcDegradationCoefficients()
+        self.calcTotalPower()  #calculates Total Power
+        self.assembleSystem()  #creates Plant
+        self.getInvestmentCost()  #calc investment costs of all plant + documentation
 
     def calcTotalPower(self):
         """Calculates total power for whole plant"""
@@ -32,7 +30,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def buildPlant(self):
         """creates plant object"""
-        self.plant = PlantEquipment(self.network_available_probability)
+        self.plant = PlantEquipment(self.network_available_probability)  #new class Plant
 
     def addSolarModulesAndInverter(self):
         """Adds solar module and inverter in each group"""
@@ -98,8 +96,9 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         dates = self.all_project_dates
         last_day_construction = self.last_day_construction
         insolations = self.energy_module.insolations
+        #electricity_production - dict with ideal electricity_production for every date
+        electricity_production = OrderedDict((day, self.plant.getElectricityProductionPlant1Day(insol) if day > last_day_construction else 0) for day, insol in insolations.items())
+        #multiply each electricity_production at degradation coeff
+        electricity_production.update((x, electricity_production[x]*y) for x, y in self.degradation_coefficients.items())
 
-        sun_values = OrderedDict((day, self.plant.getElectricityProductionPlant1Day(insol) if day > last_day_construction else 0) for day, insol in insolations.items())
-        sun_values.update((x, sun_values[x]*y) for x, y in self.degradation_coefficients.items())
-
-        return sun_values
+        return electricity_production
