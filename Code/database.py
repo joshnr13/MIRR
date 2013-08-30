@@ -10,7 +10,7 @@ from numpy import corrcoef, around, isnan
 class Database():
     def __init__(self):
         """Class for connection to MongoDatabase"""
-        self.db = self.getConnection()
+        self.db = self.getConnection()  #get connection to DB
         self.simulation_numbers = self.db['simulation_numbers']  #table simulation_numbers
         self.simulations = self.db['simulations']                #table simulations
         self.iterations = self.db['iterations']                  #table iterations
@@ -21,25 +21,26 @@ class Database():
     def getConnection(self):
         """get connection to db"""
         try:
-            connection = pymongo.Connection()
+            connection = pymongo.Connection()  #try to connect
         except pymongo.errors.ConnectionFailure:
-            print "Please run MONGO SERVER"
-            raise
+            raise ValueError("Please run MONGO SERVER")
 
         db = connection['MirrDatabase']
         return db
 
     def addIndexes(self):
         """add indexed to database"""
-        self.iterations.ensure_index('simulation', background=True )
+        #self.iterations.ensure_index('simulation', background=True )
+        self.iterations.ensure_index([("simulation", pymongo.ASCENDING), ("iteration", pymongo.ASCENDING)], background=True )  #add simulation and iteration fields to index
+        self.simulations.ensure_index("simulation", background=True )
 
     def deleteSimulation(self, simulation_no ):
         """Deletes selected simulation with @simulation_no"""
-        self.simulations.remove({"simulation":simulation_no})
-        self.iterations.remove({"simulation":simulation_no})
+        self.simulations.remove({"simulation":simulation_no})  #removes data with simulation no from table with simulations
+        self.iterations.remove({"simulation":simulation_no})  #removes data with simulation no from table with iterations
         print "Succesfully deleted simulation %s" % simulation_no
         if simulation_no == self.getLastSimulationNo():
-            self.simulation_numbers.update({'_id':'seq'}, {'$inc':{'seq':-1}}, upsert=True)
+            self.simulation_numbers.update({'_id':'seq'}, {'$inc':{'seq':-1}}, upsert=True)  #changes last simulation no if we deleted last simulation
 
     def insertSimulation(self, record):
         """Safe inserts simulation line to DB"""
