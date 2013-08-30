@@ -15,7 +15,6 @@ from base_class import BaseClassConfig
 from config_readers import MainConfig
 
 
-
 class Report(BaseClassConfig):
     """Module for calculating Balance, FCF"""
     def __init__(self, config_module, economic_module):
@@ -463,6 +462,7 @@ class Report(BaseClassConfig):
         prev_month_date = lastDayPrevMonth(date)
         if prev_month_date < self.start_date_project:
             prev_month_date = PROJECT_START
+
         prev_unallocated_earning = self.unallocated_earning[prev_month_date]
         prev_net_earning = self.net_earning[prev_month_date]
         return prev_unallocated_earning + prev_net_earning
@@ -554,7 +554,9 @@ class Report(BaseClassConfig):
         tax = taxrate * max(EBT*50%; EBT - accumulated loss)
         entered only in december
         """
-        if isLastDayYear(date):
+        if not isLastDayYear(date):
+            return 0
+        else:
             accumulated_earnings = self.calcAccumulatedEarnings(date)
             year_ebt = self.ebt_y[date]
 
@@ -565,8 +567,7 @@ class Report(BaseClassConfig):
             else:
                 tax_rate = self.economic_module.getTaxRate()
                 return tax_rate * max(year_ebt/2.0, year_ebt - accumulated_earnings)
-        else:
-            return 0
+
 
     def calcPaidIn(self, date):
         """Paid -in calculation"""
@@ -595,8 +596,8 @@ class Report(BaseClassConfig):
         prev_month_date = lastDayPrevMonth(date)
         if prev_month_date < self.start_date_project:
             prev_month_date = PROJECT_START
-        prev_fixed_asset = self.fixed_asset[prev_month_date] #.get(prev_month_last_day, 0)
 
+        prev_fixed_asset = self.fixed_asset[prev_month_date] #.get(prev_month_last_day, 0)
         cur_investments = self.economic_module.getMonthlyInvestments(date)
         cur_deprication = self.deprication[date]
 
@@ -608,11 +609,11 @@ class Report(BaseClassConfig):
         """
         prev1_date = lastDayPrevMonth(date)
 
-        if prev1_date < self.start_date_project:
-            prev1_value = 0
+        if prev1_date >= self.start_date_project:
+            prev1_value = self.cost[prev1_date]
             cur_value = self.revenue[date]
         else :
-            prev1_value = self.cost[prev1_date]
+            prev1_value = 0
             cur_value = self.revenue[date]
 
         return  prev1_value + cur_value
@@ -622,11 +623,11 @@ class Report(BaseClassConfig):
         """
         prev1_date = lastDayPrevMonth(date)
 
-        if prev1_date < self.start_date_project:
-            prev1_value = 0
+        if prev1_date >= self.start_date_project:
+            prev1_value = self.cost[prev1_date]
             cur_value = self.cost[date]
         else:
-            prev1_value = self.cost[prev1_date]
+            prev1_value = 0
             cur_value = self.cost[date]
 
         return  prev1_value + cur_value

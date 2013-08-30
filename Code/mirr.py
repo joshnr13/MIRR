@@ -41,16 +41,16 @@ class Interface():
     """Class for Main menu for all operations"""
     def __init__(self):
         self.db = Database()
-        self.main_config = MainConfig()
+        self.main_config = MainConfig()  #link to main config
 
     def runSimulation(self, iterations_no=None, comment=None):
         """Running simulation and saving results"""
         if iterations_no is None:
-            iterations_no = self.getNumberIterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)
+            iterations_no = self.getNumberIterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)  #ask user how many iterations
         if comment is  None:
-            comment = getInputComment()
+            comment = getInputComment()  #get user comment
 
-        simulation_no = runAndSaveSimulation(iterations_no, comment)
+        simulation_no = runAndSaveSimulation(iterations_no, comment)  #runing
 
     def analyseSimulationResults(self, simulation_no=None):
         """
@@ -65,8 +65,8 @@ class Interface():
     def charts(self):
         """Plots Revenue, Cost charts monthly and yearly for user definded simulation no"""
         simulation_no, iteration_no =  self.getSimulationIterationNums("for plotting revenue-costs charts ")
-        plotRevenueCostsChart(simulation_no, iteration_no, yearly=False)
-        plotRevenueCostsChart(simulation_no, iteration_no, yearly=True)
+        plotRevenueCostsChart(simulation_no, iteration_no, yearly=False)  #plot monthly chart
+        plotRevenueCostsChart(simulation_no, iteration_no, yearly=True)   #plot yearly chart
 
     def printEquipment(self):
         """Prints equipment of user defined simulation no , used first iteration"""
@@ -76,13 +76,13 @@ class Interface():
     def outputPrimaryEnergy(self):
         """Plots solar insolations step chart for user definded simulation no, iteration no and data range"""
         simulation_no, iteration_no =  self.getSimulationIterationNums("for printing chart with Primary Energy ")
-        start_date, end_date, resolution = self.getStartEndResolution()
+        start_date, end_date, resolution = self.getStartEndResolution()  #ask user start date, end, resolution
         plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field= 'insolations_daily')
 
     def outputElectricityProduction(self):
         """Plots electricity production step chart for user definded simulation no, iteration no and data range"""
         simulation_no, iteration_no =  self.getSimulationIterationNums("for printing chart with Electricity Production ")
-        start_date, end_date, resolution = self.getStartEndResolution()
+        start_date, end_date, resolution = self.getStartEndResolution()  #ask user start date, end, resolution
         plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field= 'electricity_production_daily')
 
     def irrCorrelations(self):
@@ -174,7 +174,7 @@ class Interface():
 
         start_date =  getInputDate(text="Start date" + memo, default=def_start)  #get user input of use default
         end_date =  getInputDate(text="End date" + memo, default=def_end)
-        resolution = getInputInt(memo_res, default=def_res)
+        resolution = getInputInt(memo_res, default=def_res)  # ask user resolution
         return (start_date, end_date, resolution)
 
     def stop(self):
