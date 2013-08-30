@@ -14,6 +14,8 @@ from ecm import EconomicModule
 from base_class import BaseClassConfig
 from config_readers import MainConfig
 
+
+
 class Report(BaseClassConfig):
     """Module for calculating Balance, FCF"""
     def __init__(self, config_module, economic_module):
@@ -648,5 +650,10 @@ if __name__ == '__main__':
     economic_module = EconomicModule(mainconfig, technology_module, subside_module)
 
     r = Report(mainconfig, economic_module)
-    r.calcReportValues()
+    import time
+    s = time.time()
+    for i in range(1):
+        r.calcReportValues()
+
+    print time.time() - s
 

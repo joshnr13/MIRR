@@ -30,10 +30,7 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
     def insolations(self):
         """Calculating insolations for whole project lazy, only when they are needed"""
         last_day_construction = self.last_day_construction
-        insolations = OrderedDict()
-        for date in self.all_project_dates:
-            insolations[date] = self.weather_data[date][0] if date > last_day_construction else 0
-        return  insolations
+        return  OrderedDict((date, self.weather_data[date][0] if date > last_day_construction else 0) for date in self.all_project_dates)
 
     def getInsolation(self,  date):
         """return  insolationg at given date"""

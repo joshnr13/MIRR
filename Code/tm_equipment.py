@@ -3,7 +3,7 @@
 
 import random
 import numpy
-from annex import lastDayMonth
+from annex import lastDayMonth, cached_property, memoized
 from collections import defaultdict
 from config_readers import  EmInputsReader
 from datetime import date
@@ -317,6 +317,7 @@ class PlantEquipment():
             total += group.getInvestmentCost()
         return total
 
+    @memoized
     def getTransformerEffiency(self):
         """returns transformet effiency for AC group, else 0"""
         if self.get_AC_group():
@@ -325,6 +326,7 @@ class PlantEquipment():
                 return obj[0].getEfficiency()
         return 0
 
+    @memoized
     def isGridAvailable(self):
         """return  True if connection grid available in plant"""
         if self.get_AC_group():

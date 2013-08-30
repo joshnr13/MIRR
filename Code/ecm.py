@@ -14,6 +14,8 @@ from base_class import BaseClassConfig
 from collections import OrderedDict
 from database import Database
 
+
+
 class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     """class for generating Electricity prices"""
     def __init__(self, period, simulations_no):
@@ -125,6 +127,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         """
         BaseClassConfig.__init__(self, config_module)
         EconomicModuleConfigReader.__init__(self, self.start_date_project)
+        self.__electricity_production = []
         self.db = Database()
         self.technology_module = technology_module
         self.subside_module = subside_module
@@ -142,8 +145,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     @cached_property
     def electricity_production(self):
-        """gets the electricty production for the whole lifetime of the project as provided by the techology module"""
-        return   self.technology_module.generateElectricityProductionLifeTime()
+        return  self.technology_module.generateElectricityProductionLifeTime()
 
     @cached_property
     def electricity_prices(self):
@@ -185,6 +187,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
             revenue_subside += day_revenue_subsidy  #increment subside for period  date_start - date_end
 
         return revenue_electricity, revenue_subside
+
 
     def getElectricityProduction(self,  date):
         """return  production of electricity at given date"""

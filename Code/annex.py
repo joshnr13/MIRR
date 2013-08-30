@@ -37,13 +37,26 @@ class NullDevice():
         pass
 
 class cached_property(object):
-    def __init__(self, func):
-        self.func = func
+    """
+    Descriptor (non-data) for building an attribute on-demand on first use.
+    """
+    def __init__(self, factory, attr_name=None):
+        """
+        <attr_name> is the name of the attribute.
+        <factory> is called such: factory(instance) to build the attribute.
+        """
+        self._attr_name = attr_name or factory.__name__
+        self._factory = factory
 
-    def __get__(self, instance, cls=None):
-        instance.__dict__[self.func.__name__] = self.func(instance)
-        result = self.func(instance)
-        return result
+    def __get__(self, instance, owner):
+        # Build the attribute.
+        attr = self._factory(instance)
+
+        # Cache the value; hide ourselves.
+        setattr(instance, self._attr_name, attr)
+
+        return attr
+
 
 class OrderedDefaultdict(OrderedDict):
     def __init__(self, *args, **kwargs):

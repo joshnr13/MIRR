@@ -5,9 +5,10 @@ import numpy
 from em import EnergyModule
 from config_readers import MainConfig, TechnologyModuleConfigReader
 from base_class import BaseClassConfig
-from annex import yearsBetween1Jan, getResolutionStartEnd
+from annex import yearsBetween1Jan, getResolutionStartEnd, cached_property
 from tm_equipment import PlantEquipment
 from collections import OrderedDict
+
 
 class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def __init__(self, config_module, energy_module):
@@ -17,8 +18,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         self.calcTotalPower()
         self.assembleSystem()
         self.getInvestmentCost()
-        #self.calc_project_datelist()
-        self.calcDegradationCoefficients()
+        #self.calcDegradationCoefficients()
 
     def calcTotalPower(self):
         """Calculates total power for whole plant"""
@@ -68,12 +68,12 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         """prints all equipment tree"""
         print self.equipmentDescription()
 
-    def calcDegradationCoefficients(self):
+    @cached_property
+    def degradation_coefficients(self):
         """calculation of degradation coefficients for equipment"""
-        degradation_coefficients = OrderedDict()
-        for date in self.all_project_dates:
-            degradation_coefficients[date] = (1-self.degradation_yearly)**yearsBetween1Jan(self.start_date_project, date)
-        self.degradation_coefficients = degradation_coefficients
+        start_date = self.start_date_project
+        koef_degradation = 1-self.degradation_yearly
+        return  OrderedDict((date, koef_degradation ** yearsBetween1Jan(start_date, date)) for date in self.all_project_dates)
 
     def degradationAtDate(self, date):
         """return degradation coefficient at given @date"""
@@ -96,10 +96,10 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def generateElectricityProductionLifeTime(self):
         """generates electricity production for whole project lifetime"""
         dates = self.all_project_dates
-        sun_values = numpy.array([self.plant.getElectricityProductionPlant1Day(1) if day > self.last_day_construction else 0 for day in dates ])
-        insolations = self.energy_module.insolations.values()
-        degrodations = numpy.array(self.degradation_coefficients.values())
-        total_values = sun_values*degrodations*insolations
-        dic_result = OrderedDict((date, value) for date, value in zip(dates, total_values))
-        return dic_result
+        last_day_construction = self.last_day_construction
+        insolations = self.energy_module.insolations
 
+        sun_values = OrderedDict((day, self.plant.getElectricityProductionPlant1Day(insol) if day > last_day_construction else 0) for day, insol in insolations.items())
+        sun_values.update((x, sun_values[x]*y) for x, y in self.degradation_coefficients.items())
+
+        return sun_values

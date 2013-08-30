@@ -8,6 +8,8 @@ from database import Database
 from rm import caclIrrsStatisctics
 from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2
 
+
+
 class Simulation():
     """Class for preparing, runinning and saving simulations to Database"""
     def __init__(self, comment=''):
@@ -25,6 +27,7 @@ class Simulation():
     def getNextSimulationNo(self):
         """return  next simulation no from db"""
         return  self.db.getNextSimulationNo()
+
 
     def prepareLinks(self):
         """create short links to prepared modules"""
@@ -178,7 +181,7 @@ class Simulation():
     def runSimulation(self,  iterations_number):
         """Run Simulation with multiple @iterations_number """
 
-        self.initSimulationRecord(iterations_number)
+        self.initSimulationRecord(iterations_number)  #Prepare atributes for saving simulation records
         for i in range(iterations_number):
             percent = (i + 1) * 100 / float(iterations_number)
             self.runOneIteration(i+1, iterations_number)
@@ -208,6 +211,7 @@ class Simulation():
         irr_values = [self.irrs0, self.irrs1]
         fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2]
         self.simulation_record['irr_stats'] = caclIrrsStatisctics(fields, irr_values)
+
 
     def runOneIteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""
