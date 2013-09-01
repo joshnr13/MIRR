@@ -12,7 +12,7 @@ class SubsidyModule(BaseClassConfig, SubsidyModuleConfigReader):
 
     def subsidyProduction(self, date):
         """return subsidy in EUR for production 1Kwh on given @date"""
-        if date >= self.first_day_subsidy and date <= self.last_day_subsidy:
+        if date >= self.first_day_subsidy and date <= self.last_day_subsidy:  #if @date in range(start_subside-end_subside) - return subside, else 0
             return self.kWh_subsidy
         else:
             return 0
