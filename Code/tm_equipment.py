@@ -87,7 +87,7 @@ class EquipmentSolarModule(Equipment):
 
     def getElectricityProductionEquipment(self, insolation):
         """Gets electiricity production for SolarModule"""
-        return insolation * self.power * self.efficiency / 1000
+        return insolation * self.power * self.efficiency / 1000.0
 
     def getPower(self):
         return self.power
@@ -116,7 +116,7 @@ class EquipmentGroup():
     """Class for holding info about equipment group"""
     def __init__(self, group_type):
         self.group_type = group_type
-        self.group_equipment = defaultdict(list)
+        self.group_equipment = defaultdict(list)  #list for holding content of group equipment
         self.inverters = 0
         self.solar_modules = 0
         self.transformers = 0
@@ -130,33 +130,34 @@ class EquipmentGroup():
 
     def addConnectionGrid(self, price):
         """Adds connection Grid! Could be only ONE"""
-        eq = EquipmentConnectionGrid(reliability=1, price=price, power_efficiency=1, power=None, state=0, system_crucial=False, group_cruical=False)
+        eq = EquipmentConnectionGrid(reliability=1, price=price, power_efficiency=1, power=None, state=0, system_crucial=False, group_cruical=False) #create Equipment class instance
         self.connectiongrid_object = eq
         self.connection_grids = 1
-        self.addEquipment(eq, type='connection_grip')
+        self.addEquipment(eq, type='connection_grip')  #adds new created equipment to group with defined type
 
     def addSolarModule(self, price, reliability, power_efficiency, power):
-        eq = EquipmentSolarModule(reliability, price, power_efficiency,power, state=0, system_crucial=False, group_cruical=False)
-        self.solar_modules += 1
-        self.addEquipment(eq, type='solar_module')
+        eq = EquipmentSolarModule(reliability, price, power_efficiency,power, state=0, system_crucial=False, group_cruical=False) #create Equipment class instance
+        self.solar_modules += 1  #increase number of solar modules in group
+        self.addEquipment(eq, type='solar_module') #adds new created equipment to group with defined type
 
     def addInverter(self, price, reliability, power_efficiency):
-        eq = EquipmentInverter(reliability, price, power_efficiency, power=None, state=0, system_crucial=False, group_cruical=True )
-        self.inverters += 1
-        self.addEquipment(eq, type='inverter')
+        eq = EquipmentInverter(reliability, price, power_efficiency, power=None, state=0, system_crucial=False, group_cruical=True ) #create Equipment class instance
+        self.inverters += 1  #increase number of inverters in group
+        self.addEquipment(eq, type='inverter') #adds new created equipment to group with defined type
 
     def addTransformer(self, price, reliability, power_efficiency):
         """Adds connection Grid! Could be only ONE"""
-        eq = EquipmentTransformer(reliability, price, power_efficiency, power=None, state=0, system_crucial=False, group_cruical=True )
+        eq = EquipmentTransformer(reliability, price, power_efficiency, power=None, state=0, system_crucial=False, group_cruical=True )  #create Equipment class instance
         self.transformers = 1
         self.transformer_object = eq
-        self.addEquipment(eq, type='transformer')
+        self.addEquipment(eq, type='transformer')  #adds new created equipment to group with defined type
 
     def addEquipment(self,  equipment, type):
         """Base method to add new equipment - (equipment - class object)"""
         self.group_equipment[type].append(equipment)
 
     def isGroupUnderMaintenance(self):
+        """return  True if one of group equipment is Under Maintance"""
         for equipment in self.group_equipment:
             if equipment.isStateMaintenance():
                 return  True
@@ -235,19 +236,19 @@ class EquipmentGroup():
         """return  investment cost of group"""
         total = 0
         for eq in self.getGroupEquipment():
-            total += eq.getInvestmentCost()
+            total += eq.getInvestmentCost()  #calculate sum of all equipment investment costs
         return total
 
     def getInverterEffiency(self):
         """return  Inverter effiency if available"""
         if self.getInverterEquipment():
-            return  self.getInverterEquipment()[0].getEfficiency()
+            return  self.getInverterEquipment()[0].getEfficiency()  #return  InverterEffiency if we have inverter or 0
         else:
             return 0
 
     def getElectricityProductionGroup(self, insolation):
         """return  ElectiricityProduction for group"""
-        group_production = sum([eq.getElectricityProductionEquipment(insolation) for eq in self.getSolarEquipment()])
+        group_production = sum([eq.getElectricityProductionEquipment(insolation) for eq in self.getSolarEquipment()])  #calc sum of all group electricity production
         inverter_efficiency = self.getInverterEffiency()
         return  group_production * inverter_efficiency
 
@@ -257,8 +258,8 @@ class EquipmentGroup():
 class PlantEquipment():
     """Class for whole plant equipment"""
     def __init__(self, network_available_probability ):
-        self.groups = defaultdict(list)
-        self.network_available_probability = network_available_probability
+        self.groups = defaultdict(list)  #for holding list of groups in plant
+        self.network_available_probability = network_available_probability  #probability of system network
         self.AC_group = None
 
     def addGroup(self, group_type):
@@ -273,7 +274,7 @@ class PlantEquipment():
         return  self.addGroup(group_type)
 
     def addACGroup(self):
-        """adds new group AC and returns link to it"""
+        """adds new group transformer and connection grid group and returns link to it"""
         group_type = 'AC group'
         self.AC_group = self.addGroup(group_type)
         return self.AC_group
@@ -285,15 +286,15 @@ class PlantEquipment():
     def isNetworkAvailable(self):
         """Availability of system network - user input as % of availability e.g. 99,9%
         return  False or True"""
-        if random.random() >= self.network_available_probability:
+        if random.random() <= self.network_available_probability:  #we generate random (0-1) and if it is > our_prob <= return  True
             return  True
         else:
-            return  False
+            return  False  #else if random > our_prob -> EPIC FAIL
 
     def isSystemUnderMaintenance(self):
         """check for maintenace of components (objects Equipment)"""
         for group in self.groups:
-            if group.isGroupUnderMaintenance():
+            if group.isGroupUnderMaintenance():  #check for each group is it under maintance, and if one group is -> than all plant is under maintance
                 return  True
         return False
 
@@ -311,32 +312,29 @@ class PlantEquipment():
 
     def getInvestmentCost(self):
         """return  Investment costs of ALL equipment groups"""
-        total = 0
-        for group in (self.getPlantGroups()):
-            total += group.getInvestmentCost()
-        return total
+        return sum(group.getInvestmentCost() for group in self.getPlantGroups())  #sum of each group IC in Plant
 
     @memoized
     def getTransformerEffiency(self):
         """returns transformet effiency for AC group, else 0"""
-        if self.get_AC_group():
+        if self.get_AC_group():  #if we have AC group
             obj = self.get_AC_group()[0].getTransformerEquipment()
-            if obj:
+            if obj:  #if we have transformer in AC group
                 return obj[0].getEfficiency()
         return 0
 
     @memoized
     def isGridAvailable(self):
         """return  True if connection grid available in plant"""
-        if self.get_AC_group():
+        if self.get_AC_group(): #if we have AC group
             if self.get_AC_group()[0].getConnectionGridEquipment():
-                return True
+                return True  #return  True if we have connection grid in AC group
         return  False
 
     def getElectricityProductionPlant1Day(self, insolation):
         """return  ElectiricityProduction for whole Plant"""
-        if self.isGridAvailable():
-            groups_production = sum([g.getElectricityProductionGroup(insolation) for g in self.getPlantSolarGroups()])
+        if self.isGridAvailable():  #if we have connection grid in plant
+            groups_production = sum(g.getElectricityProductionGroup(insolation) for g in self.getPlantSolarGroups())  #calc sum of el.production for all solar groups
             transformer_efficiency = self.getTransformerEffiency()
             return  groups_production * transformer_efficiency
         else:
@@ -344,23 +342,22 @@ class PlantEquipment():
 
     def getPlantPower(self):
         """return  Total power of plant"""
-        return sum([gr.getGroupPower() for gr in self.getPlantSolarGroups()])
+        return sum(gr.getGroupPower() for gr in self.getPlantSolarGroups())
 
     def expectedYearProduction(self):
         """calculates aprox expected yealy production of electricity"""
-        inputs = EmInputsReader()
+        inputs = EmInputsReader()  #load Inputs for Energy Module
 
         av_insolations = []
-        days = []
-        for i in range(1, 13):
-            last_month_date = lastDayMonth(date(2000,  i, 1))
-            av_insolations.append(inputs.getAvMonthInsolationMonth(i-1))
-            days.append(last_month_date.day)
+        days_in_month = []
+        for i in range(1, 13):  #for each month number from 1 to 12
+            av_insolations.append(inputs.getAvMonthInsolationMonth(i-1))  #add to list av.month insollation for 1 day
+            days_in_month.append(lastDayMonth(date(2000,  i, 1)).day)  #  add to list number of days in cur month
 
-        one_day_production = numpy.array([self.getElectricityProductionPlant1Day(insolation) for insolation in av_insolations])
-        whole_year_production = numpy.sum(numpy.array(days) * one_day_production)
+        one_day_production = numpy.array([self.getElectricityProductionPlant1Day(insolation) for insolation in av_insolations])  #calc one day production for this 12 days
+        whole_year_production = numpy.sum(numpy.array(days_in_month) * one_day_production)  #multiply number of days in month * one day production and summarise them all
 
-        return  round(whole_year_production, 0)
+        return  round(whole_year_production, 0)  #return rounded value
 
     def __str__(self):
         """string representation of Plant object"""

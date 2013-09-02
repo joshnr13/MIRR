@@ -15,9 +15,9 @@ class Simulation():
     def __init__(self, comment=''):
         """@comment - user inputed comment"""
         self.db =  Database()  #connection to Db
-        self.comment = comment
+        self.comment = comment  #user comment for current simulation
         self.simulation_no = self.getNextSimulationNo()  #load last simulation no from db
-        self.irrs0 = []
+        self.irrs0 = []  #for keeping irr values for each iteration
         self.irrs1 = []
 
     def getSimulationNo(self):
@@ -27,7 +27,6 @@ class Simulation():
     def getNextSimulationNo(self):
         """return  next simulation no from db"""
         return  self.db.getNextSimulationNo()
-
 
     def prepareLinks(self):
         """create short links to prepared modules"""
@@ -39,11 +38,11 @@ class Simulation():
         self.r = self.i.getReportModule()
         self.o = self.i.getOutputModule()
 
-        self.main_configs = self.config.getConfigsValues()
-        self.ecm_configs = self.ecm.getConfigsValues()
-        self.tm_configs = self.tm.getConfigsValues()
-        self.sm_configs = self.sm.getConfigsValues()
-        self.em_configs = self.em.getConfigsValues()
+        self.main_configs = self.config.getConfigsValues()  #module config values
+        self.ecm_configs = self.ecm.getConfigsValues()  #module config values
+        self.tm_configs = self.tm.getConfigsValues()  #module config values
+        self.sm_configs = self.sm.getConfigsValues() #module config values
+        self.em_configs = self.em.getConfigsValues() #module config values
 
     def convertResults(self):
         """Processing results before inserting to DB"""
@@ -52,20 +51,20 @@ class Simulation():
     def prepareIterationResults(self, iteration):
         """prepare each iteration (@iteration number) results before saving to database"""
         obj = self.r
-        line = dict()
+        line = dict()  #main dict for holding results of one iteration
 
         line["simulation"] = self.simulation_no
         line["iteration"] = iteration
 
-        line["main_configs"] = self.main_configs
-        line["ecm_configs"] = self.ecm_configs
-        line["tm_configs"] = self.tm_configs
-        line["sm_configs"] = self.sm_configs
-        line["em_configs"] = self.em_configs
+        line["main_configs"] = self.main_configs  #module config values
+        line["ecm_configs"] = self.ecm_configs #module config values
+        line["tm_configs"] = self.tm_configs #module config values
+        line["sm_configs"] = self.sm_configs #module config values
+        line["em_configs"] = self.em_configs #module config values
 
         #####################################
 
-        line["revenue"] = obj.revenue.values()
+        line["revenue"] = obj.revenue.values()  #values of revenue
         line["revenue_electricity"] = obj.revenue_electricity.values()
         line["revenue_subsides"] = obj.revenue_subsides.values()
         line["cost"] = obj.cost.values()
@@ -135,7 +134,7 @@ class Simulation():
         line["report_header_y"] = obj.control_y.keys()
 
         ##################################
-        line["fcf_project"] = obj.fcf_project.values()
+        line["fcf_project"] = obj.fcf_project.values()  #FCF values
         line["fcf_owners"] = obj.fcf_owners.values()
         line["fcf_project_y"] = obj.fcf_project_y.values()
         line["fcf_owners_y"] = obj.fcf_owners_y.values()
@@ -154,7 +153,7 @@ class Simulation():
         line["wacc_y"] = obj.wacc
 
         #########################################
-        line["project_days"] = self.ecm.electricity_prices.keys()
+        line["project_days"] = self.ecm.electricity_prices.keys()  #list of all project days
 
         line["equipment_description"] = self.tm.equipmentDescription()
 
@@ -180,27 +179,29 @@ class Simulation():
 
     def runSimulation(self,  iterations_number):
         """Run Simulation with multiple @iterations_number """
+        self.initSimulationRecord(iterations_number)  #Prepare atributes for saving simulation record
+        self.runIterations(iterations_number)  #run all iterations with saving results
+        self.addIrrStatsToSimulation()  #add IRR stats to simulation record for future speed access
+        self.db.insertSimulation(self.simulation_record)  #insert simulation record
 
-        self.initSimulationRecord(iterations_number)  #Prepare atributes for saving simulation records
+    def runIterations(self, iterations_number):
+        """Run multiple @iterations_number """
         for i in range(iterations_number):
-            percent = (i + 1) * 100 / float(iterations_number)
-            self.runOneIteration(i+1, iterations_number)
-            self.db.insertIteration(self.line)
-            sys.stdout.write("\r%d%%" %percent)    # or print >> sys.stdout, "\r%d%%" %i,
+            percent = (i + 1) * 100 / float(iterations_number)  #percent of current iteration from all
+            self.runOneIteration(i+1, iterations_number)  #main calculations
+            self.db.insertIteration(self.line)  #saving to db each iteration result
+            sys.stdout.write("\r%d%%" %percent)  #printing percent to screen  # or print >> sys.stdout, "\r%d%%" %i,
             sys.stdout.flush()
         print "\n"
-
-        self.addIrrStatsToSimulation()
-        self.db.insertSimulation(self.simulation_record)
 
     def initSimulationRecord(self, iterations_number):
         """Prepare atributes for saving simulation records"""
         print "%s - runing simulation %s with %s number of iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
-        self.simulation_record = defaultdict(list)
+        self.simulation_record = defaultdict(list)  #attribute for holding basic info about simulation
         self.simulation_record["simulation"] = self.simulation_no
         self.simulation_record["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
         self.simulation_record["comment"] = self.comment
-        self.simulation_record["iterations_number"] = iterations_number
+        self.simulation_record["iterations_number"] = iterations_number  #number of iterations,
 
     def addIrrStatsToSimulation(self):
         """Adding irr results to dict with simulation data"""
@@ -208,21 +209,19 @@ class Simulation():
         - skweness : http://en.wikipedia.org/wiki/Skewness
         - kurtosis: http://en.wikipedia.org/wiki/Kurtosis
         """
-        irr_values = [self.irrs0, self.irrs1]
-        fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2]
-        self.simulation_record['irr_stats'] = caclIrrsStatisctics(fields, irr_values)
-
+        fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2]  #which field names will be used to calc stats
+        self.simulation_record['irr_stats'] = caclIrrsStatisctics(fields, [self.irrs0, self.irrs1] )  #adding IRR stats to simulation record
 
     def runOneIteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""
-        self.prepareMirr()
-        self.prepareLinks()
-        self.prepareIterationResults(iteration_no)
-        self.convertResults()
-        self.addIterationIrrs()
+        self.prepareMirr()  #prepare Mirr module, which has links for all other modules
+        self.prepareLinks()  #make short links to other modules
+        self.prepareIterationResults(iteration_no)  #main func to prepare results in one dict
+        self.convertResults()  #post process results before saving to db
+        self.addIterationIrrs()  #add irr values to additional lists for future analis
 
     def prepareMirr(self):
-        """prepare modules for simulation"""
+        """prepare All modules for simulation"""
         self.i = Mirr()
 
     def addIterationIrrs(self):
