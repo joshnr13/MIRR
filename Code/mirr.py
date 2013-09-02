@@ -22,7 +22,7 @@ from rm import  analyseSimulationResults, plotSaveStochasticValuesSimulation
 commands = OrderedDict()  #Commands sequence for menu, all commands is method of Interfave class
 commands['1'] = 'runSimulation'
 commands['2'] = 'analyseSimulationResults'
-commands['3'] = 'report_isbscf'
+commands['3'] = 'mainReport'
 commands['4'] = 'charts'
 commands['5'] = 'printEquipment'
 commands['6'] = 'outputPrimaryEnergy'
@@ -61,6 +61,12 @@ class Interface():
         if simulation_no is  None:
             simulation_no =  self.getInputSimulation("plotting IRR distribution ")
         analyseSimulationResults(simulation_no, yearly=True)
+
+    def mainReport(self):
+        """Save main report for user defind simulation and iteration number"""
+        params = self.getSimulationIterationNums("for getting ISBS excel report ")
+        ReportOutput(None).prepareReportISBSCFIRR(params, yearly=False)  #preparing monthly report
+        ReportOutput(None).prepareReportISBSCFIRR(params, yearly=True)  #preparing yearly report
 
     def charts(self):
         """Plots Revenue, Cost charts monthly and yearly for user definded simulation no"""
