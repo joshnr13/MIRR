@@ -18,7 +18,7 @@ class CashFlows():
         """calculate derivative npv """
         total = 0.0
         rate_plus_1 = 1 + rate
-        cf = self.cashflows[1:]
+        cf = self.cashflows[1:]  #copy of CF except first value for calc derivative
         for i, cashflow in enumerate(cf):
             val = (-1 * (i) * cashflow / (rate_plus_1** (i + 1)+SMALL))
             total += val
@@ -31,10 +31,10 @@ class CashFlows():
             rate_plus_1 = 1 + rate
             for i, cashflow in enumerate(self.cashflows):
                 stepen = (i)
-                small = SMALL if i > 0 else 0
+                small = SMALL if i > 0 else 0  #small value - not to devide by zero
                 val = (cashflow / ((rate_plus_1)** (stepen) + small))
                 total += val
-                if save_pv:
+                if save_pv:  #if @save_pv
                     self.pv.append(val)
 
             self.npvs[rate] = total  #saving in dict because it is heavy calculations
@@ -54,7 +54,7 @@ class CashFlows():
 
     def findIrrNewton(self, guess):
         """Finding IRR using Newton method with limited number of iterations =50"""
-        stop = self.goodEnough(guess)
+        stop = self.goodEnough(guess)  #when we should stop improving our guesses
         iter_no = 0
         while (not stop):
             iter_no += 1
@@ -89,15 +89,15 @@ class CashFlows():
         """return  list of possible irrs using different guesses from setup"""
         irrs = []
         for guess_rate in BEST_GUESSES: #finding irr using newthon method for each guess in best guesses
-            irr = self.findIrrNewton(guess_rate)
-            irrs.append(irr)
+            irr = self.findIrrNewton(guess_rate)  #founded IRR
+            irrs.append(irr)  #appending it to list of results
         return irrs
 
     def irr(self):
         """Calculates multiple irrs using guesses, returns most logical one"""
-        irrs = self.getPossibleIrrs()
-        irrs.sort(reverse=True)
-        return  self.get_one_irr(irrs)
+        irrs = self.getPossibleIrrs()  #getting all irr results
+        irrs.sort(reverse=True)  #sort them
+        return  self.get_one_irr(irrs)  #find one - most logical, because any equ can have multiple roots
 
 def irr(vals):
     """Function to calculate irr value"""
