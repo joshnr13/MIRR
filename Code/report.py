@@ -2,11 +2,11 @@
 # -*- coding utf-8 -*-
 import numpy
 from collections import  OrderedDict
-from annex import lastDayMonth, firstDayMonth, cached_property, lastDayPrevMonth
-from annex import memoize, OrderedDefaultdict, isLastDayYear, OrderedDefaultdict
-from annex import nubmerDaysInMonth, getOnlyDigits, sameDayLastYear, get_list_dates
+from annex import lastDayMonth, cached_property, lastDayPrevMonth
+from annex import OrderedDefaultdict, isLastDayYear, OrderedDefaultdict
+from annex import getOnlyDigits, sameDayLastYear, get_list_dates
 from financial_analysis import irr, npvPv
-from constants import PROJECT_START, REPORT_ROUNDING
+from constants import PROJECT_START
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
@@ -18,62 +18,68 @@ from config_readers import MainConfig
 class Report(BaseClassConfig):
     """Module for calculating Balance, FCF"""
     def __init__(self, config_module, economic_module):
-        BaseClassConfig.__init__(self, config_module)
-
+        """input
+        @config_module - link to config module
+        @economic_module - link to economic module
+        """
+        BaseClassConfig.__init__(self, config_module)  #loading Main configs
         self.economic_module = economic_module
-        self.technology_module =  economic_module.technology_module
-        self.subside_module = economic_module.subside_module
-        self.energy_module =  self.technology_module.energy_module
+        self.technology_module =  economic_module.technology_module  #creating short link to TM
+        self.subside_module = economic_module.subside_module #creating short link to SM
+        self.energy_module =  self.technology_module.energy_module #creating short link to EM
 
     def calcReportValues(self):
         """Main function to cacl all values for reports"""
-        self.initAttrs()
-        self.initHelperAttrs()
-        self.initFCFArgs()
-        for start_day, end_day in self.report_dates.items():
-            self.calcMonthlyValuesPart1(start_day, end_day)
-            if isLastDayYear(end_day):
-                self.calcYearlyValuesPart1(end_day)
-            self.calcMonthlyValuesPart2(start_day, end_day)
-            self.calcHelperValuesMonthly(end_day)
-            self.calcFCFMonthly(end_day)
-            self.checkBalanceSheet(end_day)
+        self.initAttrs()  #creating main containers for values
+        self.initHelperAttrs()  #creating helper containers for values
+        self.initFCFArgs()  #creating containers for FCF
 
+        for start_day, end_day in self.report_dates.items():  #loop for monthly datas - start day month and end date month
+            self.calcMonthlyValuesPart1(start_day, end_day)  #calc first part of monthly report values which depends on START and END date of month
             if isLastDayYear(end_day):
-                self.calcYearlyValuesPart2(end_day)
-                self.calcYearlyValuesPart3(end_day)
+                self.calcYearlyValuesPart1(end_day)  #and if date=last_day in year - also calc first part of yearly report values
+            self.calcMonthlyValuesPart2(end_day)  #calculate second part of report stats, which depends only on END day month
+            self.calcHelperValuesMonthly(end_day)  #calc helper values for proper FCF calculation
+            self.calcFCFMonthly(end_day)  #calc FCF values (monthly only)
+            self.checkBalanceSheet(end_day)  #cacl Balance checked, which should be 0 for all columns
 
-        self.calcIRR()
+            if isLastDayYear(end_day):  #and if date=last_day in year - also calc
+                self.calcYearlyValuesPart2(end_day)  #Yearly report values part2
+                self.calcYearlyValuesPart3(end_day)  #Yearly report values part3
+
+        self.calcIRR()  #after all calculation of IRR, WACC, NPV values based on FCF
         self.calcWACC()
         self.calcNPV()
 
     def startProjectOrderedDict(self, name=PROJECT_START, value=""):
         """prepare OrderedDict"""
-        return OrderedDict({name: value,})
+        return OrderedDict({name: value,})  #return Ordered dict with first key = name and value
 
     def startProjectOrderedDefaultdict(self, name=PROJECT_START, value=""):
         """prepare Ordered Default Dict"""
-        return  OrderedDefaultdict(int, {name: value,})
+        return  OrderedDefaultdict(int, {name: value,}) #return Ordered Default INT =0 dict with first key = name and value
 
     def initAttrs(self):
         """Creating attrs for monthly and yearly values"""
         capital = self.economic_module.initial_paid_in_capital
 
         ################## SECOND SHEET ###############################
-        self.sun_insolation = self.startProjectOrderedDict(name="",value="")
-        self.electricity_production = self.startProjectOrderedDict(name="",value="")
-        self.electricity_prices = self.startProjectOrderedDict(name="",value="")
-        self.sun_insolation_y = self.startProjectOrderedDefaultdict(name="",value="")
-        self.electricity_production_y = self.startProjectOrderedDefaultdict(name="",value="")
-        self.electricity_prices_y = self.startProjectOrderedDefaultdict(name="",value="")
+        self.sun_insolation = self.startProjectOrderedDict(name="",value="")  #sum of monthy  sun insolations
+        self.sun_insolation_y = self.startProjectOrderedDefaultdict(name="",value="")  #sum of yearly  sun insolations
+
+        self.electricity_production = self.startProjectOrderedDict(name="",value="")  #sum of monthy  electricity production
+        self.electricity_production_y = self.startProjectOrderedDefaultdict(name="",value="")  #sum of yearly  electricity production
+
+        self.electricity_prices = self.startProjectOrderedDict(name="",value="")  #yearly electricity prices from start project
+        self.electricity_prices_y = self.startProjectOrderedDefaultdict(name="",value="")  #monthly electricity prices from start project
 
         ################### IS ########################################
-        self.revenue = self.startProjectOrderedDict(name=PROJECT_START,value="")
-        self.revenue_electricity = self.startProjectOrderedDict(name=PROJECT_START,value="")
-        self.revenue_subsides = self.startProjectOrderedDict(name=PROJECT_START,value="")
-        self.cost = self.startProjectOrderedDict(name=PROJECT_START,value="")
-        self.operational_cost = self.startProjectOrderedDict(name=PROJECT_START,value="")
-        self.development_cost = self.startProjectOrderedDict(name=PROJECT_START,value="")
+        self.revenue = self.startProjectOrderedDict(name=PROJECT_START,value="")  #all revenue
+        self.revenue_electricity = self.startProjectOrderedDict(name=PROJECT_START,value="")  #revenue -part electricity
+        self.revenue_subsides = self.startProjectOrderedDict(name=PROJECT_START,value="")  #revenue - part subsides
+        self.cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  #costs
+        self.operational_cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  # operational costs
+        self.development_cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  #development costs
         self.ebitda = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.ebit = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.ebt = self.startProjectOrderedDict(name=PROJECT_START,value="")
@@ -160,8 +166,8 @@ class Report(BaseClassConfig):
     def calcMonthlyValuesPart1(self, start_day, end_day):
         """Main function to calc montly value for reports P1"""
         M = end_day
+        rev_electricity, rev_subside = self.economic_module.getRevenue(start_day, end_day)  #revenue for current month
 
-        rev_electricity, rev_subside = self.economic_module.getRevenue(start_day, end_day)
         self.revenue_electricity[M], self.revenue_subsides[M] = rev_electricity, rev_subside
         self.revenue[M] = rev_electricity + rev_subside
 
@@ -180,7 +186,7 @@ class Report(BaseClassConfig):
         self.ebit[M] = self.calcEbit(end_day)
         self.ebt[M] = self.calcEbt(end_day)
 
-    def calcMonthlyValuesPart2(self, start_day, end_day):
+    def calcMonthlyValuesPart2(self, end_day):
         """Main function to calc montly value for reports P2"""
         M = end_day
 
@@ -211,11 +217,15 @@ class Report(BaseClassConfig):
         self.liability[M] = self.calcLiabilities(end_day)
 
     def calcYearlyValuesPart1(self, end_day_y):
-        """Main function to calc yearly value for reports P1"""
+        """Main function to calc yearly value for reports P1
+           increasing current year values each month by month value
+           summing every month value
+        """
 
-        for start_day_m, end_day_m in self.report_dates_y[end_day_y]:
+        for start_day_m, end_day_m in self.report_dates_y[end_day_y]:  #loop for all months in current year
             Y = end_day_y
             M = end_day_m
+
             self.revenue_electricity_y[Y] += self.revenue_electricity[M]
             self.revenue_subsides_y[Y] += self.revenue_subsides[M]
             self.revenue_y[Y] += self.revenue[M]
@@ -231,11 +241,12 @@ class Report(BaseClassConfig):
             self.ebt_y[Y] += self.ebt[M]
 
     def calcYearlyValuesPart2(self, end_day_y):
-        """Main function to calc yearly value for reports P2"""
+        """Main function to calc yearly value for reports P2
+        Start calculating when all month values for current year is calculated
+        """
 
-        for start_day_m, end_day_m in self.report_dates_y[end_day_y]:
+        for start_day_m, end_day_m in self.report_dates_y[end_day_y]: #loop for all months in current year
             Y = end_day_y
-            Y1 =  sameDayLastYear(end_day_y)#previous_year
             M = end_day_m
 
             ############## SUM #################
@@ -254,7 +265,9 @@ class Report(BaseClassConfig):
             self.long_term_operating_liability_y[Y] += self.long_term_operating_liability[M]
 
     def calcYearlyValuesPart3(self, end_day_y):
-        """Main function to calc yearly value for reports P2"""
+        """Main function to calc yearly value for reports P2
+        In this part yearly values = last month values
+        """
 
         Y = end_day_y
         Y1 =  sameDayLastYear(end_day_y)#previous_year
@@ -307,7 +320,6 @@ class Report(BaseClassConfig):
 
     def getPrevMonthValue(self, obj, date):
         """Get previous month value of @obj with current date @date"""
-        M = date
         pM = lastDayPrevMonth(date)
         if pM < self.start_date_project:
             pM = PROJECT_START
@@ -323,9 +335,10 @@ class Report(BaseClassConfig):
         """Calculating of helper values for report monthly"""
         M = end_day
         MIN_OST = 500
-        prev_asset_bank_account = self.getPrevMonthValue(self.asset_bank_account, M)
-        prev_short_term_loan = self.getPrevMonthValue(self.short_term_loan, M)
+        prev_asset_bank_account = self.getPrevMonthValue(self.asset_bank_account, M)  #prev month assest on bank account
+        prev_short_term_loan = self.getPrevMonthValue(self.short_term_loan, M) #prev short term loans
 
+        #helper formula
         help = (self.fixed_asset[M] +
                       self.operating_receivable[M] +
                       self.short_term_investment[M] -
@@ -358,7 +371,7 @@ class Report(BaseClassConfig):
         - first time or others"""
         M = end_day
         if M == lastDayMonth(self.start_date_project):
-
+            #if @end_day of first month of project
             self.fcf_project[M] = (self.net_earning[M] -
                                    self.getDeltaCurPrev(self.fixed_asset, M) -
                                    self.getDeltaCurPrev(self.operating_receivable, M) +
@@ -369,7 +382,7 @@ class Report(BaseClassConfig):
             self.fcf_owners[M] = - self.paid_in_capital[M]
 
         else:
-
+            #if @end_day month > 1 from start project
             self.fcf_project[M] = (self.net_earning[M] -
                                    self.getDeltaCurPrev(self.fixed_asset, M) -
                                    self.getDeltaCurPrev(self.operating_receivable, M) +
@@ -385,50 +398,48 @@ class Report(BaseClassConfig):
         """Calculating IRR for project and owners, using numpy.IRR function
         both Montly and Yearly values
         """
-        fcf_owners_values = getOnlyDigits(self.fcf_owners)
+        fcf_owners_values = getOnlyDigits(self.fcf_owners)  #filtering FCF values (taking only digit values)
         fcf_project_values = getOnlyDigits(self.fcf_project)
 
         fcf_owners_values_y = getOnlyDigits(self.fcf_owners_y)
         fcf_project_y = getOnlyDigits(self.fcf_project_y)
 
-        self.irr_owners = irr(fcf_owners_values)
-        self.irr_project = irr(fcf_project_values)
+        self.irr_owners = irr(fcf_owners_values)  #calculation of IRR based on FCF  owners
+        self.irr_project = irr(fcf_project_values) #calculation of IRR based on FCF project
 
-        if self.irr_owners is not None and not numpy.isnan(self.irr_owners):
+        if self.irr_owners is not None and not numpy.isnan(self.irr_owners):  #calculation of IRR yearly OWNERS
             self.irr_owners_y = ((1 + self.irr_owners) ** 12) - 1 # FORMULA by Borut
         else:
             self.irr_owners_y = float('Nan')
 
-        if self.irr_project is not None and not numpy.isnan(self.irr_project):
+        if self.irr_project is not None and not numpy.isnan(self.irr_project): #calculation of IRR yearly PROJECT
             self.irr_project_y = ((1 + self.irr_project) ** 12) - 1 # FORMULA by Borut
         else:
             self.irr_project_y = float('Nan')
 
-        self.fcf_owners[PROJECT_START] = "IRR = %s" % self.irr_owners_y #YEARLY IRR FOR MONTHLY REPORT
-        self.fcf_project[PROJECT_START] = "IRR = %s" % self.irr_project_y  #YEARLY IRR FOR MONTHLY REPORT
-
-        self.fcf_owners_y[PROJECT_START] = "IRR = %s" % self.irr_owners_y
-        self.fcf_project_y[PROJECT_START] = "IRR = %s" % self.irr_project_y
+        self.fcf_owners[PROJECT_START] = "IRR = %s" % self.irr_owners_y #adding IRR value to FCF row
+        self.fcf_project[PROJECT_START] = "IRR = %s" % self.irr_project_y  #adding IRR value to FCF row
+        self.fcf_owners_y[PROJECT_START] = "IRR = %s" % self.irr_owners_y #adding IRR value to FCF row
+        self.fcf_project_y[PROJECT_START] = "IRR = %s" % self.irr_project_y #adding IRR value to FCF row
 
     def calcNPV(self):
         """Calculation of monthly and yearly NPV for owners and project"""
 
-        fcf_owners_values = getOnlyDigits(self.fcf_owners)
-        fcf_project_values = getOnlyDigits(self.fcf_project)
-
+        fcf_owners_values = getOnlyDigits(self.fcf_owners) #filtering FCF values (taking only digit values)
+        fcf_project_values = getOnlyDigits(self.fcf_project) #filtering FCF values (taking only digit values)
         fcf_owners_values_y = getOnlyDigits(self.fcf_owners_y)
         fcf_project_y = getOnlyDigits(self.fcf_project_y)
 
-        self.npv_owners, pv_owners_list = npvPv(self.wacc, fcf_owners_values)
-        self.npv_project, pv_project_list = npvPv(self.wacc, fcf_project_values)
+        self.npv_owners, pv_owners_list = npvPv(self.wacc, fcf_owners_values)  #NPV and PV calculation OWNERS
+        self.npv_project, pv_project_list = npvPv(self.wacc, fcf_project_values) #NPV and PV calculation PROJECT
 
-        self.npv_owners_y, pv_owners_list_y = npvPv(self.wacc_y, fcf_owners_values_y)
-        self.npv_project_y, pv_project_list_y = npvPv(self.wacc_y, fcf_project_y)
+        self.npv_owners_y, pv_owners_list_y = npvPv(self.wacc_y, fcf_owners_values_y)#NPV and PV calculation OWNERS YEARLY
+        self.npv_project_y, pv_project_list_y = npvPv(self.wacc_y, fcf_project_y) #NPV and PV calculation PROJECT YEARLY
 
-        self.pv_owners = self.mapPVDates(pv_owners_list, [self.wacc, self.npv_owners])
-        self.pv_owners_y = self.mapPVDates(pv_owners_list_y, [self.wacc_y,self.npv_owners_y], yearly=True)
-        self.pv_project =  self.mapPVDates(pv_owners_list, [self.wacc,self.npv_project])
-        self.pv_project_y = self.mapPVDates(pv_project_list_y, [self.wacc_y,self.npv_project_y], yearly=True)
+        self.pv_owners = self.mapPVDates(pv_owners_list, [self.wacc, self.npv_owners])  #converting values to dict where key=date
+        self.pv_owners_y = self.mapPVDates(pv_owners_list_y, [self.wacc_y,self.npv_owners_y], yearly=True) #converting values to dict where key=date
+        self.pv_project =  self.mapPVDates(pv_owners_list, [self.wacc,self.npv_project]) #converting values to dict where key=date
+        self.pv_project_y = self.mapPVDates(pv_project_list_y, [self.wacc_y,self.npv_project_y], yearly=True) #converting values to dict where key=date
 
     def mapPVDates(self, values, initial_value="", yearly=False):
         """Maps list of values to report dates"""
@@ -448,52 +459,48 @@ class Report(BaseClassConfig):
     def calcWACC(self):
         """ WACC = share of debt in financing * cost of debt * (1-tax rate) + cost of capital * share of capital
         share of debt + share of capital = 1"""
-        cost_capital = self.economic_module.cost_capital
-        share_debt =  self.economic_module.debt_share
+        cost_capital = self.economic_module.cost_capital  #loading cost capital value from Economic module
+        share_debt =  self.economic_module.debt_share #loading debt share value from Economic module
+        tax_rate = self.economic_module.tax_rate #loading tax_rate value from Economic module
+        cost_debt = self.economic_module.debt_rate #loading cost_debt value from Economic module
         share_capital = 1 - share_debt
-        tax_rate = self.economic_module.tax_rate
-        cost_debt = self.economic_module.debt_rate
 
         self.wacc_y =  share_debt * cost_debt * (1 - tax_rate) + cost_capital * share_capital  #Borut Formula
-        self.wacc =  (1 + self.wacc_y) ** (1 / 12.0) - 1
+        self.wacc =  (1 + self.wacc_y) ** (1 / 12.0) - 1  #WACC formula
 
     def calcUnallocatedEarnings(self, date):
         """Calculating accumulated earnings = previous (net_earning+unallocated_earning) """
         prev_month_date = lastDayPrevMonth(date)
-        if prev_month_date < self.start_date_project:
+        if prev_month_date < self.start_date_project:  #finding prev month date
             prev_month_date = PROJECT_START
 
-        prev_unallocated_earning = self.unallocated_earning[prev_month_date]
-        prev_net_earning = self.net_earning[prev_month_date]
+        prev_unallocated_earning = self.unallocated_earning[prev_month_date]  #getting prev month values
+        prev_net_earning = self.net_earning[prev_month_date] #getting prev month values
         return prev_unallocated_earning + prev_net_earning
 
     def calcAccumulatedEarnings(self, to_date):
         """return accumulated eanings from start project to @to_date -1 day"""
-        eanings = 0
-        for date in self.report_dates.values():
-            if date < to_date:  #!!! NOT EQUAL
-                eanings += self.calcNetEarning(date)
-        return eanings
+        return  sum(self.calcNetEarning(date) for date in filter(lambda d:d < to_date, self.report_dates.values()))
 
     @cached_property
     def price(self):
-        """return kwh price for price of electricity MONTHLY"""
+        """return DICT with kwh price for price of electricity MONTHLY -- FOR ALL PROJECT PERIOD"""
         return self.calcReportMonthlyValues1(self.economic_module.getPriceKwh)
 
     @cached_property
     def electricity_monthly(self):
-        """return volume of for electricity MONTHLY"""
-        return self.calcReportMonthlyValues3(self.economic_module.getElectricityProductionLifetime())
+        """return DICT with volume of for electricity MONTHLY -- FOR ALL PROJECT PERIOD"""
+        return self.calcReportMonthlyValues3(self.economic_module.getElectricityProductionLifetime()) #based on daily data
 
     @cached_property
     def electricity_prices_monthly(self):
-        """return volume of for electricity MONTHLY"""
-        return self.calcReportMonthlyValues4(self.economic_module.electricity_prices)
+        """return DICT for electricity prices MONTHLY -- FOR ALL PROJECT PERIOD"""
+        return self.calcReportMonthlyValues4(self.economic_module.electricity_prices) #based on daily prices
 
     @cached_property
     def solar_insolations_monthly(self):
-        """return volume of for insolations MONTHLY"""
-        return self.calcReportMonthlyValues3(self.energy_module.getInsolationsLifetime())
+        """return DICT with volume of for insolations MONTHLY -- FOR ALL PROJECT PERIOD"""
+        return self.calcReportMonthlyValues3(self.energy_module.getInsolationsLifetime())  #based on daily Insollations
 
     def calcLtLoans(self, end_day):
         """Monthly calculation of  Long-Term Loans"""
@@ -554,9 +561,12 @@ class Report(BaseClassConfig):
         tax = taxrate * max(EBT*50%; EBT - accumulated loss)
         entered only in december
         """
-        if not isLastDayYear(date):
+        if not isLastDayYear(date):  #IF @date is NOT LAST DAY of YEAR -> TAX  = 0
             return 0
         else:
+            #IF YEARLY EBT BELOW ZERO -> NO TAX
+            #IF EBT + ACC EARN < 0 -> NO TAX
+            #ELSE MAX 50% of YEAR EBT or EBT - ACC EARN
             accumulated_earnings = self.calcAccumulatedEarnings(date)
             year_ebt = self.ebt_y[date]
 
@@ -572,9 +582,10 @@ class Report(BaseClassConfig):
     def calcPaidIn(self, date):
         """Paid -in calculation"""
         prev_month_date = lastDayPrevMonth(date)
-        if prev_month_date < self.start_date_project:
+        if prev_month_date < self.start_date_project:  #finding prev month date
             prev_month_date = PROJECT_START
-        prev_paid_in = self.paid_in_capital[prev_month_date]
+
+        prev_paid_in = self.paid_in_capital[prev_month_date]  #prev month paid_in
         return  prev_paid_in + self.economic_module.getPaidInAtDate(date)
 
     def calcCurrentAssets(self, date):

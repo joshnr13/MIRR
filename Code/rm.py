@@ -1,5 +1,6 @@
 import os
 import csv
+import datetime
 from database import Database
 from numpy import std, mean, median
 from scipy.stats import skew, kurtosis
@@ -110,7 +111,7 @@ def printIRRStats(irr_values_lst):
 def saveIRRValuesXls(irr_values_lst, simulation_no, yearly):
     """Saves IRR values to excel file
     @irr_values_lst - list  with 2 complicated dicts inside """
-
+    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
     report_name = "{cur_date}_irr_values_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
     output_filename = uniquifyFilename(report_full_name)  #real filename of report
@@ -174,7 +175,7 @@ def plotSaveStochasticValuesSimulation(simulation_no, yearly=True):
 def saveStochasticValuesSimulation(dic_values, simulation_no):
     """Saves IRR values to excel file
     @dic_values - dict[name]=list of values """
-
+    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
     report_name = "{cur_date}_stochastic_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
     output_filename = uniquifyFilename(report_full_name)

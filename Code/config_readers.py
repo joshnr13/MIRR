@@ -40,7 +40,7 @@ class MainConfig():
         self.last_day_construction = addXMonths(self.start_date, self.real_permit_procurement_duration+self.real_construction_duration)
         self.last_day_permit_procurement = addXMonths(self.start_date, self.real_permit_procurement_duration)  #calculates last day of permit
         self.end_date = addXYears(self.start_date, self.lifetime)
-        self.report_dates, self.report_dates_y = getReportDates(self.start_date, self.end_date)
+        self.report_dates, self.report_dates_y = getReportDates(self.start_date, self.end_date)  #dict with Monthly report dates
 
         self.simulation_number = _config.getint('Simulation', 'simulation_number')
         self.configs = getConfigs(self.__dict__)
