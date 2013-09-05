@@ -210,7 +210,7 @@ class Simulation():
         - kurtosis: http://en.wikipedia.org/wiki/Kurtosis
         """
         fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2]  #which field names will be used to calc stats
-        self.simulation_record['irr_stats'] = caclIrrsStatisctics(fields, [self.irrs0, self.irrs1] )  #adding IRR stats to simulation record
+        self.simulation_record['irr_stats'] = caclIrrsStatisctics(fields, [self.irrs0, self.irrs1] )  #calculating and adding IRR stats to simulation record
 
     def runOneIteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""
