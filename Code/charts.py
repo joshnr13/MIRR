@@ -14,22 +14,20 @@ def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False):
     """Plots 'revenue', 'cost', 'ebitda', 'deprication' chart"""
 
     fields = ['revenue', 'cost', 'ebitda', 'deprication']
-    results = Database().getIterationValuesFromDb(simulation_no, fields, yearly, iteration_no=iteration_no)
+    results = Database().getIterationValuesFromDb(simulation_no, fields, yearly, iteration_no=iteration_no)  #loding field values form DB
 
     suffix = '_y' * yearly
-    #revenue, cost, ebitda, deprication =  results.values()
     revenue = results['revenue'+suffix]
     cost = results['cost'+suffix]
     ebitda = results['ebitda'+suffix]
     deprication = results['deprication'+suffix]
-    #print revenue, suffix, results
+
     last_revenue, last_cost, last_ebitda, last_deprication =  revenue[1:], cost[1:], ebitda[1:], deprication[1:]
 
     pylab.plot(last_revenue, label='REVENUE')
     pylab.plot(last_cost, label='COST')
     pylab.plot(last_ebitda, label='EBITDA')
     pylab.plot(last_deprication, label='deprication')
-    #pylab.plot(net_earning, label='net_earning')
 
     pylab.ylabel("EUROs")
     pylab.legend()
@@ -37,7 +35,7 @@ def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False):
     pylab.axhline()
     pylab.axvline()
 
-    title_add = getTitleBasedOnPeriod(yearly)
+    title_add = getTitleBasedOnPeriod(yearly)  #generating title Monthly or Yearly
     x_axis_title = getAxisTitleBasedOnPeriod(yearly)
 
     title = 'Simulation %s - iteration %s . %s' % (simulation_no, iteration_no, title_add)
@@ -99,11 +97,9 @@ def plotHistogramsChart(dic_values, simulation_no, yearly):
         else:
             axeslist.ravel()[ind].set_axis_off()
 
-    #title = "Simulation %s. Scatter charts '%s'. %s" % (simulation_no, add_yearly_prefix(field, yearly), get_title_period(yearly))
     title = "Sim. N. %s. Stochastic histograms. %s iterations" % (simulation_no, len(values))
     fig = pylab.gcf()
     fig.suptitle(title, fontsize=14)
-
     pylab.show()
 
 def plotCorrelationTornadoChart(field_dic, simulation_id, yearly=False):
