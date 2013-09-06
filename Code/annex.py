@@ -328,7 +328,6 @@ def addHeaderCsv(csv_filename, header):
         f.seek(0,0)
         f.write(line.rstrip('\r\n') + '\n' + content)
 
-
 def mkdir_p(path):
     """ Mkdir if not exists """
     try:

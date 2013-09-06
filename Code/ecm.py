@@ -14,8 +14,6 @@ from base_class import BaseClassConfig
 from collections import OrderedDict
 from database import Database
 
-
-
 class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     """class for generating Electricity prices"""
     def __init__(self, period, simulations_no):
@@ -23,7 +21,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         @period - list of dates from start to end
         @simulations_no - number of needed simulations
         """
-        EconomicModuleConfigReader.__init__(self, period[0])
+        EconomicModuleConfigReader.__init__(self, start_date_project=period[0])  #loading EconomicModule Configs, with passing startdata of project
         self.period = period
         self.N = len(period)  #number of days
         self.simulations_no = simulations_no
@@ -31,7 +29,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
     def cleanPreviousData(self):
         print "Cleaning previous data"
-        self.db.cleanPreviousElectricityPriceData()
+        self.db.cleanPreviousElectricityPriceData()  #before each Simulatation, we should clean previous data
 
     def writeElectricityPriceData(self, data):
         """writing to database Electricity Prices"""
@@ -39,10 +37,10 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         print 'Writing electricity price simulation %s' % data["simulation_no"]
 
     def simulate(self):
-        self.cleanPreviousData()
-        for simulation_no in range(1, self.simulations_no+1):
-            data = self.generateOneSimulation(simulation_no)
-            self.writeElectricityPriceData(data)
+        self.cleanPreviousData() #before each Simulatation, we should clean previous data
+        for simulation_no in range(1, self.simulations_no+1):  #loop for simulations numbers starting from 1
+            data = self.generateOneSimulation(simulation_no)  #generating each simulation
+            self.writeElectricityPriceData(data)  #writing each simulation to DB
 
     def generateOneSimulation(self, simulation_no):
         """Main method for generating prices and preparing them to posting to database"""
@@ -50,9 +48,10 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         self.poisson_steps = Poisson_step(self.Lambda, size=self.N)
         prices = self.calcPriceWholePeriod(self.S0)
 
-        for date, price in zip(self.period, prices):
+        for date, price in zip(self.period, prices):  #loop for date, electricity price
             date_str = date.strftime("%Y-%m-%d")
-            days_dict[date_str] = price / 1000.0
+            days_dict[date_str] = price / 1000.0  #because price in configs for MEGAWT
+
         simulation_result = {"simulation_no": simulation_no, "data": days_dict}
         return  simulation_result
 
@@ -62,14 +61,14 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
     def calcPriceDelta(self, prev_price, iteration_no):
         """Calculated delta price (dp) based on @prev_price"""
-        delta_Z = np.random.normal(loc=0, scale=0.4)
+        delta_Z = np.random.normal(loc=0, scale=0.4)  #random value distribution
         J = self.calcJ()
         delta_q = self.poisson_steps.getDelta(iteration_no)
-        delta_price = self.k * (self.theta * (1 + self.y*iteration_no/365)- prev_price) * self.dt + self.sigma * delta_Z + (J*(1 + self.y*iteration_no/365)) * delta_q
+        delta_price = self.k * (self.theta * (1 + self.y*iteration_no/365)- prev_price) * self.dt + self.sigma * delta_Z + (J*(1 + self.y*iteration_no/365)) * delta_q  #formulat 2.2 from book
         return  delta_price
 
     def calcPriceWholePeriod(self, prev_price):
-        """Calculate price for whole period from start date to end"""
+        """Calculate price for whole period from start date to end - return  list with prices for all project days"""
         result = []
         for i in range(1, self.N+1):
             price = prev_price + self.calcPriceDelta(prev_price, i)
@@ -80,8 +79,8 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 class Poisson_step():
     """class for holding generated Poisson values"""
     def __init__(self, lam, size):
-        self.lam = lam
-        self.size = size
+        self.lam = lam  #Lambda
+        self.size = size  #number of values
         self.generatePoissonDistributionValues()
         self.makeStep()
         self.makeFunction()
@@ -125,19 +124,18 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         @technology_module - link to technology module
         @subside_module - link to subside module
         """
-        BaseClassConfig.__init__(self, config_module)
-        EconomicModuleConfigReader.__init__(self, self.start_date_project)
-        self.__electricity_production = []
-        self.db = Database()
+        BaseClassConfig.__init__(self, config_module)  #loading Main config
+        EconomicModuleConfigReader.__init__(self, self.start_date_project)  #loading Economic Config
+        self.db = Database()  #connection to DB
         self.technology_module = technology_module
         self.subside_module = subside_module
+        self.investments_monthly = OrderedDefaultdict(int)
         self.calcBaseValues()
         self.calcDebtPercents()
 
     def calcBaseValues(self):
         """caclulation of initial values"""
         self.investments = self.technology_module.getInvestmentCost() #gets the value of the whole investment from the technology module
-        self.investments_monthly = OrderedDefaultdict(int)
         self.investmentEquipment = self.technology_module.getInvestmentCost() #sets the investment in equipment as the whole investment in technology
         self.debt = self.debt_share * self.investments #calculates the amount of debt based on share of debt in financing
         self.capital = self.investments - self.debt #calculates the amount of capital based on the amount of debt
@@ -145,11 +143,13 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     @cached_property
     def electricity_production(self):
+        """This is cached attribute, it is calculated only one time per session"""
         return  self.technology_module.generateElectricityProductionLifeTime()
 
     @cached_property
     def electricity_prices(self):
-        """reads random time sequence of electricity market prices from database"""
+        """This is cached attribute, it is calculated only one time per session
+        reads random time sequence of electricity market prices from database"""
         result = self.db.getElectricityPrices(self.electricity_prices_rnd_simulation)
         if not result:
             raise ValueError("Please generate first Electricity prices before using it")
@@ -160,12 +160,8 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         return  self.electricity_production
 
     def isConstructionStarted(self, date):
-        """return  True if we recieved all permits and started but not finished
-        construction of equipment"""
-        if date > self.last_day_permit_procurement and date <= self.last_day_construction:
-            return  True
-        else:
-            return  False
+        """return  True if we recieved all permits and started but not finished construction of equipment"""
+        return  (date > self.last_day_permit_procurement and date <= self.last_day_construction)
 
     def isProductionElectricityStarted(self, date):
         """return  True if we recieved all permits, finished construction and can
@@ -178,16 +174,17 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         revenue_subside = 0
         cur_date = date_start
 
-        for cur_date in get_list_dates(date_start, date_end):
+        for cur_date in get_list_dates(date_start, date_end):  # loop for user defined date range
             electricity_production = self.getElectricityProduction(cur_date)  #get electricity production at current date
-            day_revenue_electricity = electricity_production * self.getPriceKwh(cur_date)  #calc revenue = price*production
-            day_revenue_subsidy = electricity_production * self.subside_module.subsidyProduction(cur_date)  #calc subside
+            electricity_price = self.getPriceKwh(cur_date)  #electricity price and cur_date
+            subside_KW = self.subside_module.subsidyProduction1KW(cur_date)  #subside per KW at cur_date
+            day_revenue_electricity = electricity_production * electricity_price  #calc revenue = price*production
+            day_revenue_subsidy = electricity_production * subside_KW  #subside per KW * production
 
             revenue_electricity += day_revenue_electricity  #increment revenue for period  date_start - date_end
             revenue_subside += day_revenue_subsidy  #increment subside for period  date_start - date_end
 
         return revenue_electricity, revenue_subside
-
 
     def getElectricityProduction(self,  date):
         """return  production of electricity at given date"""
@@ -207,11 +204,11 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
              50% - at start of construction
              20% - at the end of construction
         """
+        self.paid_in_rest = self.initial_paid_in_capital  #initial value of paid_in, this will be shared
 
-        self.paid_in_rest = self.initial_paid_in_capital
-        self.debt_rest_payments_wo_percents = OrderedDefaultdict(int)
-        self.debt_percents = OrderedDefaultdict(int)
-        self.paid_in_monthly = OrderedDefaultdict(int)
+        self.debt_rest_payments_wo_percents = OrderedDefaultdict(int)  #init container for rest_payments without percents
+        self.debt_percents = OrderedDefaultdict(int)  #init container for dept percents $ value
+        self.paid_in_monthly = OrderedDefaultdict(int)  #init container for paid-in monthly values in $ value
 
         ####### FIRST - 30% 2 month before the start of construction
         part1 = 0.3
@@ -234,27 +231,27 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def calcPaidInInvestment(self, date, part):
         """Calculation of PaidIn and Investments for every month"""
-        investment_paid_in = self.calcPaidInInvestmentPart(part)
-        debt_value = self.debt * part - investment_paid_in
+        investment_paid_in = self.calcPaidInInvestmentPart(part)  #Calculation of inverstment value for current part of payment
+        debt_value = self.debt * part - investment_paid_in  #dept values for current investment paid-in
+
+        #saving paidin and investments for report
+        self.investments_monthly[date] = investment_paid_in + debt_value  #saving monthly investments
+        self.paid_in_monthly[date] = investment_paid_in  #saveing monthly paid-in
 
         a = Annuitet(debt_value, self.debt_rate, self.debt_years, date)
         a.calculate()  #calculation on Annuitet
 
-        for date, value in a.percent_payments.items():
-            self.debt_percents[date] += value  #making dict [date]=total payments for cur date
+        percent_payments_with_dates = a.percent_payments.items()  #short links to annuitet calculation
+        debt_rest_payments_with_dates = a.rest_payments_wo_percents.items() #short links to annuitet calculation
 
-        for date, value in a.rest_payments_wo_percents.items():
-            self.debt_rest_payments_wo_percents[date] += value #making dict [date]=total rest payments for cur date
+        for date, value in percent_payments_with_dates:
+            self.debt_percents[date] += value  #increasing debt_percents [date] += percent payments for cur date
 
-        self.savePaidInInvestment(investment_paid_in, debt_value, date)
-
-    def savePaidInInvestment(self, investment_paid_in, debt_value, date):
-        """saving paidin and investments for report"""
-        self.investments_monthly[date] = investment_paid_in + debt_value  #saving monthly investments
-        self.paid_in_monthly[date] = investment_paid_in  #saveing monthly paid-in
+        for date, value in debt_rest_payments_with_dates:
+            self.debt_rest_payments_wo_percents[date] += value #increasing debt_rest_payments_wo_percents [date] += debt rest payments for cur date
 
     def calcPaidInInvestmentPart(self, part):
-        """Calculation of inverstment value for current part of payments (1,2,3)
+        """return  inverstment value for current part of payments (1,2,3)
         @part - float value [0.0-1.0] share of current part
         """
         investment_share = (1 - self.debt_share)
@@ -264,7 +261,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
             if invest_value > self.paid_in_rest:
                 self.paid_in_rest = 0  #we dont need to pay more
-                invest_value = invest_value - self.paid_in_rest
+                invest_value -= self.paid_in_rest  #decrease invest_value
             else:
                 self.paid_in_rest -= invest_value  #decreses rest payments
                 invest_value = self.paid_in_rest
@@ -296,18 +293,20 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def _getOperationalCosts(self, date):
         """Operational costs at given date (1day)"""
         if self.isProductionElectricityStarted(date):
-            return self._getInsuranceCosts(date) + self._getAdministrativeCosts(date)
-        else:
-            return  0
+            return self.insuranceCosts + self._getAdministrativeCosts(date)  #sum of INSUARENCE COSTS and AMDINISTR COSTS at given date
+        return  0
 
     def _getAdministrativeCosts(self, date):
         """return administrative costs at given date (1day)"""
-        yearNumber = yearsBetween1Jan(self.start_date_project, date)
+        yearNumber = yearsBetween1Jan(self.start_date_project, date)  #nuber of current year since start project
+        #we increase initial administrativeCosts each year on administrativeCostsGrowth_rate
         return self.administrativeCosts * ((1 + self.administrativeCostsGrowth_rate) ** yearNumber) / getDaysNoInMonth(date)
 
-    def _getInsuranceCosts(self, date):
-        """return insurance costs at give date (1day)"""
-        return  self.insuranceFeeEquipment * self.investmentEquipment / (getDaysNoInMonth(date) * 12)
+    @cached_property
+    def insuranceCosts(self):
+        """return insurance costs at give date (1day)
+        because it is fixed value, we calculate it only one time"""
+        return  self.insuranceFeeEquipment * self.investmentEquipment / 365  #deviding by 365 days in year
 
     def getCosts(self, date_start, date_end):
         """sum of costs for all days in RANGE period """
@@ -315,7 +314,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def getInsuranceCosts(self, date_start, date_end):
         """sum of Insurance Costs for all days in RANGE period """
-        return self.getSomeCostsRange(self._getInsuranceCosts, date_start, date_end)
+        return self.insuranceCosts * (date_end - date_start).days
 
     def getDevelopmentCosts(self, date_start, date_end):
         """sum of Development Costs for all days in RANGE period """
