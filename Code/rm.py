@@ -9,7 +9,7 @@ from config_readers import RiskModuleConfigReader
 import scipy.stats as stat
 from constants import report_directory, CORRELLATION_FIELDS
 from annex import convert2excel, uniquifyFilename, getOnlyDigitsList
-from charts import plotIRRChart, plotHistogramsChart
+from charts import plotIRRChart, plotHistogramsChart, plotWeatherElectricityChart
 
 def calcStatistics(values):
     """input @list of values
@@ -171,6 +171,11 @@ def plotSaveStochasticValuesSimulation(simulation_no, yearly=True):
     results = Database().getIterationValuesFromDb(simulation_no, fields=[], yearly=yearly , not_changing_fields=fields)  #loading data from db for correlation fields
     plotHistogramsChart(results, simulation_no, yearly)  #plotting histogram based on DB data
     saveStochasticValuesSimulation(results, simulation_no)  #saving results to XLS file
+
+def plotGeneratedElectricityPrices(what, simulation_no):
+    """plots graph of generated Electricity Prices from user defined simulation_no """
+    results = Database().getElectricityPrices(simulation_no)  #loading data from db
+    plotWeatherElectricityChart(results, what, simulation_no)  #plotting chart based on DB data
 
 def saveStochasticValuesSimulation(dic_values, simulation_no):
     """Saves IRR values to excel file

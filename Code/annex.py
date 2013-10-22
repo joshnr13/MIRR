@@ -261,7 +261,10 @@ def getListDates( date_start, date_end):
     return list_dates
 
 def convertDictDates(dic):
-    """Converts dates from string to object Date"""
+    """Converts dates from string to object Date
+    return like this:
+       OrderedDict([(datetime.date(2013, 1, 1), 0.06997119790546502), (datetime.date(2013, 1, 2), 0.07017252445198603),
+    """
     return OrderedDict((dt.datetime.strptime(x, '%Y-%m-%d').date(), y) for x, y in sorted(dic.items()))
 
 def uniquifyFilename(path, sep = ''):

@@ -17,7 +17,8 @@ from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRSc
 from report_output import ReportOutput
 from config_readers import MainConfig
 from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD,  REPORT_DEFAULT_NUMBER_ITERATIONS
-from rm import  analyseSimulationResults, plotSaveStochasticValuesSimulation
+from rm import  analyseSimulationResults, plotSaveStochasticValuesSimulation, plotGeneratedElectricityPrices
+from random import randint
 
 commands = OrderedDict()  #Commands sequence for menu, all commands is method of Interfave class
 commands['1'] = 'runSimulation'
@@ -35,6 +36,7 @@ commands['12'] = 'simulationsLog'
 commands['13'] = 'deleteSimulation'
 commands['14'] = 'generateWeatherData'  #daily insolation and Temperature
 commands['15'] = 'generateElectricityMarketPrice'  #daily electricty market prices
+commands['16'] = 'outputGeneratedElectricityPrices'  #Graph of daily electricty market prices
 commands['0'] = 'stop'
 
 class Interface():
@@ -139,6 +141,15 @@ class Interface():
         simulations = ElectricityMarketPriceSimulation(period, simulations_no)
         simulations.simulate()
 
+    def outputGeneratedElectricityPrices(self, simulation_no=None):
+        """Plots graph of generated Electricity Prices from user defined simulation_no"""
+        what =  "Electricity prices"
+        if simulation_no is None:
+            simulation_no = self.getInputWeatherElectricitySimulationNo(what)
+        plotGeneratedElectricityPrices(what, simulation_no)
+
+    ####################################################################################################################
+
     def _run_correlations(self, field):
         """field - dict [short_name] = database name"""
         simulation_no = self.getInputSimulation("%s correlations charts: " %field.keys()[0])
@@ -168,6 +179,14 @@ class Interface():
         simulation_no =  self.getInputSimulation(text)
         iteration_no =  self.getInputIteration(text, simulation_no )
         return (simulation_no, iteration_no)
+
+
+    def getInputWeatherElectricitySimulationNo(self, what='????'):
+        """User Input for weather or electricity simulation no"""
+        random_no = randint(1, 100)
+        result = getInputInt("Please input which %s simulation Number to plot (or press Enter to plot random - %s): " %(what, random_no), random_no)
+        return result
+
 
     def getStartEndResolution(self):
         """return  StartEndResolution based on default values and user input, that can modify defaults"""

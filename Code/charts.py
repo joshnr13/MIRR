@@ -2,6 +2,9 @@ import pylab
 import numpy
 import datetime
 
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+
 from collections import OrderedDict
 from database import Database
 from constants import report_directory, BINS
@@ -251,6 +254,27 @@ def plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution,
     pylab.step(x_values, y_values)
     pylab.title(title, fontsize=12)
     pylab.show()
+
+
+def plotWeatherElectricityChart(data_dic, what, simulation_no):
+    """Plot simple XY chart for @what , which will be title,
+    based on @data_dic,
+    which keys will be X values and values will be Y values
+    """
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
+    plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+
+    x_values = data_dic.keys()
+    y_values = data_dic.values()
+
+    plt.plot(x_values,y_values)
+    plt.gcf().autofmt_xdate()
+
+    plt.title(' %s simulation %s' % (what, simulation_no))
+    plt.xlabel("Dates")
+    plt.ylabel(what)
+    plt.show()
 
 
 ##################################### ANNEX CHARTS FUNCTIONS ###################
