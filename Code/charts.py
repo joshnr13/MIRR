@@ -256,8 +256,42 @@ def plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution,
     pylab.show()
 
 
-def plotWeatherElectricityChart(data_dic, what, simulation_no):
-    """Plot simple XY chart for @what , which will be title,
+def plotWeatherChart(data_dic, what, simulation_no):
+    """Plot Weather Insolation and Temperature
+    XY chart for @what , which will be title,
+    based on @data_dic,
+    which keys will be X values and values will be Y values
+    """
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
+    plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+
+    x_values = data_dic.keys()
+    y_values = data_dic.values() #combined values [1469.0687372877435, -1.1144659386320814], ...
+    y_values_insolation = []
+    y_values_temp = []
+    for combined_value in y_values:
+        ins, temp = combined_value[0], combined_value[1]
+        y_values_insolation.append(ins)
+        y_values_temp.append(temp)
+
+    #plt.gcf().autofmt_xdate()
+
+    ax1 = plt.subplot(111)
+    ax1.plot(x_values, y_values_insolation, 'b-')
+    ax1.set_ylabel('Insolation')
+    ax1.set_xlabel('Dates')
+    ax2 = plt.twinx()
+    ax2.plot(x_values, y_values_temp, 'r--')
+    ax2.set_ylabel('Temperature')
+
+    plt.title(' %s simulation %s' % (what, simulation_no))
+    plt.xlabel("Dates")
+    plt.show()
+
+
+def plotElectricityChart(data_dic, what, simulation_no):
+    """Plot Electricity prices simple XY chart for @what , which will be title,
     based on @data_dic,
     which keys will be X values and values will be Y values
     """

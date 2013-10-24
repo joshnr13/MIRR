@@ -17,7 +17,7 @@ from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRSc
 from report_output import ReportOutput
 from config_readers import MainConfig
 from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD,  REPORT_DEFAULT_NUMBER_ITERATIONS
-from rm import  analyseSimulationResults, plotSaveStochasticValuesSimulation, plotGeneratedElectricityPrices
+from rm import  analyseSimulationResults, plotSaveStochasticValuesSimulation, plotGeneratedWeather,  plotGeneratedElectricity
 from random import randint
 
 commands = OrderedDict()  #Commands sequence for menu, all commands is method of Interfave class
@@ -33,10 +33,12 @@ commands['9'] = 'irrScatterCharts'
 commands['10'] = 'npvCorrelations'
 commands['11'] = 'distributionOfInputVariables'
 commands['12'] = 'simulationsLog'
+
 commands['13'] = 'deleteSimulation'
 commands['14'] = 'generateWeatherData'  #daily insolation and Temperature
 commands['15'] = 'generateElectricityMarketPrice'  #daily electricty market prices
 commands['16'] = 'outputGeneratedElectricityPrices'  #Graph of daily electricty market prices
+commands['17'] = 'outputGeneratedWeatherData'  #Graph of daily electricty market prices
 commands['0'] = 'stop'
 
 class Interface():
@@ -146,7 +148,14 @@ class Interface():
         what =  "Electricity prices"
         if simulation_no is None:
             simulation_no = self.getInputWeatherElectricitySimulationNo(what)
-        plotGeneratedElectricityPrices(what, simulation_no)
+        plotGeneratedElectricity(what, simulation_no)
+
+    def outputGeneratedWeatherData(self, simulation_no=None):
+        """Plots graph of generated Electricity Prices from user defined simulation_no"""
+        what =  "Weather data"
+        if simulation_no is None:
+            simulation_no = self.getInputWeatherElectricitySimulationNo(what)
+        plotGeneratedWeather(what, simulation_no)
 
     ####################################################################################################################
 

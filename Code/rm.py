@@ -9,7 +9,7 @@ from config_readers import RiskModuleConfigReader
 import scipy.stats as stat
 from constants import report_directory, CORRELLATION_FIELDS
 from annex import convert2excel, uniquifyFilename, getOnlyDigitsList
-from charts import plotIRRChart, plotHistogramsChart, plotWeatherElectricityChart
+from charts import plotIRRChart, plotHistogramsChart, plotElectricityChart, plotWeatherChart
 
 def calcStatistics(values):
     """input @list of values
@@ -78,6 +78,8 @@ def calcJbProbability(jb_stat_value, levels=(95, 99, 99.9)):
        key=percent level, for ex  0.95, 0.99, 0.999
        value=  True or False with of probability that the distribution is normal
     """
+     #calculation probability distribution is normal for all levels levels=(95, 99, 99.9)
+
     percent_levels = [l / 100.0 for l in levels]  #floats [0.0-0.99] representation of percents
     result = OrderedDict()  #init result container
     for level in percent_levels:
@@ -89,9 +91,9 @@ def calcJbProbability(jb_stat_value, levels=(95, 99, 99.9)):
     return  result
 
 def JarqueBeraTest(values):
-    """calculates JarqueBeraTest and return probability list"""
+    """calculates JarqueBeraTest """
     jb_stat_value = calcJbStats(values)
-    return  calcJbProbability(jb_stat_value)  #calculation probability distribution is normal for all levels levels=(95, 99, 99.9)
+    return jb_stat_value
 
 def printIRRStats(irr_values_lst):
     """Prints statistics of irr values"""
@@ -107,6 +109,7 @@ def printIRRStats(irr_values_lst):
         print "\tKurtosis value %s" % dic.get('kurtosis', None)
         print "\tRequired rate of return value %s" % dic.get('required_rate_of_return', None)
         print "\tJB test values %s" % dic.get('JBTest', None)
+        print "\tJB value %s" % dic.get('JBTest_value', None)
 
 def saveIRRValuesXls(irr_values_lst, simulation_no, yearly):
     """Saves IRR values to excel file
@@ -131,9 +134,9 @@ def saveIRRValuesXls(irr_values_lst, simulation_no, yearly):
     stat_info1 = [field1]
     stat_info2 = [field2]
 
-    jb_fileds = ['JB_TEST'] + irr_values_lst[0]['JBTest'].keys()  #prepare row with first column JB_TEST and second - values
-    jb_values1 = [field1] + irr_values_lst[0]['JBTest'].values()
-    jb_values2 = [field2] + irr_values_lst[1]['JBTest'].values()
+    jb_fileds = ['JB_TEST' ] + irr_values_lst[0]['JBTest'].keys() + ["JB_VALUE"]  #prepare row with first column JB_TEST and second - values
+    jb_values1 = [field1] + irr_values_lst[0]['JBTest'].values() +  [irr_values_lst[0]['JBTest_value']]
+    jb_values2 = [field2] + irr_values_lst[1]['JBTest'].values() +  [irr_values_lst[1]['JBTest_value']]
 
     for key in stat_params:
         stat_info1.append(irr_values_lst[0].get(key, ''))
@@ -172,10 +175,15 @@ def plotSaveStochasticValuesSimulation(simulation_no, yearly=True):
     plotHistogramsChart(results, simulation_no, yearly)  #plotting histogram based on DB data
     saveStochasticValuesSimulation(results, simulation_no)  #saving results to XLS file
 
-def plotGeneratedElectricityPrices(what, simulation_no):
+def plotGeneratedWeather(what, simulation_no):
+    """plots graph of generated Weather Insolation and temperature from user defined simulation_no """
+    results = Database().getWeatherData(simulation_no)  #loading data from db
+    plotWeatherChart(results, what, simulation_no)  #plotting chart based on DB data
+
+def plotGeneratedElectricity(what, simulation_no):
     """plots graph of generated Electricity Prices from user defined simulation_no """
     results = Database().getElectricityPrices(simulation_no)  #loading data from db
-    plotWeatherElectricityChart(results, what, simulation_no)  #plotting chart based on DB data
+    plotElectricityChart(results, what, simulation_no)  #plotting chart based on DB data
 
 def saveStochasticValuesSimulation(dic_values, simulation_no):
     """Saves IRR values to excel file
@@ -230,7 +238,8 @@ def caclIrrsStatisctics(field_names, irr_values):
         result['field'] = field_name  #what irr values was used (name of filed)
         result[field_name] = irr  #not filtered irr values
         result['digit_values'] = digit_irr  #filtered irr values (only digit values)
-        result['JBTest'] = JarqueBeraTest(digit_irr)  #JB test result
+        result['JBTest_value'] = JarqueBeraTest(digit_irr)  #JB test result
+        result['JBTest'] = calcJbProbability(result['JBTest_value'])  #JB test result
         result['required_rate_of_return'] = calculateRequiredRateOfReturn(digit_irr)  #rrr
         result.update(calcStatistics(digit_irr))  #adding all statistics (stdevm min, max etc)
 
