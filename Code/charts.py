@@ -7,7 +7,7 @@ import matplotlib.dates as mdates
 
 from collections import OrderedDict
 from database import Database
-from constants import report_directory, BINS
+from constants import report_directory, BINS, CORRELLATION_FIELDS
 from annex import addYearlyPrefix, getResolutionStartEnd
 from itertools import izip_longest
 
