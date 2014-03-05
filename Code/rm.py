@@ -183,7 +183,7 @@ def plotGeneratedWeather(what, simulation_no):
 def plotGeneratedElectricity(what, simulation_no):
     """plots graph of generated Electricity Prices from user defined simulation_no """
     results = Database().getElectricityPrices(simulation_no)  #loading data from db
-    plotElectricityChart(results, what, simulation_no)  #plotting chart based on DB data
+    plotElectricityChart(results, what=what, simulation_no=simulation_no)  #plotting chart based on DB data
 
 def saveStochasticValuesSimulation(dic_values, simulation_no):
     """Saves IRR values to excel file

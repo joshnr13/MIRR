@@ -420,13 +420,13 @@ def getInputDate(default=None, text=''):
         result = default
     return result
 
-def getInputInt(text='', default=None, ):
+def getInputInt(text='', default=False, ):
     """reads input integer value from user"""
     value = raw_input(text)
     try:
         result= int(value)
     except ValueError:
-        if default:
+        if default is not False:
             result = default
         else:
             raise ValueError("No value or value error")

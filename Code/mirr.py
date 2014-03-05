@@ -145,9 +145,10 @@ class Interface():
 
     def outputGeneratedElectricityPrices(self, simulation_no=None):
         """Plots graph of generated Electricity Prices from user defined simulation_no"""
-        what =  "Electricity prices"
-        if simulation_no is None:
-            simulation_no = self.getInputWeatherElectricitySimulationNo(what)
+        what = "Electricity prices"
+        simulation_no = simulation_no or self.getInputElectricitySimulationNoOrAll(what) or range(1, 101)
+        if not isinstance(simulation_no, int):
+            print "Plotting all %s can take some time (about 30-60 seconds) ..." % what
         plotGeneratedElectricity(what, simulation_no)
 
     def outputGeneratedWeatherData(self, simulation_no=None):
@@ -196,6 +197,9 @@ class Interface():
         result = getInputInt("Please input which %s simulation Number to plot (or press Enter to plot random - %s): " %(what, random_no), random_no)
         return result
 
+    def getInputElectricitySimulationNoOrAll(self, what='????'):
+        """User Input for electricity simulation or return None"""
+        return getInputInt("Please input which %s simulation Number to plot (or press Enter to plot ALL ): " % what, default=None)
 
     def getStartEndResolution(self):
         """return  StartEndResolution based on default values and user input, that can modify defaults"""

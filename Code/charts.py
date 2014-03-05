@@ -290,7 +290,7 @@ def plotWeatherChart(data_dic, what, simulation_no):
     plt.show()
 
 
-def plotElectricityChart(data_dic, what, simulation_no):
+def plotElectricityChart(data_list, what, simulation_no):
     """Plot Electricity prices simple XY chart for @what , which will be title,
     based on @data_dic,
     which keys will be X values and values will be Y values
@@ -299,13 +299,19 @@ def plotElectricityChart(data_dic, what, simulation_no):
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
     plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
 
-    x_values = data_dic.keys()
-    y_values = data_dic.values()
+    for data_dic in data_list:
+        #iterating ower list of dicts with simulation data
+        x_values = data_dic.keys()
+        y_values = data_dic.values()
+        plt.plot(x_values,y_values)
 
-    plt.plot(x_values,y_values)
     plt.gcf().autofmt_xdate()
 
-    plt.title(' %s simulation %s' % (what, simulation_no))
+    if isinstance(simulation_no, int):
+        plt.title(' %s simulation %s' % (what, simulation_no))
+    else:
+        plt.title('Multiple (%s) -  %s simulations' % (len(data_list), what))
+
     plt.xlabel("Dates")
     plt.ylabel(what)
     plt.show()

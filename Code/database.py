@@ -1,5 +1,5 @@
 import sys
-import  pymongo
+import pymongo
 import pylab
 from collections import defaultdict
 from numbers import Number
@@ -269,8 +269,14 @@ class Database():
         self.electricity_prices.insert(data, safe=True)
 
     def getElectricityPrices(self, simulation_no):
-        """return  electricity prices data with defined @simulation_no"""
-        result = self.electricity_prices.find_one({"simulation_no": simulation_no}, {"_id": False})
-        if result:
-            return convertDictDates(result['data'])
+        """return  electricity prices data with defined @simulation_no or list of simulations_no"""
+        if isinstance(simulation_no, int):
+            result = self.electricity_prices.find_one({"simulation_no": simulation_no}, {"_id": False})
+            return [convertDictDates(result['data'])]
+        elif isinstance(simulation_no, list):
+            #it simulation no is list - get all electricity prices, indicated in list
+            results = self.electricity_prices.find({'simulation_no': {"$in": simulation_no}}, {"_id": False, 'data': True})
+            return [convertDictDates(result['data']) for result in results]
+        else:
+            raise ValueError('Incorrect format simulation_no: ' + simulation_no)
 
