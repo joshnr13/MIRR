@@ -131,7 +131,7 @@ def getMultiplier(_from, _to, step):
     digits = []
     for number in [_from, _to, step]:
         pre = Decimal(str(number)) % 1
-        digit = len(str(pre)) - 2
+        digit = len(str(pre))
         digits.append(digit)
     max_digits = max(digits)
     return float(10 ** (max_digits))

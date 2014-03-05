@@ -25,17 +25,33 @@ def parse_list_and_get_random(values, value_type=int):
     if len_values == 1:
         return value_type(list_values[0])
     elif len_values == 3:
-        step = list_values.pop(2)
+        step = value_type(list_values.pop(2))
     else:
         step = 1
 
-    min_value = min(list_values)
-    max_value = max(list_values)
+    min_value = min(map(value_type, list_values))
+    max_value = max(map(value_type, list_values))
     if TESTMODE:
         return value_type(0.5*(min_value + max_value))
     else:
-        return random.randrange(min_value, max_value, step=step)
+        return random.choice(floatRange(min_value, max_value, step, True))
 
+
+def config_get_random(config, section, param, value_type='guess'):
+    value = config.get(section, param)
+    if value_type == 'guess':
+        if '.' in value:
+            if value.replace(' ', '').replace('.', '').replace(',', '').isdigit():
+                value_type = float
+        elif value.replace(' ', '').replace(',', '').isdigit():
+            value_type = int
+        else:
+            value_type = str
+
+    if value_type == str:
+        return value
+    elif value_type in (int, float):
+        return parse_list_and_get_random(value, value_type=value_type)
 
 class MainConfig():
     """Module for reading configs from main config file"""
@@ -213,7 +229,6 @@ class TechnologyModuleConfigReader():
     def getConfigsValues(self):
         return  self.configs
 
-
 class EconomicModuleConfigReader():
     """Module for reading Economic configs from file"""
     def __init__(self, start_date_project, _filename='ecm_config.ini'):
@@ -225,16 +240,17 @@ class EconomicModuleConfigReader():
         _config.read(_filepath)
 
         self.tax_rate = _config.getfloat('Taxes', 'tax_rate') / 100
-        self.administrativeCosts = _config.getfloat('Costs', 'administrativeCosts')
-        self.administrativeCostsGrowth_rate = _config.getfloat('Costs', 'administrativeCostsGrowth_rate') / 100
-        self.insuranceFeeEquipment = _config.getfloat('Costs', 'insuranceFeeEquipment') / 100
+        self.administrativeCosts = config_get_random(_config, 'Costs', 'administrativeCosts')
+
+        self.administrativeCostsGrowth_rate = config_get_random(_config, 'Costs', 'administrativeCostsGrowth_rate') / 100
+        self.insuranceFeeEquipment = config_get_random(_config, 'Costs', 'insuranceFeeEquipment') / 100
         self.insuranceDurationEquipment = _config.getfloat('Costs', 'insuranceDurationEquipment')
 
         #calculate last day of Insuarence by adding insuranceDurationEquipment to start project date
         self.insuranceLastDayEquipment = addXYears(start_date_project, self.insuranceDurationEquipment)
 
-        self.developmentCostDuringPermitProcurement = _config.getfloat('Costs', 'developmentCostDuringPermitProcurement')
-        self.developmentCostDuringConstruction = _config.getfloat('Costs', 'developmentCostDuringConstruction')
+        self.developmentCostDuringPermitProcurement = config_get_random(_config, 'Costs', 'developmentCostDuringPermitProcurement')
+        self.developmentCostDuringConstruction = config_get_random(_config, 'Costs', 'developmentCostDuringConstruction')
 
         self.market_price = _config.getfloat('Electricity', 'market_price')
         self.price_groth_rate = _config.getfloat('Electricity', 'growth_rate') / 100
@@ -247,8 +263,8 @@ class EconomicModuleConfigReader():
         ######################### DEBT ########################################
 
         self.debt_share = _config.getfloat('Debt', 'debt_share') / 100
-        self.debt_rate = _config.getfloat('Debt', 'interest_rate') / 100
-        self.debt_rate_short = _config.getfloat('Debt', 'interest_rate_short') / 100
+        self.debt_rate = config_get_random(_config, 'Debt', 'interest_rate') / 100
+        self.debt_rate_short = config_get_random(_config, 'Debt', 'interest_rate_short') / 100
         self.debt_years = _config.getint('Debt', 'periods')
 
         ######################### DEPRICATION #################################
@@ -333,6 +349,13 @@ if __name__ == '__main__':
     print m.getConfigsValues()
 
 
+    ecm = EconomicModuleConfigReader(datetime.date(2000,1,1))
+    print ecm.getConfigsValues()
+
+    print parse_list_and_get_random('1')
+    print parse_list_and_get_random('1,11')
+    print parse_list_and_get_random('1,11,0.5', value_type=float)
+    print parse_list_and_get_random('1,11,0.01', value_type=float)
 
 
 
