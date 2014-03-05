@@ -9,6 +9,34 @@ from annex import addXMonths, addXYears, getReportDates, getConfigs, floatRange,
 from constants import TESTMODE
 import numpy
 
+def parse_list_and_get_random(values, value_type=int):
+    """
+    Parses input
+    if one value - return it
+    if two - return range(min, max, with step = 1)
+    if three - return range(min, max, with step = last_value)
+    """
+    list_values = values.split(',')
+    len_values = len(list_values)
+
+    if not values or len_values > 3:
+        raise ValueError("Config value error " + values)
+
+    if len_values == 1:
+        return value_type(list_values[0])
+    elif len_values == 3:
+        step = list_values.pop(2)
+    else:
+        step = 1
+
+    min_value = min(list_values)
+    max_value = max(list_values)
+    if TESTMODE:
+        return value_type(0.5*(min_value + max_value))
+    else:
+        return random.randrange(min_value, max_value, step=step)
+
+
 class MainConfig():
     """Module for reading configs from main config file"""
 
