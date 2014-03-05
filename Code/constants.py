@@ -76,6 +76,15 @@ CORRELLATION_FIELDS["subsidy_Kw"] = "sm_configs.kWh_subsidy"
 CORRELLATION_FIELDS["subsidy_delay"] = "sm_configs.subsidy_delay"
 CORRELLATION_FIELDS["subsidy_duration"] = "sm_configs.subsidy_duration"
 
+CORRELLATION_FIELDS["admin_costs"] = "ecm_configs.administrativeCosts"
+CORRELLATION_FIELDS["admin_costs_growth_rate"] = "ecm_configs.administrativeCostsGrowth_rate"
+CORRELLATION_FIELDS["ins_fee_equip"] = "ecm_configs.insuranceFeeEquipment"
+CORRELLATION_FIELDS["dev_costs_perm_proc"] = "ecm_configs.developmentCostDuringPermitProcurement"
+CORRELLATION_FIELDS["dev_costs_construct"] = "ecm_configs.developmentCostDuringConstruction"
+CORRELLATION_FIELDS["interest_rate"] = "ecm_configs.debt_rate"
+CORRELLATION_FIELDS["interest_rate_short"] = "ecm_configs.debt_rate_short"
+
+
 CORRELLATION_IRR_FIELD = {"IRR": IRR_REPORT_FIELD}
 CORRELLATION_NPV_FIELD = {"NPV": NPV_REPORT_FIELD}
 

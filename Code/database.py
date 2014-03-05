@@ -272,7 +272,7 @@ class Database():
         """return  electricity prices data with defined @simulation_no or list of simulations_no"""
         if isinstance(simulation_no, int):
             result = self.electricity_prices.find_one({"simulation_no": simulation_no}, {"_id": False})
-            return [convertDictDates(result['data'])]
+            return convertDictDates(result['data'])
         elif isinstance(simulation_no, list):
             #it simulation no is list - get all electricity prices, indicated in list
             results = self.electricity_prices.find({'simulation_no': {"$in": simulation_no}}, {"_id": False, 'data': True})

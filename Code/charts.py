@@ -299,6 +299,12 @@ def plotElectricityChart(data_list, what, simulation_no):
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
     plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
 
+    if isinstance(simulation_no, int):
+        data_list = [data_list]
+        plt.title(' %s simulation %s' % (what, simulation_no))
+    else:
+        plt.title('Multiple (%s) -  %s simulations' % (len(data_list), what))
+
     for data_dic in data_list:
         #iterating ower list of dicts with simulation data
         x_values = data_dic.keys()
@@ -306,11 +312,6 @@ def plotElectricityChart(data_list, what, simulation_no):
         plt.plot(x_values,y_values)
 
     plt.gcf().autofmt_xdate()
-
-    if isinstance(simulation_no, int):
-        plt.title(' %s simulation %s' % (what, simulation_no))
-    else:
-        plt.title('Multiple (%s) -  %s simulations' % (len(data_list), what))
 
     plt.xlabel("Dates")
     plt.ylabel(what)

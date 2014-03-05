@@ -241,7 +241,6 @@ class EconomicModuleConfigReader():
 
         self.tax_rate = _config.getfloat('Taxes', 'tax_rate') / 100
         self.administrativeCosts = config_get_random(_config, 'Costs', 'administrativeCosts')
-
         self.administrativeCostsGrowth_rate = config_get_random(_config, 'Costs', 'administrativeCostsGrowth_rate') / 100
         self.insuranceFeeEquipment = config_get_random(_config, 'Costs', 'insuranceFeeEquipment') / 100
         self.insuranceDurationEquipment = _config.getfloat('Costs', 'insuranceDurationEquipment')
