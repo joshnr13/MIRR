@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding utf-8 -*-
-# Project MIRR - Modelling Investment Risk in Renewables  - Research related to risk quantification of investments in renewable energy sources
+# Project MIRR - Modelling Investment Risk in Renewables  - Research related to risk quantification at investments in renewable energy sources
 # Project owner Borut Del Fabbro
 
 import sys
@@ -206,11 +206,9 @@ class Interface():
 
     def getInputCountry(self):
         countries = OrderedDict()
-        countries[1]='SLOVENIA'
-        countries[2]='AUSTRIA'
-        countries[3]='ITALY'
-        countries[4]='GERMANY'
-        countries[5]='SPAIN'
+        countries[1]='ITALY'
+        countries[2]='NORWAY'
+        countries[3]='SLOVENIA'
 
         for key, value in countries.items():
             print key, ' --> ', value
