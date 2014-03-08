@@ -233,19 +233,18 @@ class EconomicModuleConfigReader():
 class EnergyModuleConfigReader():
     """Module fore reading Energy configs from file"""
 
-    def __init__(self, _filename='em_config.ini'):
-        _config = ConfigParser.ConfigParser()
-        _filepath = os.path.join(os.getcwd(), 'configs', _filename)
-        _config.read(_filepath)
+    def __init__(self, _country, _filename='em_config.ini'):
+
+        _config = parse_yaml(_filename, _country)
 
         #mean value for distribution of random factor for generating temperature
-        self.mean = _config.getfloat('NormalDistribution', 'mean')
+        self.mean = get_config_value(_config, 'NORMAL_DISTRIBUTION.mean', float)
 
         #stdev value for distribution of random factor for generating temperature
-        self.stdev = _config.getfloat('NormalDistribution', 'stdev_percent') * self.mean / 100.0
+        self.stdev = self.mean * get_config_value(_config, 'NORMAL_DISTRIBUTION.stdev_percent', 'float_percent')
 
-        self.TMin = _config.getfloat('WeatherSimulation', 'TMin')  #MIN temperature that can be simulated
-        self.TMax = _config.getfloat('WeatherSimulation', 'TMax')  #MAX temperature that can be simulated
+        self.TMin = get_config_value(_config, 'WEATHER_SIMULATION.TMin', float)
+        self.TMax = get_config_value(_config, 'WEATHER_SIMULATION.TMin', float)
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
