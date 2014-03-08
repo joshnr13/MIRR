@@ -16,10 +16,10 @@ from constants import TESTMODE
 class MainConfig():
     """Module for reading configs from main config file"""
 
-    def __init__(self, _country, _filename='main_config.ini'):
+    def __init__(self, country, _filename='main_config.ini'):
         """Reads main config file """
 
-        _config = parse_yaml(_filename, _country)
+        _config = parse_yaml(_filename, country)
 
         self.lifetime = get_config_value(_config, 'MAIN.lifetime', int)  #load values from section Main with value lifetime
         self.resolution = get_config_value(_config, 'MAIN.resolution', int)
@@ -114,9 +114,9 @@ class MainConfig():
 class SubsidyModuleConfigReader():
     """Module for reading Subsidy configs from file"""
 
-    def __init__(self, _country, last_day_construction, _filename='sm_config.ini'):
+    def __init__(self, country, last_day_construction, _filename='sm_config.ini'):
         """Reads module config file"""
-        _config = parse_yaml(_filename, _country) #loads config to memory
+        _config = parse_yaml(_filename, country) #loads config to memory
 
         self.kWh_subsidy = get_config_value(_config, 'SUBSIDY.kWh_subsidy', float)
         self.subsidy_duration = get_config_value(_config, 'SUBSIDY.subsidy_duration', int)
@@ -136,9 +136,9 @@ class SubsidyModuleConfigReader():
 class TechnologyModuleConfigReader():
     """Module fore reading Technology configs from file"""
 
-    def __init__(self, _country, _filename='tm_config.ini'):
+    def __init__(self, country, _filename='tm_config.ini'):
 
-        _config = parse_yaml(_filename, _country)  #loads config to memory
+        _config = parse_yaml(_filename, country)  #loads config to memory
 
         ######################## BASE ###################
         self.groups_number = get_config_value(_config, 'EQUIPMENT.groups_number', int)
@@ -174,12 +174,12 @@ class TechnologyModuleConfigReader():
 class EconomicModuleConfigReader():
     """Module for reading Economic configs from file"""
 
-    def __init__(self, _country, start_date_project, _filename='ecm_config.ini'):
+    def __init__(self, country, start_date_project, _filename='ecm_config.ini'):
         """Reads module config file
         @self.insuranceLastDayEquipment - last day when we need to pay for insurance
         """
 
-        _config = parse_yaml(_filename, _country)
+        _config = parse_yaml(_filename, country)
 
         self.tax_rate = get_config_value(_config, 'TAXES.tax_rate', 'float_percent')
         self.administrativeCosts = get_config_value(_config, 'COSTS.administrativeCosts')
@@ -233,9 +233,9 @@ class EconomicModuleConfigReader():
 class EnergyModuleConfigReader():
     """Module fore reading Energy configs from file"""
 
-    def __init__(self, _country, _filename='em_config.ini'):
+    def __init__(self, country, _filename='em_config.ini'):
 
-        _config = parse_yaml(_filename, _country)
+        _config = parse_yaml(_filename, country)
 
         #mean value for distribution of random factor for generating temperature
         self.mean = get_config_value(_config, 'NORMAL_DISTRIBUTION.mean', float)
@@ -255,14 +255,12 @@ class EnergyModuleConfigReader():
 class RiskModuleConfigReader():
     """Module fore reading Risk configs from file"""
 
-    def __init__(self, _filename='rm_config.ini'):
-        _config = ConfigParser.ConfigParser()
-        _filepath = os.path.join(os.getcwd(), 'configs', _filename)
-        _config.read(_filepath)
+    def __init__(self, country, _filename='rm_config.ini'):
+        _config = parse_yaml(_filename, country)
 
-        self.riskFreeRate = _config.getfloat('RISK', 'riskFreeRate')
-        self.benchmarkSharpeRatio = _config.getfloat('RISK', 'benchmarkSharpeRatio')
-        self.benchmarkModifiedSharpeRatio = _config.getfloat('RISK', 'benchmarkModifiedSharpeRatio')
+        self.riskFreeRate = get_config_value(_config, 'RISK.riskFreeRate', float)
+        self.benchmarkSharpeRatio = get_config_value(_config, 'RISK.benchmarkSharpeRatio', float)
+        self.benchmarkModifiedSharpeRatio = get_config_value(_config, 'RISK.benchmarkModifiedSharpeRatio', float)
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
@@ -287,23 +285,4 @@ class EmInputsReader():
     def getAvMonthTemperatureMonth(self, month):
         """Returns average daily insolation in given date"""
         return self.inputs_temperature[month]
-
-
-if __name__ == '__main__':
-    m = MainConfig()
-    print m.getConfigsValues()
-
-    ecm = EconomicModuleConfigReader(datetime.date(2000, 1, 1))
-    print ecm.getConfigsValues()
-
-    print parse_list_and_get_random('1')
-    print parse_list_and_get_random('1,11')
-    print parse_list_and_get_random('1,11,0.5', value_type=float)
-    print parse_list_and_get_random('1,11,0.01', value_type=float)
-
-
-
-
-
-
 

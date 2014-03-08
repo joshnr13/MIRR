@@ -4,6 +4,7 @@ import datetime
 from _mirr import Mirr
 from annex import convertValue
 from collections import defaultdict
+from config_readers import RiskModuleConfigReader
 from database import Database
 from rm import caclIrrsStatisctics
 from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2
@@ -12,21 +13,22 @@ from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2
 
 class Simulation():
     """Class for preparing, runinning and saving simulations to Database"""
-    def __init__(self, comment=''):
+    def __init__(self, country, comment=''):
         """@comment - user inputed comment"""
         self.db =  Database()  #connection to Db
         self.comment = comment  #user comment for current simulation
+        self.country = country #country which data will be used in simulation
         self.simulation_no = self.getNextSimulationNo()  #load last simulation no from db
         self.irrs0 = []  #for keeping irr values for each iteration
         self.irrs1 = []
 
     def getSimulationNo(self):
         """return  current simulation no"""
-        return  self.simulation_no
+        return self.simulation_no
 
     def getNextSimulationNo(self):
         """return  next simulation no from db"""
-        return  self.db.getNextSimulationNo()
+        return self.db.getNextSimulationNo()
 
     def prepareLinks(self):
         """create short links to prepared modules"""
@@ -43,6 +45,7 @@ class Simulation():
         self.tm_configs = self.tm.getConfigsValues()  #module config values
         self.sm_configs = self.sm.getConfigsValues() #module config values
         self.em_configs = self.em.getConfigsValues() #module config values
+        self.rm_configs = RiskModuleConfigReader(self.country).getConfigsValues() #module config values
 
     def convertResults(self):
         """Processing results before inserting to DB"""
@@ -210,7 +213,8 @@ class Simulation():
         - kurtosis: http://en.wikipedia.org/wiki/Kurtosis
         """
         fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2]  #which field names will be used to calc stats
-        self.simulation_record['irr_stats'] = caclIrrsStatisctics(fields, [self.irrs0, self.irrs1] )  #calculating and adding IRR stats to simulation record
+        riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
+        self.simulation_record['irr_stats'] = caclIrrsStatisctics(fields, [self.irrs0, self.irrs1], riskFreeRate, benchmarkSharpeRatio )  #calculating and adding IRR stats to simulation record
 
     def runOneIteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""
@@ -229,15 +233,15 @@ class Simulation():
         self.irrs0.append(getattr(self.r, IRR_REPORT_FIELD))
         self.irrs1.append(getattr(self.r, IRR_REPORT_FIELD2))
 
-def runAndSaveSimulation(iterations_no, comment):
+def runAndSaveSimulation(country, iterations_no, comment):
     """
     1) Runs multiple iterations @iterations_number with @comment
     2) Shows charts
     3) Save results
     return  simulation_no
     """
-    s = Simulation(comment=comment)
+    s = Simulation(country, comment=comment)
     s.runSimulation(iterations_no)
-    return  s.getSimulationNo()
+    return s.getSimulationNo()
 
 

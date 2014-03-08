@@ -10,9 +10,9 @@ from tm_equipment import PlantEquipment
 from collections import OrderedDict
 
 class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
-    def __init__(self, config_module, energy_module):
+    def __init__(self, config_module, energy_module, country):
         BaseClassConfig.__init__(self, config_module)  #loading main configs
-        TechnologyModuleConfigReader.__init__(self)  #loading Technology module configs
+        TechnologyModuleConfigReader.__init__(self, country)  #loading Technology module configs
         self.energy_module = energy_module
         self.calcTotalPower()  #calculates Total Power
         self.assembleSystem()  #creates Plant

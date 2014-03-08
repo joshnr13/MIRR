@@ -10,14 +10,14 @@ from annex import cached_property
 class Mirr():
     """Main class for combining all modules together
     """
-    def __init__(self):
+    def __init__(self, country):
         """Creates all modules at INIT"""
-        main_config = MainConfig()
+        main_config = MainConfig(country)
         self.main_config = main_config
-        self.energy_module = EnergyModule(main_config)
-        self.technology_module = TechnologyModule(main_config, self.energy_module)
-        self.subside_module = SubsidyModule(main_config)
-        self.economic_module = EconomicModule(main_config, self.technology_module, self.subside_module)
+        self.energy_module = EnergyModule(main_config, country)
+        self.technology_module = TechnologyModule(main_config, self.energy_module, country)
+        self.subside_module = SubsidyModule(main_config, country)
+        self.economic_module = EconomicModule(main_config, self.technology_module, self.subside_module, country)
         self.r = Report(main_config, self.economic_module)
 
     def getMainConfig(self):

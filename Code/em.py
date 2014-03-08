@@ -11,9 +11,9 @@ from numpy.random import normal as gauss
 
 class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
     """module for holding info about weather and insolations"""
-    def __init__(self, config_module):
+    def __init__(self, config_module, country):
         BaseClassConfig.__init__(self, config_module)  #load main configs
-        EnergyModuleConfigReader.__init__(self)  #load module configs
+        EnergyModuleConfigReader.__init__(self, country)  #load module configs
         self.inputs = EmInputsReader()  #read inputs from file
         self.db = Database()  #connection to db
 
@@ -42,12 +42,12 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 
 class WeatherSimulation(EnergyModuleConfigReader):
     """module for simulation of weather"""
-    def __init__(self, period, simulations_no):
+    def __init__(self, country, period, simulations_no):
         """
         @period - list dates for simulation
         @simulations_no - number of simulation (to save it to db)
         """
-        EnergyModuleConfigReader.__init__(self)  #module configs
+        EnergyModuleConfigReader.__init__(self, country)  #module configs
         self.inputs = EmInputsReader()  #read inputs from file
         self.db = Database()  #connection to db
         self.period = period

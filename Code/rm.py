@@ -39,13 +39,10 @@ def calcStatistics(values):
         result['variance'] = result['std'] ** 0.5
     return  result
 
-def calculateRequiredRateOfReturn(irr_values):
+def calculateRequiredRateOfReturn(irr_values, riskFreeRate, benchmarkSharpeRatio ):
     """return  riskFreeRate(const) + benchmarkSharpeRatio(const) x standard deviation of IRR @irr_values"""
-    config_values = RiskModuleConfigReader().getConfigsValues()  #loading Risk Module configs
-    riskFreeRate = config_values['riskFreeRate']  #taking riskFreeRate from configs
-    benchmarkSharpeRatio = config_values['benchmarkSharpeRatio']  #taking benchmarkSharpeRatio from config
     irr_stdev = std(irr_values)  #calculating st.deviation of IRR values
-    return  riskFreeRate + benchmarkSharpeRatio * irr_stdev  #formula
+    return riskFreeRate + benchmarkSharpeRatio * irr_stdev  #formula
 
 
 def jbCritValue(p):
@@ -225,7 +222,7 @@ def saveStochasticValuesSimulation(dic_values, simulation_no):
 
     print "Stochastic Report outputed to file %s" % (xls_output_filename)  #printing path to generated report
 
-def caclIrrsStatisctics(field_names, irr_values):
+def caclIrrsStatisctics(field_names, irr_values, riskFreeRate, benchmarkSharpeRatio):
     """
     inputs: @field_names - list of irr field names for @irr_values
     output: list of dicts with irr statistics for each irr_type
@@ -240,7 +237,7 @@ def caclIrrsStatisctics(field_names, irr_values):
         result['digit_values'] = digit_irr  #filtered irr values (only digit values)
         result['JBTest_value'] = JarqueBeraTest(digit_irr)  #JB test result
         result['JBTest'] = calcJbProbability(result['JBTest_value'])  #JB test result
-        result['required_rate_of_return'] = calculateRequiredRateOfReturn(digit_irr)  #rrr
+        result['required_rate_of_return'] = calculateRequiredRateOfReturn(digit_irr, riskFreeRate, benchmarkSharpeRatio)  #rrr
         result.update(calcStatistics(digit_irr))  #adding all statistics (stdevm min, max etc)
 
         results.append(result)

@@ -24,9 +24,9 @@ class Report(BaseClassConfig):
         """
         BaseClassConfig.__init__(self, config_module)  #loading Main configs
         self.economic_module = economic_module
-        self.technology_module =  economic_module.technology_module  #creating short link to TM
+        self.technology_module = economic_module.technology_module  #creating short link to TM
         self.subside_module = economic_module.subside_module #creating short link to SM
-        self.energy_module =  self.technology_module.energy_module #creating short link to EM
+        self.energy_module = self.technology_module.energy_module #creating short link to EM
 
     def calcReportValues(self):
         """Main function to cacl all values for reports"""
@@ -655,7 +655,7 @@ class Report(BaseClassConfig):
 
 
 if __name__ == '__main__':
-    mainconfig = MainConfig()
+    mainconfig = MainConfig('ITALY')
     energy_module = EnergyModule(mainconfig)
     technology_module = TechnologyModule(mainconfig, energy_module)
     subside_module = SubsidyModule(mainconfig)

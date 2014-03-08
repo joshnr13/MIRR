@@ -16,12 +16,12 @@ from database import Database
 
 class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     """class for generating Electricity prices"""
-    def __init__(self, period, simulations_no):
+    def __init__(self, country, period, simulations_no):
         """
         @period - list of dates from start to end
         @simulations_no - number of needed simulations
         """
-        EconomicModuleConfigReader.__init__(self, start_date_project=period[0])  #loading EconomicModule Configs, with passing startdata of project
+        EconomicModuleConfigReader.__init__(self, country, start_date_project=period[0])  #loading EconomicModule Configs, with passing startdata of project
         self.period = period
         self.N = len(period)  #number of days
         self.simulations_no = simulations_no
@@ -118,14 +118,14 @@ class Poisson_step():
 class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     """Module for holding all economic values calculation"""
 
-    def __init__(self, config_module, technology_module, subside_module):
+    def __init__(self, config_module, technology_module, subside_module, country):
         """
         @config_module - link to main config module
         @technology_module - link to technology module
         @subside_module - link to subside module
         """
         BaseClassConfig.__init__(self, config_module)  #loading Main config
-        EconomicModuleConfigReader.__init__(self, self.start_date_project)  #loading Economic Config
+        EconomicModuleConfigReader.__init__(self, country, self.start_date_project)  #loading Economic Config
         self.db = Database()  #connection to DB
         self.technology_module = technology_module
         self.subside_module = subside_module
@@ -357,7 +357,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         return  self.debt_rest_payments_wo_percents.get(date, 0)
 
 if __name__ == '__main__':
-    mainconfig = MainConfig()
+    mainconfig = MainConfig('ITALY')
     em = EnergyModule(mainconfig)
     technology_module = TechnologyModule(mainconfig, em)
     subside_module = SubsidyModule(mainconfig)

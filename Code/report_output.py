@@ -206,7 +206,7 @@ if __name__ == '__main__':
     from ecm import EconomicModule
     from report import Report
     from config_readers import MainConfig
-    mainconfig = MainConfig()
+    mainconfig = MainConfig('ITALY')
     energy_module = EnergyModule(mainconfig)
     technology_module = TechnologyModule(mainconfig, energy_module)
     subside_module = SubsidyModule(mainconfig)

@@ -6,9 +6,9 @@ from config_readers import MainConfig, SubsidyModuleConfigReader
 
 class SubsidyModule(BaseClassConfig, SubsidyModuleConfigReader):
     """Module for calculation subside values for production electricity"""
-    def __init__(self, config_module):
+    def __init__(self, config_module, country):
         BaseClassConfig.__init__(self, config_module)  #init base class config to have ability to use all main config values
-        SubsidyModuleConfigReader.__init__(self, last_day_construction=self.last_day_construction)  #load config values for current module
+        SubsidyModuleConfigReader.__init__(self, country, last_day_construction=self.last_day_construction)  #load config values for current module
 
     def subsidyProduction1KW(self, date):
         """return subsidy in EUR for production 1Kwh on given @date"""
@@ -18,5 +18,5 @@ class SubsidyModule(BaseClassConfig, SubsidyModuleConfigReader):
             return 0
 
 if __name__ == '__main__':
-    s = SubsidyModule(MainConfig())
+    s = SubsidyModule(MainConfig('ITALY'))
     print s.getConfigsValues()

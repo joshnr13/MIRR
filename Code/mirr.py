@@ -45,16 +45,19 @@ class Interface():
     """Class for Main menu for all operations"""
     def __init__(self):
         self.db = Database()
-        self.main_config = MainConfig()  #link to main config
+        # self.main_config = MainConfig()  #link to main config
 
-    def runSimulation(self, iterations_no=None, comment=None):
+    def runSimulation(self, country=None, iterations_no=None, comment=None):
         """Running simulation and saving results"""
+        if country is None:
+            country = self.getInputCountry()
+
         if iterations_no is None:
             iterations_no = self.getNumberIterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)  #ask user how many iterations
         if comment is  None:
             comment = getInputComment()  #get user comment
 
-        simulation_no = runAndSaveSimulation(iterations_no, comment)  #runing
+        simulation_no = runAndSaveSimulation(country, iterations_no, comment)  #runing
 
     def analyseSimulationResults(self, simulation_no=None):
         """
@@ -129,18 +132,18 @@ class Interface():
             simulation_no = self.getInputSimulation("DELETING: ")
         self.db.deleteSimulation(simulation_no)
 
-    def generateWeatherData(self):
+    def generateWeatherData(self, country=None):
         """Generates multi simulations of Weather data for each day in project and saves it to database"""
         simulations_no = 100
-        period = self.main_config.getAllDates()
-        simulations = WeatherSimulation(period, simulations_no)
+        period = self.getMirr().main_config.getAllDates()
+        simulations = WeatherSimulation(country, period, simulations_no)
         simulations.simulate()
 
-    def generateElectricityMarketPrice(self):
+    def generateElectricityMarketPrice(self, country=None):
         """Generates multi simulations of Electricity Price for each day in project and saves it to database"""
         simulations_no = 100
-        period = self.main_config.getAllDates()
-        simulations = ElectricityMarketPriceSimulation(period, simulations_no)
+        period = self.getMirr().main_config.getAllDates()
+        simulations = ElectricityMarketPriceSimulation(country, period, simulations_no)
         simulations.simulate()
 
     def outputGeneratedElectricityPrices(self, simulation_no=None):
@@ -162,7 +165,7 @@ class Interface():
 
     def _run_correlations(self, field):
         """field - dict [short_name] = database name"""
-        simulation_no = self.getInputSimulation("%s correlations charts: " %field.keys()[0])
+        simulation_no = self.getInputSimulation("%s correlations charts: " % field.keys()[0])
         plotCorrelationTornadoChart(field, simulation_no)
 
     @memoize
@@ -201,6 +204,20 @@ class Interface():
         """User Input for electricity simulation or return None"""
         return getInputInt("Please input which %s simulation Number to plot (or press Enter to plot ALL ): " % what, default=None)
 
+    def getInputCountry(self):
+        countries = OrderedDict()
+        countries[1]='ITALY'
+        countries[2]='NORWAY'
+        countries[3]='SLOVENIA'
+
+        for key, value in countries.items():
+            print key, ' --> ', value
+
+        user_input = getInputInt("Please input country number to use (or press Enter to use DEFAULT): ", default=None)
+        user_choice = countries.get(user_input)
+        print "User choice ", user_choice
+        return user_choice
+
     def getStartEndResolution(self):
         """return  StartEndResolution based on default values and user input, that can modify defaults"""
         def_start = self.getMirr().main_config.getStartDate()  #get defaults
@@ -210,8 +227,8 @@ class Interface():
         memo = " (from %s to %s)" % (def_start,def_end)
         memo_res = "Please select resolution of graph in days (or press Enter to use default %s) : " % def_res
 
-        start_date =  getInputDate(text="Start date" + memo, default=def_start)  #get user input of use default
-        end_date =  getInputDate(text="End date" + memo, default=def_end)
+        start_date = getInputDate(text="Start date" + memo, default=def_start)  #get user input of use default
+        end_date = getInputDate(text="End date" + memo, default=def_end)
         resolution = getInputInt(memo_res, default=def_res)  # ask user resolution
         return (start_date, end_date, resolution)
 

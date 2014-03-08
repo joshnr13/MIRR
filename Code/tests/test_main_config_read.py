@@ -1,5 +1,6 @@
 import datetime
-from config_readers import MainConfig, SubsidyModuleConfigReader, TechnologyModuleConfigReader, EconomicModuleConfigReader, EnergyModuleConfigReader
+from config_readers import MainConfig, SubsidyModuleConfigReader, \
+    TechnologyModuleConfigReader, EconomicModuleConfigReader, EnergyModuleConfigReader, RiskModuleConfigReader
 
 _country='1ITALY'
 config = MainConfig(_country)
@@ -18,5 +19,8 @@ config = EconomicModuleConfigReader(_country, startdate)
 # print config.getConfigsValues()
 
 config = EnergyModuleConfigReader(_country)
+# print config.getConfigsValues()
+
+config = RiskModuleConfigReader(_country)
 print config.getConfigsValues()
 
