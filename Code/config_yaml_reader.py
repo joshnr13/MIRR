@@ -104,7 +104,7 @@ def parse(dic):
     """
     result = deepcopy(dic)
     for key, value in dic.items():
-        if isinstance(value, (str, int)):
+        if isinstance(value, (str, int, float)):
             result[key] = get_random_config_value(str(value))
         else:
             result[key] = parse(value)

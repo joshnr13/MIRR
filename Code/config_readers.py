@@ -174,55 +174,55 @@ class TechnologyModuleConfigReader():
 class EconomicModuleConfigReader():
     """Module for reading Economic configs from file"""
 
-    def __init__(self, start_date_project, _filename='ecm_config.ini'):
+    def __init__(self, _country, start_date_project, _filename='ecm_config.ini'):
         """Reads module config file
         @self.insuranceLastDayEquipment - last day when we need to pay for insurance
         """
-        _config = ConfigParser.ConfigParser()
-        _filepath = os.path.join(os.getcwd(), 'configs', _filename)  #finds config file path
-        _config.read(_filepath)
 
-        self.tax_rate = _config.getfloat('Taxes', 'tax_rate') / 100
-        self.administrativeCosts = config_get_random(_config, 'Costs', 'administrativeCosts')
-        self.administrativeCostsGrowth_rate = config_get_random(_config, 'Costs', 'administrativeCostsGrowth_rate') / 100
-        self.insuranceFeeEquipment = config_get_random(_config, 'Costs', 'insuranceFeeEquipment') / 100
-        self.insuranceDurationEquipment = _config.getfloat('Costs', 'insuranceDurationEquipment')
+        _config = parse_yaml(_filename, _country)
+
+        self.tax_rate = get_config_value(_config, 'TAXES.tax_rate', 'float_percent')
+        self.administrativeCosts = get_config_value(_config, 'COSTS.administrativeCosts')
+        self.administrativeCostsGrowth_rate = get_config_value(_config, 'COSTS.administrativeCostsGrowth_rate', 'float_percent')
+        self.insuranceFeeEquipment = get_config_value(_config, 'COSTS.insuranceFeeEquipment', 'float_percent')
+        self.insuranceDurationEquipment = get_config_value(_config, 'COSTS.insuranceDurationEquipment', float)
 
         #calculate last day of Insuarence by adding insuranceDurationEquipment to start project date
         self.insuranceLastDayEquipment = addXYears(start_date_project, self.insuranceDurationEquipment)
 
-        self.developmentCostDuringPermitProcurement = config_get_random(_config, 'Costs', 'developmentCostDuringPermitProcurement')
-        self.developmentCostDuringConstruction = config_get_random(_config, 'Costs', 'developmentCostDuringConstruction')
+        self.developmentCostDuringPermitProcurement = get_config_value(_config, 'COSTS.developmentCostDuringPermitProcurement')
+        self.developmentCostDuringConstruction = get_config_value(_config, 'COSTS.developmentCostDuringConstruction')
 
-        self.market_price = _config.getfloat('Electricity', 'market_price')
-        self.price_groth_rate = _config.getfloat('Electricity', 'growth_rate') / 100
+        self.market_price = get_config_value(_config, 'ELECTRICITY.market_price', float)
+        self.price_growth_rate = get_config_value(_config, 'ELECTRICITY.growth_rate', 'float_percent')
 
         ######################### INVESTMENTS #############################################
 
-        self.cost_capital = _config.getfloat('Investments', 'cost_capital') / 100
-        self.initial_paid_in_capital = _config.getfloat('Investments', 'initial_paid_in_capital')
+        self.cost_capital = get_config_value(_config, 'INVESTMENTS.cost_capital', 'float_percent')
+        self.initial_paid_in_capital = get_config_value(_config, 'INVESTMENTS.initial_paid_in_capital', float)
 
         ######################### DEBT ########################################
 
-        self.debt_share = _config.getfloat('Debt', 'debt_share') / 100
-        self.debt_rate = config_get_random(_config, 'Debt', 'interest_rate') / 100
-        self.debt_rate_short = config_get_random(_config, 'Debt', 'interest_rate_short') / 100
-        self.debt_years = _config.getint('Debt', 'periods')
+        self.debt_share = get_config_value(_config, 'DEBT.debt_share', 'float_percent')
+        self.debt_rate = get_config_value(_config, 'DEBT.interest_rate', 'float_percent')
+        self.debt_rate_short = get_config_value(_config, 'DEBT.interest_rate_short', 'float_percent')
+        self.debt_years = get_config_value(_config, 'DEBT.periods', int)
 
         ######################### DEPRICATION #################################
         #gets deprication_duration and convert it to months
-        self.deprication_duration = _config.getfloat('Amortization', 'duration') * 12
+        self.debt_years = 12 * get_config_value(_config, 'AMORTIZATION.duration', float)
 
         ######################### ElectricityMarketPriceSimulation ############
         # loading varibales needed to ElectricityMarketPriceSimulation
-        self.S0 = _config.getfloat('ElectricityMarketPriceSimulation', 'S0')
-        self.dt = _config.getfloat('ElectricityMarketPriceSimulation', 'dt')
-        self.Lambda = _config.getfloat('ElectricityMarketPriceSimulation', 'Lambda')
-        self.y = _config.getfloat('ElectricityMarketPriceSimulation', 'y')
-        self.delta_q = _config.getfloat('ElectricityMarketPriceSimulation', 'delta_q')
-        self.theta = _config.getfloat('ElectricityMarketPriceSimulation', 'theta')
-        self.k = _config.getfloat('ElectricityMarketPriceSimulation', 'k')
-        self.sigma = _config.getfloat('ElectricityMarketPriceSimulation', 'sigma')
+
+        self.S0 = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.S0', float)
+        self.dt = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.dt', float)
+        self.Lambda = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.Lambda', float)
+        self.y = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.y', float)
+        self.delta_q = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.delta_q', float)
+        self.theta = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.theta', float)
+        self.k = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.k', float)
+        self.sigma = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.sigma', float)
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
