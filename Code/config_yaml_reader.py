@@ -11,7 +11,13 @@ def read_file(name):
     Reads yaml file, return converted dict
     """
     config_file = os.path.join(os.path.dirname(__file__), 'configs', name)
-    return yaml.load(open(config_file))
+    try:
+        content = yaml.load(open(config_file))
+    except Exception as e:
+        print "Error while parsing YAML file '%s'. Please check it's content!" % name
+        raise
+    else:
+        return content
 
 def update_dict(orig_dict, new_dict):
     """
@@ -40,7 +46,7 @@ def get_country_values(name, country):
         return update_dict(default_data, country_data)
     else:
         print '-'*80
-        print "No country data in '%s' for %s. Will be used default" % (name, country)
+        print "No country data in '%s' for %s. Will be used DEFAULT!" % (name, country)
         print '-'*80
         return default_data
 
@@ -118,6 +124,8 @@ def apply_format(value, new_format):
 
     formats = {}
     formats['date'] = lambda x: datetime.datetime.strptime(x, '%Y/%m/%d').date()
+    formats['float_percent'] = lambda x: float(x)/100
+
     new_format = formats.get(new_format) or new_format
     return new_format(value)
 
@@ -134,6 +142,9 @@ def get_config_value(dic, path, type_format=None):
             result = result[key]
         except KeyError:
             print 'Incorrect path "%s"' % (path,)
+            raise
+        except TypeError:
+            print 'Incorrect YAML content, please check path "%s"' % (path,)
             raise
 
     return apply_format(result, type_format)

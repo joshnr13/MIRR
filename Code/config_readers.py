@@ -5,10 +5,13 @@ import os
 import random
 import datetime
 import ConfigParser
+
+import numpy
+
 from annex import addXMonths, addXYears, getReportDates, getConfigs, floatRange, getListDates, cached_property
 from config_yaml_reader import parse_yaml, get_config_value
 from constants import TESTMODE
-import numpy
+
 
 class MainConfig():
     """Module for reading configs from main config file"""
@@ -29,12 +32,12 @@ class MainConfig():
         if TESTMODE:  #In case testmode sets permit and construction duration fixed
             self.real_permit_procurement_duration = 0
             self.real_construction_duration = 0
-        else :       #In case real mode sets permit and construction duration RANDOM from user range
+        else:  #In case real mode sets permit and construction duration RANDOM from user range
             self.real_permit_procurement_duration = _permit_procurement_duration
             self.real_construction_duration = _construction_duration
 
         #calculates last day of construction by adding real_construction_duration + real_permit_procurement_duration to start date
-        self.last_day_construction = addXMonths(self.start_date, self.real_permit_procurement_duration+self.real_construction_duration)
+        self.last_day_construction = addXMonths(self.start_date, self.real_permit_procurement_duration + self.real_construction_duration)
         self.last_day_permit_procurement = addXMonths(self.start_date, self.real_permit_procurement_duration)  #calculates last day of permit
         self.end_date = addXYears(self.start_date, self.lifetime)
         self.report_dates, self.report_dates_y = getReportDates(self.start_date, self.end_date)  #dict with Monthly report dates
@@ -49,25 +52,25 @@ class MainConfig():
         return self.end_date
 
     def getPermitProcurementDuration(self):
-        return  self.real_permit_procurement_duration
+        return self.real_permit_procurement_duration
 
     def getConstructionDuration(self):
-        return  self.real_construction_duration
+        return self.real_construction_duration
 
     def getLastDayPermitProcurement(self):
-        return  self.last_day_permit_procurement
+        return self.last_day_permit_procurement
 
     def getFirstDayConstruction(self):
-        return  self.last_day_permit_procurement + datetime.timedelta(days=1)
+        return self.last_day_permit_procurement + datetime.timedelta(days=1)
 
     def getLastDayConstruction(self):
-        return  self.last_day_construction
+        return self.last_day_construction
 
     def getResolution(self):
-        return  self.resolution
+        return self.resolution
 
     def getLifeTime(self):
-        return  self.lifetime
+        return self.lifetime
 
     def getReportDates(self):
         return self.report_dates
@@ -76,7 +79,7 @@ class MainConfig():
         return self.report_dates_y
 
     def getAllDates(self):
-        return  getListDates(self.getStartDate(), self.getEndDate())  #return list of ALL dates within start and end dates
+        return getListDates(self.getStartDate(), self.getEndDate())  #return list of ALL dates within start and end dates
 
     def getConfigsValues(self):
         """return  dict with config names and values
@@ -107,89 +110,76 @@ class MainConfig():
         else:
             return random.randint(1, 100)
 
-    def getConfigsValues(self):
-        return  self.configs
 
 class SubsidyModuleConfigReader():
     """Module for reading Subsidy configs from file"""
-    def __init__(self, _filename='sm_config.ini'):
+
+    def __init__(self, _country, last_day_construction, _filename='sm_config.ini'):
         """Reads module config file"""
-        _config = ConfigParser.ConfigParser()
-        _filepath = os.path.join(os.getcwd(), 'configs', _filename)  #finds config file path
-        _config.read(_filepath)  #loads config to memory
+        _config = parse_yaml(_filename, _country) #loads config to memory
 
-        _subsidy_delay_lower_limit = _config.getfloat('Subsidy', 'subsidy_delay_lower_limit')  #reciving values from config
-        _subsidy_delay_upper_limit = _config.getfloat('Subsidy', 'subsidy_delay_upper_limit')
-
-        _kWh_subsidy_lower_limit = _config.getfloat('Subsidy', 'kWh_subsidy_lower_limit')
-        _kWh_subsidy_upper_limit = _config.getfloat('Subsidy', 'kWh_subsidy_upper_limit')
-        _subsidy_duration_upper_limit = _config.getfloat('Subsidy', 'subsidy_duration_upper_limit')
-        _subsidy_duration_lower_limit = _config.getfloat('Subsidy', 'subsidy_duration_lower_limit')
-
-        if TESTMODE:  #in case TEST mode some vars will be FIXED
-            self.subsidy_delay = 0
-            self.kWh_subsidy = (_kWh_subsidy_lower_limit + _kWh_subsidy_upper_limit) / 2.0
-            self.subsidy_duration = (_subsidy_duration_upper_limit + _subsidy_duration_lower_limit) / 2.0
-        else:        #in case REAL mode some vars will be RANDOM
-            self.subsidy_delay = random.randint(_subsidy_delay_lower_limit, _subsidy_delay_upper_limit)
-            self.kWh_subsidy = random.choice(floatRange(_kWh_subsidy_lower_limit ,_kWh_subsidy_upper_limit, 0.001, True))
-            self.subsidy_duration = random.randint(_subsidy_duration_lower_limit, _subsidy_duration_upper_limit )
+        self.kWh_subsidy = get_config_value(_config, 'SUBSIDY.kWh_subsidy', float)
+        self.subsidy_duration = get_config_value(_config, 'SUBSIDY.subsidy_duration', int)
+        _subsidy_delay = get_config_value(_config, 'SUBSIDY.subsidy_delay', float)  #reciving values from config
+        self.subsidy_delay = _subsidy_delay if not TESTMODE else 0
 
         #calculate first day of subside by adding subsidy_delay to last_day_construction+1
-        self.first_day_subsidy = addXMonths(self.last_day_construction+datetime.timedelta(days=1), self.subsidy_delay)
+        self.first_day_subsidy = addXMonths(last_day_construction + datetime.timedelta(days=1), self.subsidy_delay)
         self.last_day_subsidy = addXMonths(self.first_day_subsidy, self.subsidy_duration)
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
     def getConfigsValues(self):
-        return  self.configs
+        return self.configs
+
 
 class TechnologyModuleConfigReader():
     """Module fore reading Technology configs from file"""
-    def __init__(self, _filename='tm_config.ini'):
-        _config = ConfigParser.ConfigParser()
-        _filepath = os.path.join(os.getcwd(), 'configs', _filename) #finds config file path
-        _config.read(_filepath)
+
+    def __init__(self, _country, _filename='tm_config.ini'):
+
+        _config = parse_yaml(_filename, _country)  #loads config to memory
 
         ######################## BASE ###################
-        self.groups_number = _config.getint('Equipment', 'groups_number')
-        self.modules_in_group = _config.getint('Equipment', 'modules_in_group')
-        self.transformer_present = _config.getboolean('Equipment', 'transformer_present')
-        self.network_available_probability = _config.getfloat('Network', 'network_available_probability') / 100
-        self.degradation_yearly = _config.getfloat('SolarModule', 'PV_degradation_rate') / 100
-        self.module_power = _config.getfloat('SolarModule', 'module_power')
+        self.groups_number = get_config_value(_config, 'EQUIPMENT.groups_number', int)
+        self.modules_in_group = get_config_value(_config, 'EQUIPMENT.modules_in_group', int)
+        self.transformer_present = get_config_value(_config, 'EQUIPMENT.transformer_present', bool)
+        self.network_available_probability = get_config_value(_config, 'NETWORK.network_available_probability', 'float_percent')
+        self.degradation_yearly = get_config_value(_config, 'SOLAR_MODULE.PV_degradation_rate', 'float_percent')
+        self.module_power = get_config_value(_config, 'SOLAR_MODULE.module_power', float)
 
         ######################## PRICE ###################
-        self.module_price = _config.getfloat('SolarModule', 'module_price')
-        self.inverter_price = _config.getfloat('Inverter', 'inverter_price')
-        self.transformer_price = _config.getfloat('Transformer', 'transformer_price')
-
-        self.documentation_price = _config.getfloat('AdditionalPrice', 'documentation_price')
-        self.connection_grip_cost = _config.getfloat('AdditionalPrice', 'connection_grip_cost')
+        self.module_price = get_config_value(_config, 'SOLAR_MODULE.module_price', float)
+        self.inverter_price = get_config_value(_config, 'INVERTER.inverter_price', float)
+        self.transformer_price = get_config_value(_config, 'TRANSFORMER.transformer_price', float)
+        self.documentation_price = get_config_value(_config, 'ADDITIONAL_PRICE.documentation_price', float)
+        self.connection_grip_cost = get_config_value(_config, 'ADDITIONAL_PRICE.connection_grip_cost', float)
 
         ####################### RELIABILTY ####################
-        self.module_reliability = _config.getfloat('SolarModule', 'module_reliability') / 100
-        self.inverter_reliability = _config.getfloat('Inverter', 'inverter_reliability') / 100
-        self.transformer_reliability = _config.getfloat('Transformer', 'transformer_reliability') / 100
+        self.module_reliability = get_config_value(_config, 'SOLAR_MODULE.module_reliability', 'float_percent')
+        self.inverter_reliability = get_config_value(_config, 'INVERTER.inverter_reliability', 'float_percent')
+        self.transformer_reliability = get_config_value(_config, 'TRANSFORMER.transformer_reliability', 'float_percent')
 
         ####################### EFFICIENCY ####################
-        self.module_power_efficiency = _config.getfloat('SolarModule', 'module_power_efficiency') / 100
-        self.inverter_power_efficiency = _config.getfloat('Inverter', 'inverter_power_efficiency') / 100
-        self.transformer_power_efficiency = _config.getfloat('Transformer', 'transformer_power_efficiency') / 100
+        self.module_power_efficiency = get_config_value(_config, 'SOLAR_MODULE.module_power_efficiency', 'float_percent')
+        self.inverter_power_efficiency = get_config_value(_config, 'INVERTER.inverter_power_efficiency', 'float_percent')
+        self.transformer_power_efficiency = get_config_value(_config, 'TRANSFORMER.transformer_power_efficiency', 'float_percent')
 
-        self.configs = getConfigs(self.__dict__) #load all configs started not with _ to dict
+        self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
     def getConfigsValues(self):
-        return  self.configs
+        return self.configs
+
 
 class EconomicModuleConfigReader():
     """Module for reading Economic configs from file"""
+
     def __init__(self, start_date_project, _filename='ecm_config.ini'):
         """Reads module config file
         @self.insuranceLastDayEquipment - last day when we need to pay for insurance
         """
         _config = ConfigParser.ConfigParser()
-        _filepath = os.path.join(os.getcwd(), 'configs', _filename) #finds config file path
+        _filepath = os.path.join(os.getcwd(), 'configs', _filename)  #finds config file path
         _config.read(_filepath)
 
         self.tax_rate = _config.getfloat('Taxes', 'tax_rate') / 100
@@ -226,7 +216,7 @@ class EconomicModuleConfigReader():
         ######################### ElectricityMarketPriceSimulation ############
         # loading varibales needed to ElectricityMarketPriceSimulation
         self.S0 = _config.getfloat('ElectricityMarketPriceSimulation', 'S0')
-        self.dt =  _config.getfloat('ElectricityMarketPriceSimulation', 'dt')
+        self.dt = _config.getfloat('ElectricityMarketPriceSimulation', 'dt')
         self.Lambda = _config.getfloat('ElectricityMarketPriceSimulation', 'Lambda')
         self.y = _config.getfloat('ElectricityMarketPriceSimulation', 'y')
         self.delta_q = _config.getfloat('ElectricityMarketPriceSimulation', 'delta_q')
@@ -237,11 +227,12 @@ class EconomicModuleConfigReader():
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
     def getConfigsValues(self):
-        return  self.configs
+        return self.configs
 
 
 class EnergyModuleConfigReader():
     """Module fore reading Energy configs from file"""
+
     def __init__(self, _filename='em_config.ini'):
         _config = ConfigParser.ConfigParser()
         _filepath = os.path.join(os.getcwd(), 'configs', _filename)
@@ -256,13 +247,15 @@ class EnergyModuleConfigReader():
         self.TMin = _config.getfloat('WeatherSimulation', 'TMin')  #MIN temperature that can be simulated
         self.TMax = _config.getfloat('WeatherSimulation', 'TMax')  #MAX temperature that can be simulated
 
-        self.configs = getConfigs(self.__dict__)   #load all configs started not with _ to dict
+        self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
     def getConfigsValues(self):
-        return  self.configs
+        return self.configs
+
 
 class RiskModuleConfigReader():
     """Module fore reading Risk configs from file"""
+
     def __init__(self, _filename='rm_config.ini'):
         _config = ConfigParser.ConfigParser()
         _filepath = os.path.join(os.getcwd(), 'configs', _filename)
@@ -275,15 +268,16 @@ class RiskModuleConfigReader():
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
     def getConfigsValues(self):
-        return  self.configs
+        return self.configs
 
 
 class EmInputsReader():
     """Module for reading Inputs for Energy Module"""
+
     def __init__(self):
         """Loads inputs to memory"""
         filepath = os.path.join(os.getcwd(), 'inputs', 'em_input.txt')  #finds file path to inputs
-        self.inputs = numpy.genfromtxt(filepath, dtype=None, delimiter=';',  names=True)  #reads file content to memory
+        self.inputs = numpy.genfromtxt(filepath, dtype=None, delimiter=';', names=True)  #reads file content to memory
         self.inputs_insolations = [i[1] for i in self.inputs]  #gets values insolations to list
         self.inputs_temperature = [i[2] for i in self.inputs]  #get values - temperature to list where list_id - month_no-1
 
@@ -295,13 +289,12 @@ class EmInputsReader():
         """Returns average daily insolation in given date"""
         return self.inputs_temperature[month]
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     m = MainConfig()
     print m.getConfigsValues()
 
-
-    ecm = EconomicModuleConfigReader(datetime.date(2000,1,1))
+    ecm = EconomicModuleConfigReader(datetime.date(2000, 1, 1))
     print ecm.getConfigsValues()
 
     print parse_list_and_get_random('1')

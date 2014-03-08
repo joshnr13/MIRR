@@ -8,7 +8,7 @@ class SubsidyModule(BaseClassConfig, SubsidyModuleConfigReader):
     """Module for calculation subside values for production electricity"""
     def __init__(self, config_module):
         BaseClassConfig.__init__(self, config_module)  #init base class config to have ability to use all main config values
-        SubsidyModuleConfigReader.__init__(self)  #load config values for current module
+        SubsidyModuleConfigReader.__init__(self, last_day_construction=self.last_day_construction)  #load config values for current module
 
     def subsidyProduction1KW(self, date):
         """return subsidy in EUR for production 1Kwh on given @date"""
