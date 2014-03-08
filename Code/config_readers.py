@@ -6,79 +6,32 @@ import random
 import datetime
 import ConfigParser
 from annex import addXMonths, addXYears, getReportDates, getConfigs, floatRange, getListDates, cached_property
+from config_yaml_reader import parse_yaml, get_config_value
 from constants import TESTMODE
 import numpy
-
-def parse_list_and_get_random(values, value_type=int):
-    """
-    Parses input
-    if one value - return it
-    if two - return range(min, max, with step = 1)
-    if three - return range(min, max, with step = last_value)
-    """
-    list_values = values.split(',')
-    len_values = len(list_values)
-
-    if not values or len_values > 3:
-        raise ValueError("Config value error " + values)
-
-    if len_values == 1:
-        return value_type(list_values[0])
-    elif len_values == 3:
-        step = value_type(list_values.pop(2))
-    else:
-        step = 1
-
-    min_value = min(map(value_type, list_values))
-    max_value = max(map(value_type, list_values))
-    if TESTMODE:
-        return value_type(0.5*(min_value + max_value))
-    else:
-        return random.choice(floatRange(min_value, max_value, step, True))
-
-
-def config_get_random(config, section, param, value_type='guess'):
-    value = config.get(section, param)
-    if value_type == 'guess':
-        if '.' in value:
-            if value.replace(' ', '').replace('.', '').replace(',', '').isdigit():
-                value_type = float
-        elif value.replace(' ', '').replace(',', '').isdigit():
-            value_type = int
-        else:
-            value_type = str
-
-    if value_type == str:
-        return value
-    elif value_type in (int, float):
-        return parse_list_and_get_random(value, value_type=value_type)
 
 class MainConfig():
     """Module for reading configs from main config file"""
 
-    def __init__(self, _filename='main_config.ini'):
+    def __init__(self, _country, _filename='main_config.ini'):
         """Reads main config file """
 
-        _config = ConfigParser.ConfigParser()
-        _filepath = os.path.join(os.getcwd(), 'configs', _filename)  #gets file path to configs file
-        _config.read(_filepath)  #load config to memory
+        _config = parse_yaml(_filename, _country)
 
-        self.lifetime = _config.getint('Main', 'lifetime')  #load values from section Main with value lifetime
-        self.resolution = _config.getint('Main', 'resolution')
-        self.start_date = datetime.datetime.strptime(_config.get('Main', 'start_date'), '%Y/%m/%d').date()
+        self.lifetime = get_config_value(_config, 'MAIN.lifetime', int)  #load values from section Main with value lifetime
+        self.resolution = get_config_value(_config, 'MAIN.resolution', int)
+        self.start_date = get_config_value(_config, 'MAIN.start_date', 'date')
 
         ######################### DELAYS ######################################
-        _permit_procurement_duration_lower_limit = _config.getfloat('Delays', 'permit_procurement_duration_lower_limit')
-        _permit_procurement_duration_upper_limit = _config.getfloat('Delays', 'permit_procurement_duration_upper_limit')
-        _construction_duration_lower_limit = _config.getfloat('Delays', 'construction_duration_lower_limit')
-        _construction_duration_upper_limit = _config.getfloat('Delays', 'construction_duration_upper_limit')
+        _permit_procurement_duration = get_config_value(_config, 'DELAYS.permit_procurement_duration', int)
+        _construction_duration = get_config_value(_config, 'DELAYS.construction_duration', int)
 
         if TESTMODE:  #In case testmode sets permit and construction duration fixed
             self.real_permit_procurement_duration = 0
             self.real_construction_duration = 0
         else :       #In case real mode sets permit and construction duration RANDOM from user range
-            self.real_permit_procurement_duration = random.randrange(_permit_procurement_duration_lower_limit, _permit_procurement_duration_upper_limit+1)
-            self.real_construction_duration = random.randrange(_construction_duration_lower_limit, _construction_duration_upper_limit+1)
+            self.real_permit_procurement_duration = _permit_procurement_duration
+            self.real_construction_duration = _construction_duration
 
         #calculates last day of construction by adding real_construction_duration + real_permit_procurement_duration to start date
         self.last_day_construction = addXMonths(self.start_date, self.real_permit_procurement_duration+self.real_construction_duration)
@@ -86,7 +39,7 @@ class MainConfig():
         self.end_date = addXYears(self.start_date, self.lifetime)
         self.report_dates, self.report_dates_y = getReportDates(self.start_date, self.end_date)  #dict with Monthly report dates
 
-        self.simulation_number = _config.getint('Simulation', 'simulation_number')
+        self.simulation_number = get_config_value(_config, 'SIMULATION.simulation_number', int)
         self.configs = getConfigs(self.__dict__)
 
     def getStartDate(self):
