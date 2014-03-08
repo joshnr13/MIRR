@@ -226,7 +226,7 @@ class Simulation():
 
     def prepareMirr(self):
         """prepare All modules for simulation"""
-        self.i = Mirr()
+        self.i = Mirr(self.country)
 
     def addIterationIrrs(self):
         """Adds irr results to attrributes"""

@@ -210,7 +210,7 @@ class EconomicModuleConfigReader():
 
         ######################### DEPRICATION #################################
         #gets deprication_duration and convert it to months
-        self.debt_years = 12 * get_config_value(_config, 'AMORTIZATION.duration', float)
+        self.deprication_duration = 12 * get_config_value(_config, 'AMORTIZATION.duration', float)
 
         ######################### ElectricityMarketPriceSimulation ############
         # loading varibales needed to ElectricityMarketPriceSimulation
