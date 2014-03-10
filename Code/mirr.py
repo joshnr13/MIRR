@@ -5,20 +5,20 @@
 
 import sys
 import traceback
+from collections import OrderedDict
+from random import randint
 
-from collections import  OrderedDict
 from annex import getInputDate, getInputInt, memoize, getInputComment
 from database import Database
 from ecm import ElectricityMarketPriceSimulation
 from em import WeatherSimulation
-from simulations import  runAndSaveSimulation
+from simulations import runAndSaveSimulation
 from _mirr import Mirr
 from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRScatterChart, plotStepChart
 from report_output import ReportOutput
-from config_readers import MainConfig
-from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD,  REPORT_DEFAULT_NUMBER_ITERATIONS
-from rm import  analyseSimulationResults, plotSaveStochasticValuesSimulation, plotGeneratedWeather,  plotGeneratedElectricity
-from random import randint
+from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD, REPORT_DEFAULT_NUMBER_ITERATIONS
+from rm import analyseSimulationResults, plotSaveStochasticValuesSimulation, plotGeneratedWeather, plotGeneratedElectricity
+
 
 commands = OrderedDict()  #Commands sequence for menu, all commands is method of Interfave class
 commands['1'] = 'runSimulation'
@@ -41,8 +41,10 @@ commands['16'] = 'outputGeneratedElectricityPrices'  #Graph of daily electricty 
 commands['17'] = 'outputGeneratedWeatherData'  #Graph of daily electricty market prices
 commands['0'] = 'stop'
 
+
 class Interface():
     """Class for Main menu for all operations"""
+
     def __init__(self):
         self.db = Database()
         # self.main_config = MainConfig()  #link to main config
@@ -54,7 +56,7 @@ class Interface():
 
         if iterations_no is None:
             iterations_no = self.getNumberIterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)  #ask user how many iterations
-        if comment is  None:
+        if comment is None:
             comment = getInputComment()  #get user comment
 
         simulation_no = runAndSaveSimulation(country, iterations_no, comment)  #runing
@@ -65,8 +67,8 @@ class Interface():
         2 Saves report to xls file
         3 Print stats to output
         """
-        if simulation_no is  None:
-            simulation_no =  self.getInputSimulation("plotting IRR distribution ")
+        if simulation_no is None:
+            simulation_no = self.getInputSimulation("plotting IRR distribution ")
         analyseSimulationResults(simulation_no, yearly=True)
 
     def mainReport(self):
@@ -77,26 +79,26 @@ class Interface():
 
     def charts(self):
         """Plots Revenue, Cost charts monthly and yearly for user definded simulation no"""
-        simulation_no, iteration_no =  self.getSimulationIterationNums("for plotting revenue-costs charts ")
+        simulation_no, iteration_no = self.getSimulationIterationNums("for plotting revenue-costs charts ")
         plotRevenueCostsChart(simulation_no, iteration_no, yearly=False)  #plot monthly chart
-        plotRevenueCostsChart(simulation_no, iteration_no, yearly=True)   #plot yearly chart
+        plotRevenueCostsChart(simulation_no, iteration_no, yearly=True)  #plot yearly chart
 
     def printEquipment(self):
         """Prints equipment of user defined simulation no , used first iteration"""
-        simulation_no =  self.getInputSimulation("printing equipment ")
+        simulation_no = self.getInputSimulation("printing equipment ")
         print self.db.getIterationField(simulation_no, iteration_no=1, field='equipment_description')
 
     def outputPrimaryEnergy(self):
         """Plots solar insolations step chart for user definded simulation no, iteration no and data range"""
-        simulation_no, iteration_no =  self.getSimulationIterationNums("for printing chart with Primary Energy ")
+        simulation_no, iteration_no = self.getSimulationIterationNums("for printing chart with Primary Energy ")
         start_date, end_date, resolution = self.getStartEndResolution()  #ask user start date, end, resolution
-        plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field= 'insolations_daily')
+        plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field='insolations_daily')
 
     def outputElectricityProduction(self):
         """Plots electricity production step chart for user definded simulation no, iteration no and data range"""
-        simulation_no, iteration_no =  self.getSimulationIterationNums("for printing chart with Electricity Production ")
+        simulation_no, iteration_no = self.getSimulationIterationNums("for printing chart with Electricity Production ")
         start_date, end_date, resolution = self.getStartEndResolution()  #ask user start date, end, resolution
-        plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field= 'electricity_production_daily')
+        plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field='electricity_production_daily')
 
     def irrCorrelations(self):
         """plots correlations chart with IRR values"""
@@ -122,27 +124,34 @@ class Interface():
     def simulationsLog(self, last=None):
         """Show last simulation logs - short information about number of iterations,date and comments"""
         default = 10
-        if last is  None:
-            last = getInputInt("Please input number of number of last simulations to display (or press Enter to use default %s) : " %default, default)
+        if last is None:
+            last = getInputInt("Please input number of number of last simulations to display (or press Enter to use default %s) : " % default,
+                               default)
         self.db.printLastSimulationsLog(last)
 
     def deleteSimulation(self, simulation_no=None):
         """Deletes user entered simulation number"""
-        if simulation_no is  None:
+        if simulation_no is None:
             simulation_no = self.getInputSimulation("DELETING: ")
         self.db.deleteSimulation(simulation_no)
 
     def generateWeatherData(self, country=None):
         """Generates multi simulations of Weather data for each day in project and saves it to database"""
+        if country is None:
+            country = self.getInputCountry()
+
         simulations_no = 100
-        period = self.getMirr().main_config.getAllDates()
+        period = self.getMirr(country).main_config.getAllDates()
         simulations = WeatherSimulation(country, period, simulations_no)
         simulations.simulate()
 
     def generateElectricityMarketPrice(self, country=None):
         """Generates multi simulations of Electricity Price for each day in project and saves it to database"""
+        if country is None:
+            country = self.getInputCountry()
+
         simulations_no = 100
-        period = self.getMirr().main_config.getAllDates()
+        period = self.getMirr(country).main_config.getAllDates()
         simulations = ElectricityMarketPriceSimulation(country, period, simulations_no)
         simulations.simulate()
 
@@ -156,7 +165,7 @@ class Interface():
 
     def outputGeneratedWeatherData(self, simulation_no=None):
         """Plots graph of generated Electricity Prices from user defined simulation_no"""
-        what =  "Weather data"
+        what = "Weather data"
         if simulation_no is None:
             simulation_no = self.getInputWeatherElectricitySimulationNo(what)
         plotGeneratedWeather(what, simulation_no)
@@ -169,35 +178,36 @@ class Interface():
         plotCorrelationTornadoChart(field, simulation_no)
 
     @memoize
-    def getMirr(self):
+    def getMirr(self, country):
         """return class instances that combines all modules together"""
-        return Mirr()
+        return Mirr(country)
 
     def getNumberIterations(self, text="", default=""):
         """User input for number of iterations"""
-        return  getInputInt("Please select number of iterations to run (or press Enter to use default %s) : " %default, default)
+        return getInputInt("Please select number of iterations to run (or press Enter to use default %s) : " % default, default)
 
     def getInputSimulation(self, text=""):
         """User input for choosing simulation no"""
         last_simulation = self.db.getLastSimulationNo()
-        return  getInputInt("Please input ID of simulation for %s (or press Enter to use last-run %s): " %(text, last_simulation), last_simulation)
+        return getInputInt("Please input ID of simulation for %s (or press Enter to use last-run %s): " % (text, last_simulation), last_simulation)
 
     def getInputIteration(self, text, simulation_no):
         """User input for choosing iteration no"""
-        iterations = "[1-%s]" % (self.db.getIterationsNumber(simulation_no)+1)
-        return  getInputInt("Please enter iteration of Simulation %s for %s from %s (or press Enter to use first): " %(simulation_no, text, iterations), 1)
+        iterations = "[1-%s]" % (self.db.getIterationsNumber(simulation_no) + 1)
+        return getInputInt(
+            "Please enter iteration of Simulation %s for %s from %s (or press Enter to use first): " % (simulation_no, text, iterations), 1)
 
     def getSimulationIterationNums(self, text):
         """User input for choosing simulation no and iteration no"""
-        simulation_no =  self.getInputSimulation(text)
-        iteration_no =  self.getInputIteration(text, simulation_no )
+        simulation_no = self.getInputSimulation(text)
+        iteration_no = self.getInputIteration(text, simulation_no)
         return (simulation_no, iteration_no)
 
 
     def getInputWeatherElectricitySimulationNo(self, what='????'):
         """User Input for weather or electricity simulation no"""
         random_no = randint(1, 100)
-        result = getInputInt("Please input which %s simulation Number to plot (or press Enter to plot random - %s): " %(what, random_no), random_no)
+        result = getInputInt("Please input which %s simulation Number to plot (or press Enter to plot random - %s): " % (what, random_no), random_no)
         return result
 
     def getInputElectricitySimulationNoOrAll(self, what='????'):
@@ -206,11 +216,11 @@ class Interface():
 
     def getInputCountry(self):
         countries = OrderedDict()
-        countries[1]='SLOVENIA'
-        countries[2]='AUSTRIA'
-        countries[3]='ITALY'
-        countries[4]='GERMANY'
-        countries[5]='SPAIN'
+        countries[1] = 'SLOVENIA'
+        countries[2] = 'AUSTRIA'
+        countries[3] = 'ITALY'
+        countries[4] = 'GERMANY'
+        countries[5] = 'SPAIN'
 
         for key, value in countries.items():
             print key, ' --> ', value
@@ -220,13 +230,16 @@ class Interface():
         print "User choice ", user_choice
         return user_choice
 
-    def getStartEndResolution(self):
+    def getStartEndResolution(self, country=None):
         """return  StartEndResolution based on default values and user input, that can modify defaults"""
-        def_start = self.getMirr().main_config.getStartDate()  #get defaults
-        def_end = self.getMirr().main_config.getEndDate() #get defaults
-        def_res = self.getMirr().main_config.getResolution() #get defaults
+        if country is None:
+            country = self.getInputCountry()
+        mirr = self.getMirr(country)
+        def_start = mirr.main_config.getStartDate()  #get defaults
+        def_end = mirr.main_config.getEndDate()  #get defaults
+        def_res = mirr.main_config.getResolution()  #get defaults
 
-        memo = " (from %s to %s)" % (def_start,def_end)
+        memo = " (from %s to %s)" % (def_start, def_end)
         memo_res = "Please select resolution of graph in days (or press Enter to use default %s) : " % def_res
 
         start_date = getInputDate(text="Start date" + memo, default=def_start)  #get user input of use default
@@ -248,12 +261,14 @@ class Interface():
         for k, v in (commands.items()):
             print "%s = %s" % (k, v)
 
+
 def printEntered(line):
     """print user choosed line"""
     if line in commands:
         print "Entered %s - %s" % (line, commands[line])
     else:
         print "Entered %s " % (line, )
+
 
 def runMethod(obj, line):
     """run method of Interface class, name of method is taken from GLOBAL dict commands"""
@@ -262,6 +277,7 @@ def runMethod(obj, line):
     else:
         method = getattr(obj, line, obj.noMethod)
     method()
+
 
 if __name__ == '__main__':
     """This runs when this module executed"""

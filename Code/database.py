@@ -162,7 +162,7 @@ class Database():
                                                collection='simulations')
         return  results
 
-    def getIterationValuesFromDb(self,  simulation_no, fields, yearly, not_changing_fields=[], iteration_no=None, one_result=False):
+    def getIterationValuesFromDb(self, simulation_no, fields, yearly, not_changing_fields=[], iteration_no=None, one_result=False):
         """Gets from DB and shows @fields from LAST @number of simulations
         if iteration_no is not None, also filters by iteration no
         - using not_changing_fields with out prefix and
@@ -174,9 +174,9 @@ class Database():
         """
         fields = not_changing_fields + fields
         select_by, get_values = self.formatRequest(fields, not_changing_fields, yearly)
-        select_by['simulation'] =  simulation_no
+        select_by['simulation'] = simulation_no
         if iteration_no:
-            select_by['iteration'] =  iteration_no
+            select_by['iteration'] = iteration_no
             one_result = True
 
         results = self.getResultsFindLimitSimulation(fields, select_by, get_values, yearly, not_changing_fields=not_changing_fields, one_result=one_result)
@@ -189,7 +189,7 @@ class Database():
         fields = CORRELLATION_FIELDS.values()
         results = self.getIterationValuesFromDb(simulation_no, fields, yearly, not_changing_fields=[main_field])  #load iteration values from DB
         if not results:
-            print('No data in Database for simulation %s' %simulation_no)
+            print('No data in Database for simulation %s' % simulation_no)
             return None
 
         main_list_values = results.pop(main_field)  #get main field results
@@ -206,7 +206,7 @@ class Database():
 
     def updateSimulationComment(self, simulation_no, comment):
         """Updates comment in simulation"""
-        self.simulations.update({'simulation': simulation_no,},{"$set":{'comment': comment}} , multi=True, safe=True)
+        self.simulations.update({'simulation': simulation_no,}, {"$set":{'comment': comment}}, multi=True, safe=True)
         print "Updated comment for simulation %s : %s" % (simulation_no, comment)
 
     def printLastSimulationsLog(self, last=10):
@@ -239,13 +239,13 @@ class Database():
         for r in results:
             print u"Simulation %s date %s - iterations %s - %s" % (r["_id"], r["date"], r["iterations_number"], r['comment'])
 
-    def cleanPreviousWeatherData(self):
+    def cleanPreviousWeatherData(self, country):
         """removing previos weather simulations from db"""
-        self.weater_data.drop()
+        self.weater_data.remove({"country": country})
 
-    def cleanPreviousElectricityPriceData(self):
+    def cleanPreviousElectricityPriceData(self, country):
         """removing previos electricity price simulations from db"""
-        self.electricity_prices.drop()
+        self.electricity_prices.remove({"country": country})
 
     def writeWeatherData(self, data):
         """Writes weather data
@@ -258,9 +258,9 @@ class Database():
         """
         self.weater_data.insert(data, safe=True)
 
-    def getWeatherData(self, simulation_no):
+    def getWeatherData(self, simulation_no, country):
         """return  weather data with defined @simulation_no"""
-        result = self.weater_data.find_one({"simulation_no": simulation_no}, {"_id": False})
+        result = self.weater_data.find_one({"simulation_no": simulation_no, "country": country}, {"_id": False})
         if result:
             return convertDictDates(result['data'])
 
@@ -268,14 +268,14 @@ class Database():
         """write electricity prices simulation to db"""
         self.electricity_prices.insert(data, safe=True)
 
-    def getElectricityPrices(self, simulation_no):
+    def getElectricityPrices(self, simulation_no, country):
         """return  electricity prices data with defined @simulation_no or list of simulations_no"""
         if isinstance(simulation_no, int):
-            result = self.electricity_prices.find_one({"simulation_no": simulation_no}, {"_id": False})
+            result = self.electricity_prices.find_one({"country": country, "simulation_no": simulation_no}, {"_id": False})
             return convertDictDates(result['data'])
         elif isinstance(simulation_no, list):
             #it simulation no is list - get all electricity prices, indicated in list
-            results = self.electricity_prices.find({'simulation_no': {"$in": simulation_no}}, {"_id": False, 'data': True})
+            results = self.electricity_prices.find({"country": country, 'simulation_no': {"$in": simulation_no}}, {"_id": False, 'data': True})
             return [convertDictDates(result['data']) for result in results]
         else:
             raise ValueError('Incorrect format simulation_no: ' + simulation_no)

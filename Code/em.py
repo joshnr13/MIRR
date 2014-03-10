@@ -15,12 +15,13 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         BaseClassConfig.__init__(self, config_module)  #load main configs
         EnergyModuleConfigReader.__init__(self, country)  #load module configs
         self.inputs = EmInputsReader()  #read inputs from file
-        self.db = Database()  #connection to db
+        self.db = Database()  #connection to
+        self.country = country
 
     @cached_property
     def weather_data(self):
         """Takes weather data from database lazy, only when they are needed"""
-        result = self.db.getWeatherData(self.weather_data_rnd_simulation)
+        result = self.db.getWeatherData(self.weather_data_rnd_simulation, self.country)
         if not result:
             raise ValueError("Please generate first Weather data before using it")
         else:
@@ -30,15 +31,16 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
     def insolations(self):
         """Calculating insolations for whole project lazy, only when they are needed"""
         last_day_construction = self.last_day_construction
-        return  OrderedDict((date, self.weather_data[date][0] if date > last_day_construction else 0) for date in self.all_project_dates)
+        return OrderedDict((date, self.weather_data[date][0] if date > last_day_construction else 0) for date in self.all_project_dates)
 
     def getInsolation(self,  date):
         """return  insolationg at given date"""
-        return  self.insolations[date]
+        return self.insolations[date]
 
     def getInsolationsLifetime(self):
         """return  all dict with insolations dates and values"""
-        return  self.insolations
+        return self.insolations
+
 
 class WeatherSimulation(EnergyModuleConfigReader):
     """module for simulation of weather"""
@@ -49,14 +51,15 @@ class WeatherSimulation(EnergyModuleConfigReader):
         """
         EnergyModuleConfigReader.__init__(self, country)  #module configs
         self.inputs = EmInputsReader()  #read inputs from file
-        self.db = Database()  #connection to db
+        self.db = Database()  # connection to db
         self.period = period
         self.simulations_no = simulations_no
+        self.country = country
 
     def cleanPreviousData(self):
         """cleaning previous simulation data in database"""
-        print "Cleaning previous data"
-        self.db.cleanPreviousWeatherData()
+        print "Cleaning previous data for %r" % self.country
+        self.db.cleanPreviousWeatherData(self.country)
 
     def simulate(self):
         """main method to run simulation"""
@@ -74,10 +77,11 @@ class WeatherSimulation(EnergyModuleConfigReader):
             insolation, temperature = self.generateWeatherData(date)
             days_dict[date.strftime("%Y-%m-%d")] = (insolation, temperature)
         simulation_result = {"simulation_no": simulation_no, "data": days_dict}
-        return  simulation_result
+        return simulation_result
 
     def writeWeatherDataDb(self, data):
         """Saving into db dict"""
+        data['country'] = self.country
         self.db.writeWeatherData(data)
         print 'Writing weather data simulation %s' % data["simulation_no"]
 
@@ -99,11 +103,11 @@ class WeatherSimulation(EnergyModuleConfigReader):
         for _ in range(100):
             rnd_factor = self.getRandomFactor()
             temperature = av_temperature * rnd_factor
-            insolation =  av_insolation * rnd_factor
+            insolation = av_insolation * rnd_factor
             if temperature >= self.TMin and temperature <= self.TMax:
                 break
 
-        return  insolation, temperature
+        return insolation, temperature
 
     def getRandomFactor(self):
         """return random factor with normal distribution"""
@@ -114,9 +118,9 @@ class WeatherSimulation(EnergyModuleConfigReader):
 
     def getAvMonthInsolation(self, date):
         """Returns average daily insolation in given date"""
-        return  self.inputs.getAvMonthInsolationMonth(date.month - 1)
+        return self.inputs.getAvMonthInsolationMonth(date.month - 1)
 
     def getAvMonthTemperature(self, date):
         """Returns average daily temperature in given date"""
-        return  self.inputs.getAvMonthTemperatureMonth(date.month - 1)
+        return self.inputs.getAvMonthTemperatureMonth(date.month - 1)
 
