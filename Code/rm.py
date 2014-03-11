@@ -172,15 +172,15 @@ def plotSaveStochasticValuesSimulation(simulation_no, yearly=True):
     plotHistogramsChart(results, simulation_no, yearly)  #plotting histogram based on DB data
     saveStochasticValuesSimulation(results, simulation_no)  #saving results to XLS file
 
-def plotGeneratedWeather(what, simulation_no):
+def plotGeneratedWeather(what, simulation_no, country):
     """plots graph of generated Weather Insolation and temperature from user defined simulation_no """
-    results = Database().getWeatherData(simulation_no)  #loading data from db
-    plotWeatherChart(results, what, simulation_no)  #plotting chart based on DB data
+    results = Database().getWeatherData(simulation_no, country)  #loading data from db
+    plotWeatherChart(results, what, simulation_no, country)  #plotting chart based on DB data
 
-def plotGeneratedElectricity(what, simulation_no):
+def plotGeneratedElectricity(what, simulation_no, country):
     """plots graph of generated Electricity Prices from user defined simulation_no """
-    results = Database().getElectricityPrices(simulation_no)  #loading data from db
-    plotElectricityChart(results, what=what, simulation_no=simulation_no)  #plotting chart based on DB data
+    results = Database().getElectricityPrices(simulation_no, country)  #loading data from db
+    plotElectricityChart(results, what=what, simulation_no=simulation_no, country=country)  #plotting chart based on DB data
 
 def saveStochasticValuesSimulation(dic_values, simulation_no):
     """Saves IRR values to excel file

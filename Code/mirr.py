@@ -40,6 +40,8 @@ commands['15'] = 'generateElectricityMarketPrice'  #daily electricty market pric
 commands['16'] = 'outputGeneratedElectricityPrices'  #Graph of daily electricty market prices
 commands['17'] = 'outputGeneratedWeatherData'  #Graph of daily electricty market prices
 commands['0'] = 'stop'
+commands['h'] = 'help'
+commands['help'] = 'help'
 
 
 class Interface():
@@ -51,8 +53,7 @@ class Interface():
 
     def runSimulation(self, country=None, iterations_no=None, comment=None):
         """Running simulation and saving results"""
-        if country is None:
-            country = self.getInputCountry()
+        country = self.getInputCountry(country)
 
         if iterations_no is None:
             iterations_no = self.getNumberIterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)  #ask user how many iterations
@@ -137,8 +138,7 @@ class Interface():
 
     def generateWeatherData(self, country=None):
         """Generates multi simulations of Weather data for each day in project and saves it to database"""
-        if country is None:
-            country = self.getInputCountry()
+        country = self.getInputCountry(country)
 
         simulations_no = 100
         period = self.getMirr(country).main_config.getAllDates()
@@ -147,28 +147,31 @@ class Interface():
 
     def generateElectricityMarketPrice(self, country=None):
         """Generates multi simulations of Electricity Price for each day in project and saves it to database"""
-        if country is None:
-            country = self.getInputCountry()
+        country = self.getInputCountry(country)
 
         simulations_no = 100
         period = self.getMirr(country).main_config.getAllDates()
         simulations = ElectricityMarketPriceSimulation(country, period, simulations_no)
         simulations.simulate()
 
-    def outputGeneratedElectricityPrices(self, simulation_no=None):
+    def outputGeneratedElectricityPrices(self, simulation_no=None, country=None):
         """Plots graph of generated Electricity Prices from user defined simulation_no"""
+        country = self.getInputCountry(country)
+
         what = "Electricity prices"
         simulation_no = simulation_no or self.getInputElectricitySimulationNoOrAll(what) or range(1, 101)
         if not isinstance(simulation_no, int):
             print "Plotting all %s can take some time (about 30-60 seconds) ..." % what
-        plotGeneratedElectricity(what, simulation_no)
+        plotGeneratedElectricity(what, simulation_no, country)
 
-    def outputGeneratedWeatherData(self, simulation_no=None):
+    def outputGeneratedWeatherData(self, simulation_no=None, country=None):
         """Plots graph of generated Electricity Prices from user defined simulation_no"""
+        country = self.getInputCountry(country)
+
         what = "Weather data"
         if simulation_no is None:
             simulation_no = self.getInputWeatherElectricitySimulationNo(what)
-        plotGeneratedWeather(what, simulation_no)
+        plotGeneratedWeather(what, simulation_no, country)
 
     ####################################################################################################################
 
@@ -203,7 +206,6 @@ class Interface():
         iteration_no = self.getInputIteration(text, simulation_no)
         return (simulation_no, iteration_no)
 
-
     def getInputWeatherElectricitySimulationNo(self, what='????'):
         """User Input for weather or electricity simulation no"""
         random_no = randint(1, 100)
@@ -214,7 +216,8 @@ class Interface():
         """User Input for electricity simulation or return None"""
         return getInputInt("Please input which %s simulation Number to plot (or press Enter to plot ALL ): " % what, default=None)
 
-    def getInputCountry(self):
+    def getInputCountry(self, country):
+
         countries = OrderedDict()
         countries[1] = 'SLOVENIA'
         countries[2] = 'AUSTRIA'
@@ -222,18 +225,23 @@ class Interface():
         countries[4] = 'GERMANY'
         countries[5] = 'SPAIN'
 
+        if country in countries:
+            return country
+
         for key, value in countries.items():
             print key, ' --> ', value
 
         user_input = getInputInt("Please input country number to use (or press Enter to use DEFAULT): ", default=None)
         user_choice = countries.get(user_input)
-        print "User choice ", user_choice
+        if user_choice is None:
+            print "User choice: 'DEFAULT'"
+        else:
+            print "User choice: %r" % user_choice
         return user_choice
 
     def getStartEndResolution(self, country=None):
         """return  StartEndResolution based on default values and user input, that can modify defaults"""
-        if country is None:
-            country = self.getInputCountry()
+        country = self.getInputCountry(country)
         mirr = self.getMirr(country)
         def_start = mirr.main_config.getStartDate()  #get defaults
         def_end = mirr.main_config.getEndDate()  #get defaults
@@ -259,7 +267,12 @@ class Interface():
         """Show allowed commands"""
         print "Alowed commands (Short name = full name) "
         for k, v in (commands.items()):
-            print "%s = %s" % (k, v)
+            try:
+                int(k)
+            except ValueError:
+                pass
+            else:
+                print "%s = %s" % (k, v)
 
 
 def printEntered(line):
@@ -276,7 +289,12 @@ def runMethod(obj, line):
         method = getattr(obj, commands[line])
     else:
         method = getattr(obj, line, obj.noMethod)
-    method()
+    try:
+        method()
+    except ValueError as e:
+        print "-"*80
+        print "Error: %r" %e
+        print "-"*80
 
 
 if __name__ == '__main__':
@@ -285,7 +303,7 @@ if __name__ == '__main__':
         i = Interface()
         i.help()
         while True:
-            line = raw_input('Prompt command (For exit: 0 or stop; For help: help): ').strip()
+            line = raw_input('Prompt command (For exit: 0 or stop; For help: help or h): ').strip()
             printEntered(line)
             runMethod(i, line)
     except KeyboardInterrupt:

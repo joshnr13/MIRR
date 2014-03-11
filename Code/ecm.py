@@ -26,13 +26,15 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         self.N = len(period)  #number of days
         self.simulations_no = simulations_no
         self.db = Database()
+        self.country = country
 
     def cleanPreviousData(self):
-        print "Cleaning previous data"
-        self.db.cleanPreviousElectricityPriceData()  #before each Simulatation, we should clean previous data
+        print "Cleaning previous ElectricityPriceData for %r" % self.country
+        self.db.cleanPreviousElectricityPriceData(self.country)  #before each Simulatation, we should clean previous data
 
     def writeElectricityPriceData(self, data):
         """writing to database Electricity Prices"""
+        data['country'] = self.country
         self.db.writeElectricityPrices(data)
         print 'Writing electricity price simulation %s' % data["simulation_no"]
 

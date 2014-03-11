@@ -16,7 +16,7 @@ class Database():
         self.iterations = self.db['iterations']                  #table iterations
         self.weater_data = self.db['weater_data']                #table weather data
         self.electricity_prices = self.db['electricity_prices']  #table electrictity prices
-        self.addIndexes()  #indexes for speed
+        self.addIndexes()  # indexes for speed
 
     def getConnection(self):
         """get connection to db"""
@@ -31,16 +31,16 @@ class Database():
     def addIndexes(self):
         """add indexed to database"""
         #self.iterations.ensure_index('simulation', background=True )
-        self.iterations.ensure_index([("simulation", pymongo.ASCENDING), ("iteration", pymongo.ASCENDING)], background=True )  #add simulation and iteration fields to index
-        self.simulations.ensure_index("simulation", background=True )
+        self.iterations.ensure_index([("country", pymongo.ASCENDING), ("simulation", pymongo.ASCENDING), ("iteration", pymongo.ASCENDING)], background=True)  #add simulation and iteration fields to index
+        self.simulations.ensure_index("simulation", background=True)
 
     def deleteSimulation(self, simulation_no ):
         """Deletes selected simulation with @simulation_no"""
-        self.simulations.remove({"simulation":simulation_no})  #removes data with simulation no from table with simulations
-        self.iterations.remove({"simulation":simulation_no})  #removes data with simulation no from table with iterations
+        self.simulations.remove({"simulation": simulation_no})  #removes data with simulation no from table with simulations
+        self.iterations.remove({"simulation": simulation_no})  #removes data with simulation no from table with iterations
         print "Succesfully deleted simulation %s" % simulation_no
         if simulation_no == self.getLastSimulationNo():
-            self.simulation_numbers.update({'_id':'seq'}, {'$inc':{'seq':-1}}, upsert=True)  #changes last simulation no if we deleted last simulation
+            self.simulation_numbers.update({'_id': 'seq'}, {'$inc': {'seq': -1}}, upsert=True)  #changes last simulation no if we deleted last simulation
 
     def insertSimulation(self, record):
         """Safe inserts simulation line to DB"""
@@ -52,30 +52,30 @@ class Database():
 
     def getLastSimulationNo(self):
         """Get last simulation number"""
-        return  self.simulation_numbers.find_one()['seq']
+        return self.simulation_numbers.find_one()['seq']
 
     def getIterationsNumber(self, simulation_no):
         """return  number of iterations of current @simulation_no"""
         field = 'iterations_number'
-        return  self.getSimulationField(simulation_no, field)
+        return self.getSimulationField(simulation_no, field)
 
     def getSimulationField(self, simulation_no, field):
         """return  1 field from db collection simulations limited by @simulation_no"""
-        return  self.simulations.find_one({'simulation': simulation_no}, {field: 1}).get(field, "no-result or error")
+        return self.simulations.find_one({'simulation': simulation_no}, {field: 1}).get(field, "no-result or error")
 
     def getIterationField(self, simulation_no, iteration_no, field):
         """return  1 field from db collection simulations limited by @simulation_no and @iteration_no"""
-        return  self.iterations.find_one({'simulation': simulation_no, 'iteration': iteration_no}, {field: 1}).get(field, "no-result or error")
+        return self.iterations.find_one({'simulation': simulation_no, 'iteration': iteration_no}, {field: 1}).get(field, "no-result or error")
 
     def getReportHeader(self,simulation_no, iteration_no, yearly=False ):
         """return  report header - list of dates """
-        return  self.getIterationField(simulation_no, iteration_no, addYearlyPrefix('report_header', yearly))
+        return self.getIterationField(simulation_no, iteration_no, addYearlyPrefix('report_header', yearly))
 
     def getNextSimulationNo(self):
         """Get next simulation number and reserves it in database
         """
-        self.simulation_numbers.update({'_id':'seq'}, {'$inc':{'seq':1}}, upsert=True)
-        return  self.getLastSimulationNo()
+        self.simulation_numbers.update({'_id': 'seq'}, {'$inc': {'seq': 1}}, upsert=True)
+        return self.getLastSimulationNo()
 
     def formatRequest(self,  fields, not_changing_fields, yearly):
         """formats request to database Mongo, returns dicts with select and get values"""
@@ -87,9 +87,9 @@ class Database():
                 continue
             if field not in not_changing_fields:
                 field = addYearlyPrefix(field, yearly)
-            select_by[field] = { '$exists' : True }
+            select_by[field] = {'$exists': True }
             get_values[field] = True
-        return  select_by, get_values
+        return select_by, get_values
 
     def getResultsFindLimitSimulation(self, fields, select_by, get_values, yearly, convert_to=None, not_changing_fields=[],
                                            collection='iterations', one_result=False):
@@ -158,8 +158,7 @@ class Database():
         select_by['simulation'] = simulation_no
 
         results = self.getResultsFindLimitSimulation(fields, select_by, get_values,
-                                               yearly=False,
-                                               collection='simulations')
+                                               yearly=False, collection='simulations')
         return  results
 
     def getIterationValuesFromDb(self, simulation_no, fields, yearly, not_changing_fields=[], iteration_no=None, one_result=False):
@@ -181,7 +180,7 @@ class Database():
 
         results = self.getResultsFindLimitSimulation(fields, select_by, get_values, yearly, not_changing_fields=not_changing_fields, one_result=one_result)
 
-        return  results
+        return results
 
     def getCorrelationValues(self, main_field, simulation_no, yearly=False):
         """get correlation of main_field with CORRELLATION_FIELDS"""
@@ -202,7 +201,7 @@ class Database():
             rounded_value = round(cor, 3)  #rounding
             correllation_dict[param] = rounded_value  #filling correllation dict
 
-        return  correllation_dict, number_values_used
+        return correllation_dict, number_values_used
 
     def updateSimulationComment(self, simulation_no, comment):
         """Updates comment in simulation"""
@@ -215,7 +214,7 @@ class Database():
         min_s =  last_simulation_no - last + 1
         max_s = last_simulation_no  #range of simulation numbers
 
-        group_by =  {
+        group_by = {
                      "_id" : "$simulation",
                      "iterations_number": {'$last':"$iterations_number"},
                      "date": {'$last': "$date"},
@@ -263,6 +262,8 @@ class Database():
         result = self.weater_data.find_one({"simulation_no": simulation_no, "country": country}, {"_id": False})
         if result:
             return convertDictDates(result['data'])
+        else:
+            raise ValueError("No weather data for %r with simulation_no %s" % (country, simulation_no))
 
     def writeElectricityPrices(self, data):
         """write electricity prices simulation to db"""
@@ -272,11 +273,18 @@ class Database():
         """return  electricity prices data with defined @simulation_no or list of simulations_no"""
         if isinstance(simulation_no, int):
             result = self.electricity_prices.find_one({"country": country, "simulation_no": simulation_no}, {"_id": False})
-            return convertDictDates(result['data'])
+            if result:
+                result = convertDictDates(result['data'])
         elif isinstance(simulation_no, list):
             #it simulation no is list - get all electricity prices, indicated in list
-            results = self.electricity_prices.find({"country": country, 'simulation_no': {"$in": simulation_no}}, {"_id": False, 'data': True})
-            return [convertDictDates(result['data']) for result in results]
+            result = self.electricity_prices.find({"country": country, 'simulation_no': {"$in": simulation_no}}, {"_id": False, 'data': True})
+            if result:
+                result = [convertDictDates(r['data']) for r in result]
         else:
             raise ValueError('Incorrect format simulation_no: ' + simulation_no)
+
+        if not result:
+            raise ValueError('No data for Electricity prices for %r with simulation_no: %s' %(country, simulation_no))
+
+        return result
 

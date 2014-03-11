@@ -13,7 +13,7 @@ from itertools import izip_longest
 
 db = Database()
 
-def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False):
+def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False, country=None):
     """Plots 'revenue', 'cost', 'ebitda', 'deprication' chart"""
 
     fields = ['revenue', 'cost', 'ebitda', 'deprication']
@@ -34,7 +34,7 @@ def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False):
 
     pylab.ylabel("EUROs")
     pylab.legend()
-    pylab.grid(True, which="both",ls="-")
+    pylab.grid(True, which="both", ls="-")
     pylab.axhline()
     pylab.axvline()
 
@@ -81,7 +81,7 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly):
 
     pylab.show()
 
-def plotHistogramsChart(dic_values, simulation_no, yearly):
+def plotHistogramsChart(dic_values, simulation_no, yearly, country=None):
     """
     figures : <title, figure> dictionary
     """
@@ -105,7 +105,7 @@ def plotHistogramsChart(dic_values, simulation_no, yearly):
     fig.suptitle(title, fontsize=14)
     pylab.show()
 
-def plotCorrelationTornadoChart(field_dic, simulation_id, yearly=False):
+def plotCorrelationTornadoChart(field_dic, simulation_id, yearly=False, country=None):
     """Plot tornado chart with correlation of field and other stochastic variables"""
 
     values = []
@@ -176,7 +176,7 @@ def plotCorrelationTornadoChart(field_dic, simulation_id, yearly=False):
 
     pylab.show()
 
-def plotIRRScatterChart(simulation_no, field, yearly=False):
+def plotIRRScatterChart(simulation_no, field, yearly=False, country=None):
     """
     Plots XY chart for correlation @field with CORRELLATION_FIELDS
     figures : <title, figure> dictionary
@@ -256,7 +256,7 @@ def plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution,
     pylab.show()
 
 
-def plotWeatherChart(data_dic, what, simulation_no):
+def plotWeatherChart(data_dic, what, simulation_no, country):
     """Plot Weather Insolation and Temperature
     XY chart for @what , which will be title,
     based on @data_dic,
@@ -285,12 +285,12 @@ def plotWeatherChart(data_dic, what, simulation_no):
     ax2.plot(x_values, y_values_temp, 'r--')
     ax2.set_ylabel('Temperature')
 
-    plt.title(' %s simulation %s' % (what, simulation_no))
+    plt.title('%r - %s simulation %s' % (country, what, simulation_no))
     plt.xlabel("Dates")
     plt.show()
 
 
-def plotElectricityChart(data_list, what, simulation_no):
+def plotElectricityChart(data_list, what, simulation_no, country):
     """Plot Electricity prices simple XY chart for @what , which will be title,
     based on @data_dic,
     which keys will be X values and values will be Y values
@@ -301,9 +301,9 @@ def plotElectricityChart(data_list, what, simulation_no):
 
     if isinstance(simulation_no, int):
         data_list = [data_list]
-        plt.title(' %s simulation %s' % (what, simulation_no))
+        plt.title('%r - %s simulation %s' % (country, what, simulation_no))
     else:
-        plt.title('Multiple (%s) -  %s simulations' % (len(data_list), what))
+        plt.title('%r - Multiple (%s) -  %s simulations' % (country, len(data_list), what))
 
     for data_dic in data_list:
         #iterating ower list of dicts with simulation data
