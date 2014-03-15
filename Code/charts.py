@@ -121,7 +121,7 @@ def plotCorrelationTornadoChart(field_dic, simulation_id, yearly=False, country=
     else:
         rounded_values_dict, number_values_used = results
 
-    if number_values_used  ==  0:
+    if number_values_used == 0:
         print "No needed values in Database. Please run simulations before!"
         return
     else:
@@ -157,7 +157,7 @@ def plotCorrelationTornadoChart(field_dic, simulation_id, yearly=False, country=
 
     pylab.yticks(list(reversed(range(len(y_names)))), y_names)
     pylab.xlabel('correlation coefficient')
-    pylab.title('Sim N. %s. Correlation between %s and stochastic variables - %s iter.' %(simulation_id, main_field_name, number_values_used))
+    pylab.title('%r - Simulation %s - %s iterations\nCorrelation between %s and stochastic variables' %(country, simulation_id, number_values_used, main_field_name))
     pylab.grid(True)
     pylab.xlim(-1,1)
     pylab.ylim(-0.5, len(field_values)-0.5)

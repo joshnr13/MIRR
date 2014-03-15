@@ -184,7 +184,10 @@ class Interface():
     def _run_correlations(self, field):
         """field - dict [short_name] = database name"""
         simulation_no = self.getInputSimulation("%s correlations charts: " % field.keys()[0])
-        plotCorrelationTornadoChart(field, simulation_no)
+        country = self.db.getSimulationCountry(simulation_no=simulation_no,
+                                               print_result=True)
+
+        plotCorrelationTornadoChart(field, simulation_no, country=country)
 
     @memoize
     def getMirr(self, country):
