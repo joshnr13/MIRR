@@ -228,7 +228,8 @@ def plotIRRScatterChart(simulation_no, field, yearly=False, country=None):
 
     pylab.show()
 
-def plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field):
+def plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution,
+                  field, country):
     """Plots step chart based on database data, recieved based on inputs
     simulation_no and iteration_no
     start_date and end_date, date resolution
@@ -251,7 +252,7 @@ def plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution,
         x_values.append(sm+delta)
         sm += delta
 
-    title = "Sim. N. {simulation_no}; Iter. N. {iteration_no}. {field} from {start_date} to {end_date} - res. {resolution} days".format(**locals())
+    title = "{country}\n Sim. N. {simulation_no}; Iter. N. {iteration_no}. {field} {start_date}-{end_date} - res. {resolution} days".format(**locals())
     pylab.step(x_values, y_values)
     pylab.title(title, fontsize=12)
     pylab.show()

@@ -96,13 +96,14 @@ class Interface():
     def outputPrimaryEnergy(self):
         """Plots solar insolations step chart for user definded simulation no, iteration no and data range"""
         simulation_no, iteration_no = self.getSimulationIterationNums("for printing chart with Primary Energy ")
-        start_date, end_date, resolution = self.getStartEndResolution()  #ask user start date, end, resolution
-        plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field='insolations_daily')
+        country = self.db.getSimulationCountry(simulation_no=simulation_no, print_result=True)
+        start_date, end_date, resolution = self.getStartEndResolution(simulation_no, iteration_no)  #ask user start date, end, resolution
+        plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field='insolations_daily', country=country)
 
     def outputElectricityProduction(self):
         """Plots electricity production step chart for user definded simulation no, iteration no and data range"""
         simulation_no, iteration_no = self.getSimulationIterationNums("for printing chart with Electricity Production ")
-        start_date, end_date, resolution = self.getStartEndResolution()  #ask user start date, end, resolution
+        start_date, end_date, resolution = self.getStartEndResolution(simulation_no)  #ask user start date, end, resolution
         plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field='electricity_production_daily')
 
     def irrCorrelations(self):
@@ -243,13 +244,20 @@ class Interface():
             print "User choice: %r" % user_choice
         return user_choice
 
-    def getStartEndResolution(self, country=None):
+    def getStartEndResolution(self, simulation_no, iteration_no):
         """return  StartEndResolution based on default values and user input, that can modify defaults"""
-        country = self.getInputCountry(country)
-        mirr = self.getMirr(country)
-        def_start = mirr.main_config.getStartDate()  #get defaults
-        def_end = mirr.main_config.getEndDate()  #get defaults
-        def_res = mirr.main_config.getResolution()  #get defaults
+
+        config_values = self.db.getIterationValuesFromDb(simulation_no=simulation_no,
+                                         fields=['main_configs'],
+                                         yearly=False,
+                                         iteration_no=iteration_no,
+                                         one_result=True,
+                                         )['main_configs']
+
+
+        def_start = config_values['start_date']  #get defaults
+        def_end = config_values['end_date']  #get defaults
+        def_res = int(config_values['resolution'])  #get defaults
 
         memo = " (from %s to %s)" % (def_start, def_end)
         memo_res = "Please select resolution of graph in days (or press Enter to use default %s) : " % def_res

@@ -417,7 +417,10 @@ def getInputDate(default=None, text=''):
         result= dt.datetime.strptime(date,"%Y-%m-%d").date()
     except ValueError:
         print "No value or value error. Return default value %s" % default
-        result = default
+        if isinstance(default, (str, unicode)):
+            result = dt.datetime.strptime(default, "%Y-%m-%d").date()
+        else:
+            result = default
     return result
 
 def getInputInt(text='', default=False):
@@ -427,6 +430,7 @@ def getInputInt(text='', default=False):
         result= int(value)
     except ValueError:
         if default is not False:
+            print "No value or value error. Return default value %s" % default
             result = default
         else:
             raise ValueError("No value or value error")
