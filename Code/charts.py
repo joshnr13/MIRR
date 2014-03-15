@@ -184,13 +184,22 @@ def plotIRRScatterChart(simulation_no, field, yearly=False, country=None):
     ncols : number of columns of subplots wanted in the display
     nrows : number of rows of subplots wanted in the figure
     """
-    cols = 3
-    rows = 2
     prefix = ''
     main = prefix + field
     real_field_shortname = addYearlyPrefix(field, yearly)
 
     figures = Database().getIterationValuesFromDb(simulation_no, [main], yearly, not_changing_fields=CORRELLATION_FIELDS.values())
+    fig_count = len(figures)
+    if fig_count in range(0, 5):
+        cols, rows = 2, 2
+    elif fig_count < 7:
+        cols, rows = 3, 2
+    elif fig_count < 13:
+        cols, rows = 4, 3
+    elif fig_count < 16:
+        cols, rows = 5, 3
+    else:
+        raise ValueError("%s - To many charts cant be shown on screen" % fig_count)
 
     if not figures:
             print ValueError('No data in Database for simulation %s' %simulation_no)
@@ -210,7 +219,7 @@ def plotIRRScatterChart(simulation_no, field, yearly=False, country=None):
 
             obj.plot(irrs, values, 'o')
             obj.set_title(plot_title)
-            obj.set_xlabel(real_field_shortname)
+            obj.set_xlabel(real_field_shortname+"\n", labelpad=-2)
 
             limx, limy = getLimitValues(irrs, values)
 
