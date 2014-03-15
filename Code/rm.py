@@ -108,11 +108,12 @@ def printIRRStats(irr_values_lst):
         print "\tJB test values %s" % dic.get('JBTest', None)
         print "\tJB value %s" % dic.get('JBTest_value', None)
 
-def saveIRRValuesXls(irr_values_lst, simulation_no, yearly):
+def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
     """Saves IRR values to excel file
     @irr_values_lst - list  with 2 complicated dicts inside """
     cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    report_name = "{cur_date}_irr_values_s{simulation_no}.csv".format(**locals())
+
+    report_name = "{cur_date}_{country}_irr_values_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
     output_filename = uniquifyFilename(report_full_name)  #real filename of report
 
@@ -253,9 +254,9 @@ def analyseSimulationResults(simulation_no, yearly=False):
     db = Database()
     field = 'irr_stats'  #which field will be loaded from DB
     irr_values_lst = db.getSimulationValuesFromDB(simulation_no, [field])[field][0]  #loading defined field values from DB
-
-    saveIRRValuesXls(irr_values_lst, simulation_no, yearly)  #saving IRR values to XLS
-    plotIRRChart(irr_values_lst, simulation_no, yearly)  #plotting IRR charts
+    country = db.getSimulationCountry(simulation_no)
+    saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country)  #saving IRR values to XLS
+    plotIRRChart(irr_values_lst, simulation_no, yearly, country)  #plotting IRR charts
     printIRRStats(irr_values_lst)  #outputing to screen IRR stats
 
 if __name__ == '__main__':

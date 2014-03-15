@@ -155,6 +155,13 @@ class Database():
             print "Unexpected error:", sys.exc_info()
             return {}
 
+    def getSimulationCountry(self, simulation_no, print_result=False):
+        s = self.simulations.find_one({'simulation': simulation_no}, {'_id': False, 'country': True})
+        country = str(s['country'])
+        if print_result:
+            print "Simulation %s with country %r" % (simulation_no, country)
+        return country
+
     def getSimulationValuesFromDB(self,  simulation_no, fields):
         """Gets data from collection 'simulations'
         """
@@ -179,14 +186,14 @@ class Database():
         fields = not_changing_fields + fields
         select_by, get_values = self.formatRequest(fields, not_changing_fields, yearly)
         select_by['simulation'] = simulation_no
-        select_by['country'] = country
         if iteration_no:
             select_by['iteration'] = iteration_no
             one_result = True
 
         results = self.getResultsFindLimitSimulation(fields, select_by, get_values, yearly, not_changing_fields=not_changing_fields, one_result=one_result)
         if not results:
-            raise ValueError('No results for simulation %r , country %r , iteration %r ' %(simulation_no, country, iteration_no))
+            raise ValueError('No results for simulation %r , country %r , iteration %s' %
+                             (simulation_no, country, iteration_no))
 
         return results
 

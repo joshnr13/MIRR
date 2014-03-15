@@ -80,8 +80,8 @@ class Interface():
 
     def charts(self):
         """Plots Revenue, Cost charts monthly and yearly for user definded simulation no"""
-        country = self.getInputCountry()
         simulation_no, iteration_no = self.getSimulationIterationNums("for plotting revenue-costs charts ")
+        country = self.db.getSimulationCountry(simulation_no, print_result=True)
         plotRevenueCostsChart(simulation_no, iteration_no, yearly=False, country=country)  #plot monthly chart
         plotRevenueCostsChart(simulation_no, iteration_no, yearly=True, country=country)  #plot yearly chart
 

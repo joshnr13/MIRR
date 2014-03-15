@@ -26,7 +26,7 @@ def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False, country=N
     ebitda = results['ebitda'+suffix]
     deprication = results['deprication'+suffix]
 
-    last_revenue, last_cost, last_ebitda, last_deprication =  revenue[1:], cost[1:], ebitda[1:], deprication[1:]
+    last_revenue, last_cost, last_ebitda, last_deprication = revenue[1:], cost[1:], ebitda[1:], deprication[1:]
 
     pylab.plot(last_revenue, label='REVENUE')
     pylab.plot(last_cost, label='COST')
@@ -42,13 +42,13 @@ def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False, country=N
     title_add = getTitleBasedOnPeriod(yearly)  #generating title Monthly or Yearly
     x_axis_title = getAxisTitleBasedOnPeriod(yearly)
 
-    title = 'Simulation %s - iteration %s . %s' % (simulation_no, iteration_no, title_add)
+    title = '%r - Simulation %s - iteration %s . %s' % (country, simulation_no, iteration_no, title_add)
     pylab.xlabel(x_axis_title)
 
     pylab.title(title)
     pylab.show()
 
-def plotIRRChart(irr_values_lst, simulation_no, yearly):
+def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
     """
     figures : <title, figure> dictionary
     """
@@ -56,10 +56,10 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly):
     for dic in irr_values_lst:
         dig_values = dic['digit_values']
 
-        title1 = "Sim. N. %s. Histogram of %s - %s values" % (simulation_no, dic['field'], len(dig_values))
+        title1 = "%s - Sim. N%s. Histogram of %s - %s values" % (country, simulation_no, dic['field'], len(dig_values))
         figures[title1] = dig_values
 
-        title2 = "Sim N. %s. Chart of %s - %s values" % (simulation_no, dic['field'], len(dig_values))
+        title2 = "%s - Sim N%s. Chart of %s - %s values" % (country, simulation_no, dic['field'], len(dig_values))
         figures[title2] = dig_values
 
     fig, axeslist = pylab.subplots(ncols=2, nrows=2)
