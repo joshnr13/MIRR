@@ -420,7 +420,7 @@ def getInputDate(default=None, text=''):
         result = default
     return result
 
-def getInputInt(text='', default=False, ):
+def getInputInt(text='', default=False):
     """reads input integer value from user"""
     value = raw_input(text)
     try:

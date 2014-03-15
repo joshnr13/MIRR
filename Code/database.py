@@ -52,7 +52,11 @@ class Database():
 
     def getLastSimulationNo(self):
         """Get last simulation number"""
-        return self.simulation_numbers.find_one()['seq']
+        last_records = self.simulations.find({}, {'_id': False}).sort([("$natural", -1)]).limit(1)
+        if last_records.count() == 0:
+            return 0
+        last_record = last_records[0]
+        return last_record['simulation']
 
     def getIterationsNumber(self, simulation_no):
         """return  number of iterations of current @simulation_no"""
