@@ -103,8 +103,9 @@ class Interface():
     def outputElectricityProduction(self):
         """Plots electricity production step chart for user definded simulation no, iteration no and data range"""
         simulation_no, iteration_no = self.getSimulationIterationNums("for printing chart with Electricity Production ")
-        start_date, end_date, resolution = self.getStartEndResolution(simulation_no)  #ask user start date, end, resolution
-        plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field='electricity_production_daily')
+        country = self.db.getSimulationCountry(simulation_no=simulation_no, print_result=True)
+        start_date, end_date, resolution = self.getStartEndResolution(simulation_no, iteration_no)  #ask user start date, end, resolution
+        plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution, field='electricity_production_daily', country=country)
 
     def irrCorrelations(self):
         """plots correlations chart with IRR values"""
