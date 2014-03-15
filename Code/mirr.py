@@ -278,6 +278,7 @@ class Interface():
 
 def printEntered(line):
     """print user choosed line"""
+    print "="*70
     if line in commands:
         print "Entered %s - %s" % (line, commands[line])
     else:
@@ -304,6 +305,7 @@ if __name__ == '__main__':
         i = Interface()
         i.help()
         while True:
+            print "="*70
             line = raw_input('Prompt command (For exit: 0 or stop; For help: help or h): ').strip()
             printEntered(line)
             runMethod(i, line)
