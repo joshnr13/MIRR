@@ -91,9 +91,10 @@ def plotHistogramsChart(dic_values, simulation_no, yearly, country=None):
         title = "%s" % name
         figures[title] = values
 
-    fig, axeslist = pylab.subplots(ncols=3, nrows=2)
+    cols, rows = getNumberColsRows(len(figures))
+    fig, axeslist = pylab.subplots(ncols=cols, nrows=rows)
 
-    for ind,title in izip_longest(range(6), figures):
+    for ind,title in izip_longest(range(cols*rows), figures):
         if title is not None:
             values = figures[title]
             axeslist.ravel()[ind].hist(values, bins=BINS)
@@ -101,7 +102,7 @@ def plotHistogramsChart(dic_values, simulation_no, yearly, country=None):
         else:
             axeslist.ravel()[ind].set_axis_off()
 
-    title = "Sim. N. %s. Stochastic histograms. %s iterations" % (simulation_no, len(values))
+    title = "%s - Sim. N. %s. Stochastic histograms. %s iterations" % (country, simulation_no, len(values))
     fig = pylab.gcf()
     fig.suptitle(title, fontsize=14)
     pylab.show()
@@ -177,6 +178,20 @@ def plotCorrelationTornadoChart(field_dic, simulation_id, yearly=False, country=
 
     pylab.show()
 
+
+def getNumberColsRows(fig_count):
+    if fig_count in range(0, 5):
+        cols, rows = 2, 2
+    elif fig_count < 7:
+        cols, rows = 3, 2
+    elif fig_count < 13:
+        cols, rows = 4, 3
+    elif fig_count < 16:
+        cols, rows = 5, 3
+    else:
+        raise ValueError("%s - To many charts cant be shown on screen" % fig_count)
+    return cols, rows
+
 def plotIRRScatterChart(simulation_no, field, yearly=False, country=None):
     """
     Plots XY chart for correlation @field with CORRELLATION_FIELDS
@@ -189,17 +204,7 @@ def plotIRRScatterChart(simulation_no, field, yearly=False, country=None):
     real_field_shortname = addYearlyPrefix(field, yearly)
 
     figures = Database().getIterationValuesFromDb(simulation_no, [main], yearly, not_changing_fields=CORRELLATION_FIELDS.values())
-    fig_count = len(figures)
-    if fig_count in range(0, 5):
-        cols, rows = 2, 2
-    elif fig_count < 7:
-        cols, rows = 3, 2
-    elif fig_count < 13:
-        cols, rows = 4, 3
-    elif fig_count < 16:
-        cols, rows = 5, 3
-    else:
-        raise ValueError("%s - To many charts cant be shown on screen" % fig_count)
+    cols, rows = getNumberColsRows(len(figures))
 
     if not figures:
             print ValueError('No data in Database for simulation %s' %simulation_no)

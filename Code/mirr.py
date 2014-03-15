@@ -126,6 +126,7 @@ class Interface():
         """Plots and saves stochastic diagrams"""
         if simulation_no is None:
             simulation_no = self.getInputSimulation("stochastic distribution charts: ")
+
         plotSaveStochasticValuesSimulation(simulation_no)
 
     def simulationsLog(self, last=None):

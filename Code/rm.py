@@ -169,9 +169,11 @@ def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
 def plotSaveStochasticValuesSimulation(simulation_no, yearly=True):
     """plots simulation stochastic values and saves them in xls"""
     fields = CORRELLATION_FIELDS.values()  #taking correlation fields needed for analys
-    results = Database().getIterationValuesFromDb(simulation_no, fields=[], yearly=yearly , not_changing_fields=fields)  #loading data from db for correlation fields
-    plotHistogramsChart(results, simulation_no, yearly)  #plotting histogram based on DB data
-    saveStochasticValuesSimulation(results, simulation_no)  #saving results to XLS file
+    db = Database()
+    results = db.getIterationValuesFromDb(simulation_no, fields=[], yearly=yearly , not_changing_fields=fields)  #loading data from db for correlation fields
+    country = db.getSimulationCountry(simulation_no=simulation_no, print_result=True)
+    plotHistogramsChart(results, simulation_no, yearly, country=country)  #plotting histogram based on DB data
+    saveStochasticValuesSimulation(results, simulation_no, country=country)  #saving results to XLS file
 
 def plotGeneratedWeather(what, simulation_no, country):
     """plots graph of generated Weather Insolation and temperature from user defined simulation_no """
@@ -183,11 +185,11 @@ def plotGeneratedElectricity(what, simulation_no, country):
     results = Database().getElectricityPrices(simulation_no, country)  #loading data from db
     plotElectricityChart(results, what=what, simulation_no=simulation_no, country=country)  #plotting chart based on DB data
 
-def saveStochasticValuesSimulation(dic_values, simulation_no):
+def saveStochasticValuesSimulation(dic_values, simulation_no, country):
     """Saves IRR values to excel file
     @dic_values - dict[name]=list of values """
     cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    report_name = "{cur_date}_stochastic_s{simulation_no}.csv".format(**locals())
+    report_name = "{cur_date}_{country}_stochastic_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
     output_filename = uniquifyFilename(report_full_name)
 
