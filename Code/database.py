@@ -161,7 +161,8 @@ class Database():
                                                yearly=False, collection='simulations')
         return  results
 
-    def getIterationValuesFromDb(self, simulation_no, fields, yearly, not_changing_fields=[], iteration_no=None, one_result=False):
+    def getIterationValuesFromDb(self, simulation_no, fields, yearly,
+            not_changing_fields=[], iteration_no=None, one_result=False, country=None):
         """Gets from DB and shows @fields from LAST @number of simulations
         if iteration_no is not None, also filters by iteration no
         - using not_changing_fields with out prefix and
@@ -174,11 +175,14 @@ class Database():
         fields = not_changing_fields + fields
         select_by, get_values = self.formatRequest(fields, not_changing_fields, yearly)
         select_by['simulation'] = simulation_no
+        select_by['country'] = country
         if iteration_no:
             select_by['iteration'] = iteration_no
             one_result = True
 
         results = self.getResultsFindLimitSimulation(fields, select_by, get_values, yearly, not_changing_fields=not_changing_fields, one_result=one_result)
+        if not results:
+            raise ValueError('No results for simulation %r , country %r , iteration %r ' %(simulation_no, country, iteration_no))
 
         return results
 
@@ -211,7 +215,7 @@ class Database():
     def printLastSimulationsLog(self, last=10):
         """prints @last simulations data from database """
         last_simulation_no = self.getLastSimulationNo()  #get last simulation_no
-        min_s =  last_simulation_no - last + 1
+        min_s = last_simulation_no - last + 1
         max_s = last_simulation_no  #range of simulation numbers
 
         group_by = {
@@ -219,12 +223,14 @@ class Database():
                      "iterations_number": {'$last':"$iterations_number"},
                      "date": {'$last': "$date"},
                      "comment" : {'$last': "$comment"},
+                     "country" : {'$last': "$country"},
                      }
 
         project = {
                   '_id': '$simulation',
                   'simulation': '$simulation',
                   "comment":True,
+                  "country":True,
                   "len": {"$sum": "$simulation.iterations"},
                     }
 
@@ -232,11 +238,16 @@ class Database():
             {'$match': {'simulation': {'$lte': max_s, '$gte': min_s,}} },
             {"$group" : group_by},
             {'$sort': {'_id': 1},},
-            ]
+        ]
 
         results = self.simulations.aggregate(pipeline)['result']
         for r in results:
-            print u"Simulation %s date %s - iterations %s - %s" % (r["_id"], r["date"], r["iterations_number"], r['comment'])
+            print u"%s - Simulation %s date %s - iterations %s - '%s'" % (
+                r["country"],
+                r["_id"],
+                r["date"],
+                r["iterations_number"],
+                r['comment'])
 
     def cleanPreviousWeatherData(self, country):
         """removing previos weather simulations from db"""

@@ -17,7 +17,8 @@ def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False, country=N
     """Plots 'revenue', 'cost', 'ebitda', 'deprication' chart"""
 
     fields = ['revenue', 'cost', 'ebitda', 'deprication']
-    results = Database().getIterationValuesFromDb(simulation_no, fields, yearly, iteration_no=iteration_no)  #loding field values form DB
+    results = Database().getIterationValuesFromDb(simulation_no, fields, yearly,
+        iteration_no=iteration_no, country=country)  #loding field values form DB
 
     suffix = '_y' * yearly
     revenue = results['revenue'+suffix]

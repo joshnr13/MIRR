@@ -80,9 +80,10 @@ class Interface():
 
     def charts(self):
         """Plots Revenue, Cost charts monthly and yearly for user definded simulation no"""
+        country = self.getInputCountry()
         simulation_no, iteration_no = self.getSimulationIterationNums("for plotting revenue-costs charts ")
-        plotRevenueCostsChart(simulation_no, iteration_no, yearly=False)  #plot monthly chart
-        plotRevenueCostsChart(simulation_no, iteration_no, yearly=True)  #plot yearly chart
+        plotRevenueCostsChart(simulation_no, iteration_no, yearly=False, country=country)  #plot monthly chart
+        plotRevenueCostsChart(simulation_no, iteration_no, yearly=True, country=country)  #plot yearly chart
 
     def printEquipment(self):
         """Prints equipment of user defined simulation no , used first iteration"""
@@ -216,7 +217,7 @@ class Interface():
         """User Input for electricity simulation or return None"""
         return getInputInt("Please input which %s simulation Number to plot (or press Enter to plot ALL ): " % what, default=None)
 
-    def getInputCountry(self, country):
+    def getInputCountry(self, country=None):
 
         countries = OrderedDict()
         countries[1] = 'SLOVENIA'

@@ -205,6 +205,7 @@ class Simulation():
         self.simulation_record["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
         self.simulation_record["comment"] = self.comment
         self.simulation_record["iterations_number"] = iterations_number  #number of iterations,
+        self.simulation_record["country"] = self.country  #number of iterations,
 
     def addIrrStatsToSimulation(self):
         """Adding irr results to dict with simulation data"""

@@ -131,6 +131,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.db = Database()  #connection to DB
         self.technology_module = technology_module
         self.subside_module = subside_module
+        self.country = country
         self.investments_monthly = OrderedDefaultdict(int)
         self.calcBaseValues()
         self.calcDebtPercents()
@@ -152,7 +153,8 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def electricity_prices(self):
         """This is cached attribute, it is calculated only one time per session
         reads random time sequence of electricity market prices from database"""
-        result = self.db.getElectricityPrices(self.electricity_prices_rnd_simulation)
+        result = self.db.getElectricityPrices(self.electricity_prices_rnd_simulation,
+                                              country=self.country)
         if not result:
             raise ValueError("Please generate first Electricity prices before using it")
         return  result
