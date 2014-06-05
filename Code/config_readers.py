@@ -153,7 +153,7 @@ class TechnologyModuleConfigReader():
         self.inverter_price = get_config_value(_config, 'INVERTER.inverter_price', float)
         self.transformer_price = get_config_value(_config, 'TRANSFORMER.transformer_price', float)
         self.documentation_price = get_config_value(_config, 'ADDITIONAL_PRICE.documentation_price', float)
-        self.connection_grip_cost = get_config_value(_config, 'ADDITIONAL_PRICE.connection_grip_cost', float)
+        self.connection_grid_cost = get_config_value(_config, 'ADDITIONAL_PRICE.connection_grid_cost', float)
 
         ####################### RELIABILTY ####################
         self.module_reliability = get_config_value(_config, 'SOLAR_MODULE.module_reliability', 'float_percent')
