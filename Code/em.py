@@ -116,9 +116,9 @@ class WeatherSimulation(EnergyModuleConfigReader):
 
     def getAvMonthInsolation(self, date):
         """Returns average daily insolation in given date"""
-        return self.inputs.getAvMonthInsolationMonth(date.month - 1)
+        return self.getAvMonthInsolationMonth(date.month - 1)
 
     def getAvMonthTemperature(self, date):
         """Returns average daily temperature in given date"""
-        return self.inputs.getAvMonthTemperatureMonth(date.month - 1)
+        return self.getAvMonthTemperatureMonth(date.month - 1)
 
