@@ -111,7 +111,7 @@ def printIRRStats(irr_values_lst):
 def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
     """Saves IRR values to excel file
     @irr_values_lst - list  with 2 complicated dicts inside """
-    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    cur_date = get_cur_date()
 
     report_name = "{cur_date}_{country}_irr_values_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
@@ -140,7 +140,7 @@ def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
         stat_info1.append(irr_values_lst[0].get(key, ''))
         stat_info2.append(irr_values_lst[1].get(key, ''))
 
-    with open(output_filename,'ab') as f:  #starting write to FILE
+    with open(output_filename, 'ab') as f:  #starting write to FILE
 
         w = csv.writer(f, delimiter=';')
         w.writerow(simulation_info)  #writing simulation info to csv
@@ -175,20 +175,56 @@ def plotSaveStochasticValuesSimulation(simulation_no, yearly=True):
     plotHistogramsChart(results, simulation_no, yearly, country=country)  #plotting histogram based on DB data
     saveStochasticValuesSimulation(results, simulation_no, country=country)  #saving results to XLS file
 
-def plotGeneratedWeather(what, simulation_no, country):
+def plotGeneratedWeather(weather_data, what, simulation_no, country):
     """plots graph of generated Weather Insolation and temperature from user defined simulation_no """
-    results = Database().getWeatherData(simulation_no, country)  #loading data from db
-    plotWeatherChart(results, what, simulation_no, country)  #plotting chart based on DB data
+    plotWeatherChart(weather_data, what, simulation_no, country)  #plotting chart based on DB data
+
+def getWeatherDataFromDb(what, simulation_no, country):
+    return Database().getWeatherData(simulation_no, country)  # loading data from db
+
+def saveWeatheData(weather_data, what, simulation_no, country):
+    cur_date = get_cur_date()
+    report_name = "{cur_date}_{country}_weather_s{simulation_no}.csv".format(**locals())
+    report_full_name = os.path.join(report_directory, report_name)
+    output_filename = uniquifyFilename(report_full_name)
+
+    rows_values = []
+    rows_stats = []
+
+    for date, values in weather_data.items():  # preparing rows with stats for saving to CSV
+        row = [date] + map(lambda x: round(x, 1), values)  #first value = date, other rounded values
+        rows_values.append(row)
+
+    blank_row = [""]
+    simulation_info = ["Simulation number"] + [simulation_no]
+    header = ['Date', 'Insulation', 'Temperature']
+
+    with open(output_filename, 'ab') as f:  # writing all rows to CSV
+        w = csv.writer(f, delimiter=';')
+        w.writerow(simulation_info)
+        w.writerow(blank_row)
+        w.writerow(header)
+        w.writerows(rows_values)
+
+    xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
+    xls_output_filename = uniquifyFilename(xls_output_filename)  # generating filename for XLS
+    convert2excel(source=output_filename, output=xls_output_filename)  # converting CSV to XLS
+
+    print "Weather data Report outputed to file %s" % xls_output_filename  #printing path to generated report
+
 
 def plotGeneratedElectricity(what, simulation_no, country):
     """plots graph of generated Electricity Prices from user defined simulation_no """
     results = Database().getElectricityPrices(simulation_no, country)  #loading data from db
     plotElectricityChart(results, what=what, simulation_no=simulation_no, country=country)  #plotting chart based on DB data
 
+def get_cur_date():
+    return datetime.datetime.now().strftime("%Y-%m-%d")
+
 def saveStochasticValuesSimulation(dic_values, simulation_no, country):
     """Saves IRR values to excel file
     @dic_values - dict[name]=list of values """
-    cur_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    cur_date = get_cur_date()
     report_name = "{cur_date}_{country}_stochastic_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
     output_filename = uniquifyFilename(report_full_name)

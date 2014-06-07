@@ -17,7 +17,8 @@ from _mirr import Mirr
 from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRScatterChart, plotStepChart
 from report_output import ReportOutput
 from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD, REPORT_DEFAULT_NUMBER_ITERATIONS
-from rm import analyseSimulationResults, plotSaveStochasticValuesSimulation, plotGeneratedWeather, plotGeneratedElectricity
+from rm import analyseSimulationResults, plotSaveStochasticValuesSimulation, plotGeneratedWeather, plotGeneratedElectricity, \
+    getWeatherDataFromDb, saveWeatheData
 
 
 commands = OrderedDict()  #Commands sequence for menu, all commands is method of Interfave class
@@ -178,7 +179,9 @@ class Interface():
         what = "Weather data"
         if simulation_no is None:
             simulation_no = self.getInputWeatherElectricitySimulationNo(what)
-        plotGeneratedWeather(what, simulation_no, country)
+        weather_data = getWeatherDataFromDb(what, simulation_no, country)
+        saveWeatheData(weather_data, what, simulation_no, country)
+        plotGeneratedWeather(weather_data, what, simulation_no, country)
 
     ####################################################################################################################
 

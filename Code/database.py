@@ -1,11 +1,9 @@
 import sys
 import pymongo
-import pylab
 from collections import defaultdict
-from numbers import Number
 from annex import addYearlyPrefix, convertDictDates
-from constants import report_directory, CORRELLATION_FIELDS, CORRELLATION_IRR_FIELD
-from numpy import corrcoef, around, isnan
+from constants import CORRELLATION_FIELDS
+
 
 class Database():
     def __init__(self):
