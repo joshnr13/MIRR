@@ -133,7 +133,7 @@ class EquipmentGroup():
         eq = EquipmentConnectionGrid(reliability=1, price=price, power_efficiency=1, power=None, state=0, system_crucial=False, group_cruical=False) #create Equipment class instance
         self.connectiongrid_object = eq
         self.connection_grids = 1
-        self.addEquipment(eq, type='connection_grip')  #adds new created equipment to group with defined type
+        self.addEquipment(eq, type='connection_grid')  #adds new created equipment to group with defined type
 
     def addSolarModule(self, price, reliability, power_efficiency, power):
         eq = EquipmentSolarModule(reliability, price, power_efficiency,power, state=0, system_crucial=False, group_cruical=False) #create Equipment class instance
@@ -177,7 +177,7 @@ class EquipmentGroup():
 
     def getConnectionGridEquipment(self):
         """return list of grid equipment  in current group"""
-        return  self.group_equipment['connection_grip']
+        return  self.group_equipment['connection_grid']
 
     def getTransformerEquipment(self):
         """return  list of transformers  in current group"""

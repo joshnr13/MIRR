@@ -43,7 +43,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def addACTransmission(self):
         """add transformer and connection grid to plant"""
         actransmission_group = self.plant.addACGroup()  #adds new group for that kind of equipment
-        actransmission_group.addConnectionGrid(self.connection_grip_cost)
+        actransmission_group.addConnectionGrid(self.connection_grid_cost)
         if self.transformer_present:
             actransmission_group.addTransformer(self.transformer_price, self.transformer_reliability, self.transformer_power_efficiency)  #add transformer
 
