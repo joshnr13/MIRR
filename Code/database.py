@@ -50,11 +50,8 @@ class Database():
 
     def getLastSimulationNo(self):
         """Get last simulation number"""
-        last_records = self.simulations.find({}, {'_id': False}).sort([("$natural", -1)]).limit(1)
-        if last_records.count() == 0:
-            return 0
-        last_record = last_records[0]
-        return last_record['simulation']
+        return self.simulation_numbers.find_one()['seq']
+
 
     def getIterationsNumber(self, simulation_no):
         """return  number of iterations of current @simulation_no"""
@@ -82,7 +79,13 @@ class Database():
     def getNextSimulationNo(self):
         """Get next simulation number and reserves it in database
         """
-        self.simulation_numbers.update({'_id': 'seq'}, {'$inc': {'seq': 1}}, upsert=True)
+        if not self.simulation_numbers.find_one('seq'):
+            print '*'*80
+            print "THIS IS FIRST SIMULATION IN DATABASE"
+            print '*'*80
+            self.simulation_numbers.update({'_id': 'seq'}, {'$set': {'seq': 0}}, upsert=True)
+        else:
+            self.simulation_numbers.update({'_id': 'seq'}, {'$inc': {'seq': 1}}, upsert=True)
         return self.getLastSimulationNo()
 
     def formatRequest(self,  fields, not_changing_fields, yearly):
