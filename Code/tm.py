@@ -13,6 +13,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def __init__(self, config_module, energy_module, country):
         BaseClassConfig.__init__(self, config_module)  #loading main configs
         TechnologyModuleConfigReader.__init__(self, country)  #loading Technology module configs
+        self.country = country
         self.energy_module = energy_module
         self.calcTotalPower()  #calculates Total Power
         self.assembleSystem()  #creates Plant
@@ -30,7 +31,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def buildPlant(self):
         """creates plant object"""
-        self.plant = PlantEquipment(self.network_available_probability)  #new class Plant
+        self.plant = PlantEquipment(self.network_available_probability, self.country)  #new class Plant
 
     def addSolarModulesAndInverter(self):
         """Adds solar module and inverter in each group"""

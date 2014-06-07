@@ -256,11 +256,28 @@ class EnergyModuleConfigReader():
 
         self.TMin = get_config_value(_config, 'WEATHER_SIMULATION.TMin', float)
         self.TMax = get_config_value(_config, 'WEATHER_SIMULATION.TMin', float)
+        self.inputs = self._parse_inputs(_config)
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
     def getConfigsValues(self):
         return self.configs
+
+    def _parse_inputs(self, _config):
+        dic = {}
+        for month_no, values in _config['INPUTS'].items():
+            ins = int(values['ins'])
+            temp = round(float(values['temp']), 1)
+            dic[str(month_no)] = ([ins, temp])
+        return dic
+
+    def getAvMonthInsolationMonth(self, month):
+        """Returns average daily insolation in given date"""
+        return self.inputs[str(month)][0]
+
+    def getAvMonthTemperatureMonth(self, month):
+        """Returns average daily insolation in given date"""
+        return self.inputs[str(month)][1]
 
 
 class RiskModuleConfigReader():
@@ -277,23 +294,3 @@ class RiskModuleConfigReader():
 
     def getConfigsValues(self):
         return self.configs
-
-
-class EmInputsReader():
-    """Module for reading Inputs for Energy Module"""
-
-    def __init__(self):
-        """Loads inputs to memory"""
-        filepath = os.path.join(os.getcwd(), 'inputs', 'em_input.txt')  #finds file path to inputs
-        self.inputs = numpy.genfromtxt(filepath, dtype=None, delimiter=';', names=True)  #reads file content to memory
-        self.inputs_insolations = [i[1] for i in self.inputs]  #gets values insolations to list
-        self.inputs_temperature = [i[2] for i in self.inputs]  #get values - temperature to list where list_id - month_no-1
-
-    def getAvMonthInsolationMonth(self, month):
-        """Returns average daily insolation in given date"""
-        return self.inputs_insolations[month]
-
-    def getAvMonthTemperatureMonth(self, month):
-        """Returns average daily insolation in given date"""
-        return self.inputs_temperature[month]
-

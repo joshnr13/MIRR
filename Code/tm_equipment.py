@@ -3,10 +3,10 @@
 
 import random
 import numpy
-from annex import lastDayMonth, cached_property, memoized
+from annex import lastDayMonth, memoized
 from collections import defaultdict
-from config_readers import  EmInputsReader
 from datetime import date
+
 
 class Equipment():
     """Is the principal class for all equipment. """
@@ -79,6 +79,7 @@ class Equipment():
         """return  equipment effiency"""
         return  self.efficiency
 
+
 class EquipmentSolarModule(Equipment):
     """Class for holding special info about Solar Modules"""
     def __init__(self, *args, **kwargs):
@@ -92,17 +93,20 @@ class EquipmentSolarModule(Equipment):
     def getPower(self):
         return self.power
 
+
 class EquipmentConnectionGrid(Equipment):
     """Class for holding special info about Solar Modules"""
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
         self.name = "ConnectionGrid Equipment"
 
+
 class EquipmentInverter(Equipment):
     """Class for holding special info about Inverters"""
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
         self.name = "Inverter Equipment"
+
 
 class EquipmentTransformer(Equipment):
     """Class for holding special info about Transformers"""
@@ -111,6 +115,7 @@ class EquipmentTransformer(Equipment):
         self.name = "Transformer Equipment"
 
 ################################# GROUPS ######################
+
 
 class EquipmentGroup():
     """Class for holding info about equipment group"""
@@ -255,12 +260,14 @@ class EquipmentGroup():
 
 ################################ PLANT #######################
 
+
 class PlantEquipment():
     """Class for whole plant equipment"""
-    def __init__(self, network_available_probability ):
+    def __init__(self, network_available_probability, country):
         self.groups = defaultdict(list)  #for holding list of groups in plant
         self.network_available_probability = network_available_probability  #probability of system network
         self.AC_group = None
+        self.country = country
 
     def addGroup(self, group_type):
         """adds new group and returns link to it"""
@@ -329,7 +336,7 @@ class PlantEquipment():
         if self.get_AC_group(): #if we have AC group
             if self.get_AC_group()[0].getConnectionGridEquipment():
                 return True  #return  True if we have connection grid in AC group
-        return  False
+        return False
 
     def getElectricityProductionPlant1Day(self, insolation):
         """return  ElectiricityProduction for whole Plant"""
@@ -346,18 +353,19 @@ class PlantEquipment():
 
     def expectedYearProduction(self):
         """calculates aprox expected yealy production of electricity"""
-        inputs = EmInputsReader()  #load Inputs for Energy Module
+        from config_readers import EnergyModuleConfigReader
+        em_config = EnergyModuleConfigReader(self.country)  #load Inputs for Energy Module
 
         av_insolations = []
         days_in_month = []
         for i in range(1, 13):  #for each month number from 1 to 12
-            av_insolations.append(inputs.getAvMonthInsolationMonth(i-1))  #add to list av.month insollation for 1 day
+            av_insolations.append(em_config.getAvMonthInsolationMonth(i))  #add to list av.month insollation for 1 day
             days_in_month.append(lastDayMonth(date(2000,  i, 1)).day)  #  add to list number of days in cur month
 
         one_day_production = numpy.array([self.getElectricityProductionPlant1Day(insolation) for insolation in av_insolations])  #calc one day production for this 12 days
         whole_year_production = numpy.sum(numpy.array(days_in_month) * one_day_production)  #multiply number of days in month * one day production and summarise them all
 
-        return  round(whole_year_production, 0)  #return rounded value
+        return round(whole_year_production, 0)  #return rounded value
 
     def __str__(self):
         """string representation of Plant object"""
@@ -365,6 +373,6 @@ class PlantEquipment():
 
 
 if __name__ == '__main__':
-    p = PlantEquipment(1)
+    p = PlantEquipment(1, 'NoCountry')
     print p.expectedYearProduction()
 

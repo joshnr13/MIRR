@@ -2,7 +2,7 @@
 # -*- coding utf-8 -*-
 
 from base_class import BaseClassConfig
-from config_readers import EnergyModuleConfigReader, EmInputsReader
+from config_readers import EnergyModuleConfigReader
 from constants import TESTMODE
 from collections import OrderedDict
 from annex import cached_property
@@ -14,7 +14,6 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
     def __init__(self, config_module, country):
         BaseClassConfig.__init__(self, config_module)  #load main configs
         EnergyModuleConfigReader.__init__(self, country)  #load module configs
-        self.inputs = EmInputsReader()  #read inputs from file
         self.db = Database()  #connection to
         self.country = country
 
@@ -50,7 +49,6 @@ class WeatherSimulation(EnergyModuleConfigReader):
         @simulations_no - number of simulation (to save it to db)
         """
         EnergyModuleConfigReader.__init__(self, country)  #module configs
-        self.inputs = EmInputsReader()  #read inputs from file
         self.db = Database()  # connection to db
         self.period = period
         self.simulations_no = simulations_no

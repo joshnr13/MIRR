@@ -2,6 +2,7 @@ from copy import deepcopy
 import os
 import random
 import datetime
+import cStringIO
 import yaml
 from annex import floatRange
 from constants import TESTMODE
@@ -86,10 +87,11 @@ def get_random_config_value(value, value_type='guess'):
 
     if value_type == 'guess':
         if '.' in value:
-            if value.replace(' ', '').replace('.', '').replace(',', '').isdigit():
+            if value.replace(' ', '').replace('.', '').replace(',', '').replace('-', '').isdigit():
                 value_type = float
-        elif value.replace(' ', '').replace(',', '').isdigit():
+        elif value.replace(' ', '').replace(',', '').replace('-', '').isdigit():
             value_type = int
+
         else:
             value_type = str
 
@@ -151,5 +153,5 @@ def get_config_value(dic, path, type_format=None):
     return apply_format(result, type_format)
 
 if __name__ == '__main__':
-    config = parse_yaml('main_config.ini', 'ITALY')
-    print get_config_value(config, 'MAIN.resolution', int)
+    config = parse_yaml('em_config.ini', 'ITALY')
+    print get_config_value(config, 'INPUTS', dict)

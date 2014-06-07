@@ -192,12 +192,12 @@ def saveWeatheData(weather_data, what, simulation_no, country):
     rows_stats = []
 
     for date, values in weather_data.items():  # preparing rows with stats for saving to CSV
-        row = [date] + map(lambda x: round(x, 1), values)  #first value = date, other rounded values
+        row = [date] + values  #first value = date, other values
         rows_values.append(row)
 
     blank_row = [""]
     simulation_info = ["Simulation number"] + [simulation_no]
-    header = ['Date', 'Insulation', 'Temperature']
+    header = ['Date', 'Insolation', 'Temperature']
 
     with open(output_filename, 'ab') as f:  # writing all rows to CSV
         w = csv.writer(f, delimiter=';')

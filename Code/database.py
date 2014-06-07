@@ -67,7 +67,13 @@ class Database():
 
     def getIterationField(self, simulation_no, iteration_no, field):
         """return  1 field from db collection simulations limited by @simulation_no and @iteration_no"""
-        return self.iterations.find_one({'simulation': simulation_no, 'iteration': iteration_no}, {field: 1}).get(field, "no-result or error")
+        query = {'simulation': simulation_no, 'iteration': iteration_no}
+        data = self.iterations.find_one(query, {field: 1})
+        if data is None:
+            print '-'*80
+            raise ValueError('No data for query %s' % query)
+        else:
+            return data.get(field, "no-result or error")
 
     def getReportHeader(self,simulation_no, iteration_no, yearly=False ):
         """return  report header - list of dates """

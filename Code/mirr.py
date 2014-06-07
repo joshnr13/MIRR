@@ -89,9 +89,6 @@ class Interface():
     def printEquipment(self):
         """Prints equipment of user defined simulation no , used first iteration"""
         simulation_no = self.getInputSimulation("printing equipment ")
-        country = self.db.getSimulationCountry(simulation_no,
-                                               print_result=True)
-
         print self.db.getIterationField(simulation_no, iteration_no=1, field='equipment_description')
 
     def outputPrimaryEnergy(self):
