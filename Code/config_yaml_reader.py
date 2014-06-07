@@ -35,20 +35,21 @@ def update_dict(orig_dict, new_dict):
             orig_dict[key] = new_dict[key]
     return orig_dict
 
-def get_country_values(name, country):
+def get_country_values(name, country, silent):
     """
     get country config from file @name using key @country
+    with silent - will no print notification message
     """
     data = read_file(name)
     default_data = data['DEFAULT']
-    if data.has_key(country):
+    if country in data:
         country_data = data[country]
         return update_dict(default_data, country_data)
-    else:
+    elif not silent:
         print '-'*80
         print "No country data in '%s' for %s. Will be used DEFAULT!" % (name, country)
-        print '-'*80
-        return default_data
+
+    return default_data
 
 def parse_list_and_get_random(values, value_type=int):
     """
@@ -110,8 +111,8 @@ def parse(dic):
             result[key] = parse(value)
     return result
 
-def parse_yaml(name, country):
-    config_dict = get_country_values(name, country)
+def parse_yaml(name, country, silent=False):
+    config_dict = get_country_values(name, country, silent)
     parsed_config_dict = parse(config_dict)
     return parsed_config_dict
 
@@ -152,4 +153,3 @@ def get_config_value(dic, path, type_format=None):
 if __name__ == '__main__':
     config = parse_yaml('main_config.ini', 'ITALY')
     print get_config_value(config, 'MAIN.resolution', int)
-

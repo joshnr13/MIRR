@@ -157,7 +157,7 @@ class Database():
 
     def getSimulationCountry(self, simulation_no, print_result=False):
         s = self.simulations.find_one({'simulation': simulation_no}, {'_id': False, 'country': True})
-        country = str(s['country'])
+        country = str(s.get('country', 'Country unknown'))
         if print_result:
             print "Simulation %s with country %r" % (simulation_no, country)
         return country

@@ -13,13 +13,27 @@ from config_yaml_reader import parse_yaml, get_config_value
 from constants import TESTMODE
 
 
+ITERATION_NO = 0
+
+
+def silent():
+    if ITERATION_NO in (0, 1):
+        return False
+    return True
+
+
+def start_iteration(iteration):
+    global ITERATION_NO
+    ITERATION_NO = iteration
+
+
 class MainConfig():
     """Module for reading configs from main config file"""
 
     def __init__(self, country, _filename='main_config.ini'):
         """Reads main config file """
 
-        _config = parse_yaml(_filename, country)
+        _config = parse_yaml(_filename, country, silent())
 
         self.lifetime = get_config_value(_config, 'MAIN.lifetime', int)  #load values from section Main with value lifetime
         self.resolution = get_config_value(_config, 'MAIN.resolution', int)
@@ -116,7 +130,7 @@ class SubsidyModuleConfigReader():
 
     def __init__(self, country, last_day_construction, _filename='sm_config.ini'):
         """Reads module config file"""
-        _config = parse_yaml(_filename, country) #loads config to memory
+        _config = parse_yaml(_filename, country, silent()) #loads config to memory
 
         self.kWh_subsidy = get_config_value(_config, 'SUBSIDY.kWh_subsidy', float)
         self.subsidy_duration = get_config_value(_config, 'SUBSIDY.subsidy_duration', int)
@@ -138,7 +152,7 @@ class TechnologyModuleConfigReader():
 
     def __init__(self, country, _filename='tm_config.ini'):
 
-        _config = parse_yaml(_filename, country)  #loads config to memory
+        _config = parse_yaml(_filename, country, silent())  #loads config to memory
 
         ######################## BASE ###################
         self.groups_number = get_config_value(_config, 'EQUIPMENT.groups_number', int)
@@ -179,7 +193,7 @@ class EconomicModuleConfigReader():
         @self.insuranceLastDayEquipment - last day when we need to pay for insurance
         """
 
-        _config = parse_yaml(_filename, country)
+        _config = parse_yaml(_filename, country, silent())
 
         self.tax_rate = get_config_value(_config, 'TAXES.tax_rate', 'float_percent')
         self.administrativeCosts = get_config_value(_config, 'COSTS.administrativeCosts')
@@ -192,9 +206,6 @@ class EconomicModuleConfigReader():
 
         self.developmentCostDuringPermitProcurement = get_config_value(_config, 'COSTS.developmentCostDuringPermitProcurement')
         self.developmentCostDuringConstruction = get_config_value(_config, 'COSTS.developmentCostDuringConstruction')
-
-        self.market_price = get_config_value(_config, 'ELECTRICITY.market_price', float)
-        self.price_growth_rate = get_config_value(_config, 'ELECTRICITY.growth_rate', 'float_percent')
 
         ######################### INVESTMENTS #############################################
 
@@ -235,7 +246,7 @@ class EnergyModuleConfigReader():
 
     def __init__(self, country, _filename='em_config.ini'):
 
-        _config = parse_yaml(_filename, country)
+        _config = parse_yaml(_filename, country, silent())
 
         #mean value for distribution of random factor for generating temperature
         self.mean = get_config_value(_config, 'NORMAL_DISTRIBUTION.mean', float)
@@ -256,7 +267,7 @@ class RiskModuleConfigReader():
     """Module fore reading Risk configs from file"""
 
     def __init__(self, country, _filename='rm_config.ini'):
-        _config = parse_yaml(_filename, country)
+        _config = parse_yaml(_filename, country, silent())
 
         self.riskFreeRate = get_config_value(_config, 'RISK.riskFreeRate', float)
         self.benchmarkSharpeRatio = get_config_value(_config, 'RISK.benchmarkSharpeRatio', float)
