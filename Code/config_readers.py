@@ -244,9 +244,9 @@ class EconomicModuleConfigReader():
 class EnergyModuleConfigReader():
     """Module fore reading Energy configs from file"""
 
-    def __init__(self, country, _filename='em_config.ini'):
-
-        _config = parse_yaml(_filename, country, silent())
+    def __init__(self, country, _filename='em_config.ini', silently=False):
+        silently = silently or silent()
+        _config = parse_yaml(_filename, country, silently)
 
         #mean value for distribution of random factor for generating temperature
         self.mean = get_config_value(_config, 'NORMAL_DISTRIBUTION.mean', float)

@@ -48,7 +48,7 @@ class WeatherSimulation(EnergyModuleConfigReader):
         @period - list dates for simulation
         @simulations_no - number of simulation (to save it to db)
         """
-        EnergyModuleConfigReader.__init__(self, country)  #module configs
+        EnergyModuleConfigReader.__init__(self, country, silently=True)  #module configs
         self.db = Database()  # connection to db
         self.period = period
         self.simulations_no = simulations_no
@@ -116,9 +116,9 @@ class WeatherSimulation(EnergyModuleConfigReader):
 
     def getAvMonthInsolation(self, date):
         """Returns average daily insolation in given date"""
-        return self.getAvMonthInsolationMonth(date.month - 1)
+        return self.getAvMonthInsolationMonth(date.month)
 
     def getAvMonthTemperature(self, date):
         """Returns average daily temperature in given date"""
-        return self.getAvMonthTemperatureMonth(date.month - 1)
+        return self.getAvMonthTemperatureMonth(date.month)
 
