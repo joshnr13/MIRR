@@ -237,6 +237,8 @@ class Interface():
         countries[3] = 'ITALY'
         countries[4] = 'GERMANY'
         countries[5] = 'SPAIN'
+        countries[6] = 'CROATIA'
+        
 
         if country in countries:
             return country

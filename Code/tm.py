@@ -68,28 +68,28 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         print self.equipmentDescription()
 
     @cached_property
-    def degradation_coefficients(self):
+    def conservation_coefficients(self):#conservation as the opposite of degradation
         """calculation of degradation coefficients for equipment"""
         start_date = self.start_date_project
         koef_degradation = 1-self.degradation_yearly
         return  OrderedDict((date, koef_degradation ** yearsBetween1Jan(start_date, date)) for date in self.all_project_dates)
 
-    def degradationAtDate(self, date):
+    def conservationAtDate(self, date):
         """return degradation coefficient at given @date"""
-        return  self.degradation_coefficients[date]
+        return  self.conservation_coefficients[date]
 
     def generateElectiricityProduction(self, date):
         """generates electricity production at given @date"""
         insolation = self.energy_module.getInsolation(date)
-        degradation = self.degradationAtDate(date)
+        conservation = self.conservationAtDate(date)
         production = self.plant.getElectricityProductionPlant1Day(insolation)
-        return  production * degradation
+        return  production * conservation
 
     def getElectricityProduction(self, date_start, date_end):
         """return sum of electricity in kWh for each day for the selected period"""
         s = self.plant.getElectricityProductionPlant1Day
         i = self.energy_module.insolations
-        d = self.degradation_coefficients
+        d = self.conservation_coefficients
         return sum([s(1)*i[date]*d[date] for date in get_list_dates(date_start, date_end)])
 
     def generateElectricityProductionLifeTime(self):
@@ -100,6 +100,6 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         #electricity_production - dict with ideal electricity_production for every date
         electricity_production = OrderedDict((day, self.plant.getElectricityProductionPlant1Day(insol) if day > last_day_construction else 0) for day, insol in insolations.items())
         #multiply each electricity_production at degradation coeff
-        electricity_production.update((x, electricity_production[x]*y) for x, y in self.degradation_coefficients.items())
+        electricity_production.update((x, electricity_production[x]*y) for x, y in self.conservation_coefficients.items())
 
         return electricity_production
