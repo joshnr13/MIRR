@@ -2,7 +2,7 @@ import sys
 import datetime
 
 from _mirr import Mirr
-from annex import convertValue
+from annex import convertValue, setupPrintProgress
 from collections import defaultdict
 from config_readers import RiskModuleConfigReader, start_iteration
 from database import Database
@@ -189,13 +189,13 @@ class Simulation():
 
     def runIterations(self, iterations_number):
         """Run multiple @iterations_number """
+        print_progress = setupPrintProgress(
+            '%d%%', lambda x: (x + 1) * 100 / float(iterations_number))
         for i in range(iterations_number):
             start_iteration(i+1)  # set global param with number of iteration
-            percent = (i + 1) * 100 / float(iterations_number)  #percent of current iteration from all
             self.runOneIteration(i+1, iterations_number)  #main calculations
             self.db.insertIteration(self.line)  #saving to db each iteration result
-            sys.stdout.write("\r%d%%" %percent)  #printing percent to screen  # or print >> sys.stdout, "\r%d%%" %i,
-            sys.stdout.flush()
+            print_progress(i)  # printing percent to screen
         print "\n"
 
     def initSimulationRecord(self, iterations_number):

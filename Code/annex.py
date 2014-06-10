@@ -613,6 +613,29 @@ def irr(pmts, guess=0.01):
     except RuntimeError:
         return float('Nan')
 
+
+def setupPrintProgress(format, function=lambda x: x):
+    """Prepares function for later printing like progress bar
+    format - '%s' like this format for printing
+    function - that will use convert step to printed value
+    """
+    upd_format = '\r' + format
+
+    def func(step=None, stop=False):
+        if stop:
+            sys.stdout.write('Done\n')
+            sys.stdout.flush()
+        else:
+            value = function(step)
+            sys.stdout.write(upd_format % value)
+            sys.stdout.flush()
+
+    return func
+
+
+def print_separator():
+    print "=" * 70
+
 if __name__ == '__main__':
     start_date = dt.date(2000, 1, 1)
     end_date = dt.date(2001, 12, 31)

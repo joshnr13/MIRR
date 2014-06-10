@@ -5,7 +5,7 @@ from base_class import BaseClassConfig
 from config_readers import EnergyModuleConfigReader
 from constants import TESTMODE
 from collections import OrderedDict
-from annex import cached_property
+from annex import cached_property, setupPrintProgress
 from database import  Database
 from numpy.random import normal as gauss
 
@@ -62,9 +62,12 @@ class WeatherSimulation(EnergyModuleConfigReader):
     def simulate(self):
         """main method to run simulation"""
         self.cleanPreviousData()  #clean prev values
+        print_progress = setupPrintProgress('%d')
         for simulation_no in range(1, self.simulations_no+1):
             data = self.generateOneSimulation(simulation_no)  #generate simulation one by one
             self.writeWeatherDataDb(data)  #write them into db
+            print_progress(simulation_no)  # print progress bar with simulation_no
+        print_progress(stop=True)
 
     def generateOneSimulation(self, simulation_no):
         """generate simulation one by one
@@ -77,11 +80,12 @@ class WeatherSimulation(EnergyModuleConfigReader):
         simulation_result = {"simulation_no": simulation_no, "data": days_dict}
         return simulation_result
 
-    def writeWeatherDataDb(self, data):
+    def writeWeatherDataDb(self, data, silent=True):
         """Saving into db dict"""
         data['country'] = self.country
         self.db.writeWeatherData(data)
-        print 'Writing weather data simulation %s' % data["simulation_no"]
+        if not silent:
+            print 'Writing weather data simulationif %s' % data["simulation_no"]
 
     def generateWeatherData(self, date):
         """

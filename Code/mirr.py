@@ -8,7 +8,8 @@ import traceback
 from collections import OrderedDict
 from random import randint
 
-from annex import getInputDate, getInputInt, memoize, getInputComment
+from annex import getInputDate, getInputInt, memoize, getInputComment, \
+    print_separator
 from database import Database
 from ecm import ElectricityMarketPriceSimulation
 from em import WeatherSimulation
@@ -61,7 +62,7 @@ class Interface():
         if comment is None:
             comment = getInputComment()  #get user comment
 
-        simulation_no = runAndSaveSimulation(country, iterations_no, comment)  #runing
+        runAndSaveSimulation(country, iterations_no, comment)  #runing
 
     def analyseSimulationResults(self, simulation_no=None):
         """
@@ -148,6 +149,7 @@ class Interface():
         simulations_no = 100
         period = self.getMirr(country).main_config.getAllDates()
         simulations = WeatherSimulation(country, period, simulations_no)
+        print_separator()
         simulations.simulate()
 
     def generateElectricityMarketPrice(self, country=None):
@@ -157,6 +159,7 @@ class Interface():
         simulations_no = 100
         period = self.getMirr(country).main_config.getAllDates()
         simulations = ElectricityMarketPriceSimulation(country, period, simulations_no)
+        print_separator()
         simulations.simulate()
 
     def outputGeneratedElectricityPrices(self, simulation_no=None, country=None):
@@ -294,7 +297,7 @@ class Interface():
 
 def printEntered(line):
     """print user choosed line"""
-    print "="*70
+    print_separator()
     if line in commands:
         print "Entered %s - %s" % (line, commands[line])
     else:
@@ -321,7 +324,7 @@ if __name__ == '__main__':
         i = Interface()
         i.help()
         while True:
-            print "="*70
+            print_separator()
             line = raw_input('Prompt command (For exit: 0 or stop; For help: help or h): ').strip()
             printEntered(line)
             runMethod(i, line)

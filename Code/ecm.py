@@ -7,7 +7,8 @@ import numpy as np
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property
+from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property, \
+    setupPrintProgress
 from annex import addXMonths, nubmerDaysInMonth, getConfigs,  OrderedDefaultdict
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
@@ -32,17 +33,21 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         print "Cleaning previous ElectricityPriceData for %r" % self.country
         self.db.cleanPreviousElectricityPriceData(self.country)  #before each Simulatation, we should clean previous data
 
-    def writeElectricityPriceData(self, data):
+    def writeElectricityPriceData(self, data, silent=True):
         """writing to database Electricity Prices"""
         data['country'] = self.country
         self.db.writeElectricityPrices(data)
-        print 'Writing electricity price simulation %s' % data["simulation_no"]
+        if not silent:
+            print 'Writing electricity price simulation %s' % data["simulation_no"]
 
     def simulate(self):
+        print_progress = setupPrintProgress('%d')
         self.cleanPreviousData() #before each Simulatation, we should clean previous data
         for simulation_no in range(1, self.simulations_no+1):  #loop for simulations numbers starting from 1
             data = self.generateOneSimulation(simulation_no)  #generating each simulation
             self.writeElectricityPriceData(data)  #writing each simulation to DB
+            print_progress(simulation_no)  # print progress bar with simulation_no
+        print_progress(stop=True)
 
     def generateOneSimulation(self, simulation_no):
         """Main method for generating prices and preparing them to posting to database"""
