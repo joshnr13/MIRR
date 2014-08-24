@@ -44,8 +44,11 @@ class CashFlows():
 
     def improve(self,  guess):
         """Tries to improve last guess"""
-        result = guess - self.npv(guess) / self.derivativeNpv(guess)
-        if result < 2 and result > -2:
+        derivative = self.derivativeNpv(guess)
+        if derivative == 0:
+            derivative = 0.0001
+        result = guess - self.npv(guess) / derivative
+        if abs(result) < 2:
             return result
 
     def goodEnough(self,  guess):
