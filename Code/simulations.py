@@ -220,15 +220,15 @@ class Simulation():
 
     def runOneIteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""
-        self.prepareMirr()  #prepare Mirr module, which has links for all other modules
+        self.prepareMirr(iteration_no, self.simulation_no)  #prepare Mirr module, which has links for all other modules
         self.prepareLinks()  #make short links to other modules
         self.prepareIterationResults(iteration_no)  #main func to prepare results in one dict
         self.convertResults()  #post process results before saving to db
         self.addIterationIrrs()  #add irr values to additional lists for future analis
 
-    def prepareMirr(self):
+    def prepareMirr(self, iteration_no, simulation_no):
         """prepare All modules for simulation"""
-        self.i = Mirr(self.country)
+        self.i = Mirr(self.country, iteration_no, simulation_no)
 
     def addIterationIrrs(self):
         """Adds irr results to attrributes"""

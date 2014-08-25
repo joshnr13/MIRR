@@ -1,11 +1,9 @@
-import numpy
-
 BEST_GUESSES = [-0.1, -0.01, 0.01,  0.1]  #LIST OF Possible RATES for calculating IRRs (list of guesses)
 SMALL = 0.00000001  #small value - used not to devide by zero
 
 class CashFlows():
     """class holds info about cashflow and calculats NPV and IRR"""
-    def __init__(self, cashflows):
+    def __init__(self, cashflows, iteration_no=None, simulation_no=None):
         """@cashflows - list of cashflow values
            @npvs - dict with calcultaned npv with different rates
            @pv - list of present values of cashflow
@@ -13,6 +11,9 @@ class CashFlows():
         self.cashflows = cashflows
         self.npvs = {}
         self.pv = []
+        self.iteration_no = iteration_no
+        self.simulation_no = simulation_no
+        self.zerodivisionerror = False
 
     def derivativeNpv(self,  rate):
         """calculate derivative npv """
@@ -46,6 +47,12 @@ class CashFlows():
         """Tries to improve last guess"""
         derivative = self.derivativeNpv(guess)
         if derivative == 0:
+            if not self.zerodivisionerror:
+                msg = "\nJust info: ZeroDivisionError while NPV calculation" \
+                      "Details in report: simulation = %s, iteration = %s" \
+                      % (self.simulation_no, self.iteration_no)
+                print msg
+                self.zerodivisionerror = True
             derivative = 0.0001
         result = guess - self.npv(guess) / derivative
         if abs(result) < 2:
@@ -67,7 +74,7 @@ class CashFlows():
             else:
                 stop = True
             if iter_no > 50:  #stop if we have more than 50 iterations - means this guess is wrong
-                guest = None
+                guess = None
                 stop = True
         return guess
 
@@ -102,9 +109,6 @@ class CashFlows():
         irrs.sort(reverse=True)  #sort them
         return  self.get_one_irr(irrs)  #find one - most logical, because any equ can have multiple roots
 
-def irr(vals):
-    """Function to calculate irr value"""
-    return CashFlows(vals).irr()
 
 def npvPv(rate, vals):
     """return  NPV value and list of PV"""

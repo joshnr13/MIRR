@@ -3,9 +3,9 @@
 import numpy
 from collections import  OrderedDict
 from annex import lastDayMonth, cached_property, lastDayPrevMonth
-from annex import OrderedDefaultdict, isLastDayYear, OrderedDefaultdict
+from annex import isLastDayYear, OrderedDefaultdict
 from annex import getOnlyDigits, sameDayLastYear, get_list_dates
-from financial_analysis import irr, npvPv
+from financial_analysis import npvPv, CashFlows
 from constants import PROJECT_START
 from tm import TechnologyModule
 from em import EnergyModule
@@ -17,11 +17,13 @@ from config_readers import MainConfig
 
 class Report(BaseClassConfig):
     """Module for calculating Balance, FCF"""
-    def __init__(self, config_module, economic_module):
+    def __init__(self, config_module, economic_module, iteration_no=None, simulation_no=None):
         """input
         @config_module - link to config module
         @economic_module - link to economic module
         """
+        self.iteration_no = iteration_no
+        self.simulation_no = simulation_no
         BaseClassConfig.__init__(self, config_module)  #loading Main configs
         self.economic_module = economic_module
         self.technology_module = economic_module.technology_module  #creating short link to TM
@@ -394,6 +396,10 @@ class Report(BaseClassConfig):
                                   self.getDeltaCurPrev(self.asset_bank_account, M)
                                   )
 
+    def irr(self, vals):
+        """Function to calculate irr value"""
+        return CashFlows(vals, self.iteration_no, self.simulation_no).irr()
+
     def calcIRR(self):
         """Calculating IRR for project and owners, using numpy.IRR function
         both Montly and Yearly values
@@ -401,11 +407,11 @@ class Report(BaseClassConfig):
         fcf_owners_values = getOnlyDigits(self.fcf_owners)  #filtering FCF values (taking only digit values)
         fcf_project_values = getOnlyDigits(self.fcf_project)
 
-        fcf_owners_values_y = getOnlyDigits(self.fcf_owners_y)
-        fcf_project_y = getOnlyDigits(self.fcf_project_y)
+        # fcf_owners_values_y = getOnlyDigits(self.fcf_owners_y)
+        # fcf_project_y = getOnlyDigits(self.fcf_project_y)
 
-        self.irr_owners = irr(fcf_owners_values)  #calculation of IRR based on FCF  owners
-        self.irr_project = irr(fcf_project_values) #calculation of IRR based on FCF project
+        self.irr_owners = self.irr(fcf_owners_values)  #calculation of IRR based on FCF  owners
+        self.irr_project = self.irr(fcf_project_values) #calculation of IRR based on FCF project
 
         if self.irr_owners is not None and not numpy.isnan(self.irr_owners):  #calculation of IRR yearly OWNERS
             self.irr_owners_y = ((1 + self.irr_owners) ** 12) - 1 # FORMULA by Borut
