@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding utf-8 -*-
+"""Energy module - Everything related to energy input is managed here. Calculation of solar irradiation happens here. The resuklts are fed into technology module taht converts this data into produced electricty."""
 
 from base_class import BaseClassConfig
 from config_readers import EnergyModuleConfigReader
@@ -49,7 +50,7 @@ class WeatherSimulation(EnergyModuleConfigReader):
         @simulations_no - number of simulation (to save it to db)
         """
         EnergyModuleConfigReader.__init__(self, country, silently=True)  #module configs
-        self.db = Database()  # connection to db
+        self.db = Database()  #  connection to db
         self.period = period
         self.simulations_no = simulations_no
         self.country = country
