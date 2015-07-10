@@ -132,12 +132,12 @@ class SubsidyModuleConfigReader():
         """Reads module config file"""
         _config = parse_yaml(_filename, country, silent()) #loads config to memory
 
-        self.kWh_subsidy = get_config_value(_config, 'SUBSIDY.kWh_subsidy', float)
+        self.kWhFIT = get_config_value(_config, 'SUBSIDY.kWhFIT', float)
         self.subsidy_duration = get_config_value(_config, 'SUBSIDY.subsidy_duration', int)
         _subsidy_delay = get_config_value(_config, 'SUBSIDY.subsidy_delay', float)  #reciving values from config
         self.subsidy_delay = _subsidy_delay if not TESTMODE else 0
-
-        #calculate first day of subside by adding subsidy_delay to last_day_construction+1
+        
+        #calculate first day of subsidy by adding subsidy_delay to last_day_construction+1
         self.first_day_subsidy = addXMonths(last_day_construction + datetime.timedelta(days=1), self.subsidy_delay)
         self.last_day_subsidy = addXMonths(self.first_day_subsidy, self.subsidy_duration)
 
@@ -219,9 +219,9 @@ class EconomicModuleConfigReader():
         self.debt_rate_short = get_config_value(_config, 'DEBT.interest_rate_short', 'float_percent')
         self.debt_years = get_config_value(_config, 'DEBT.periods', int)
 
-        ######################### DEPRICATION #################################
-        #gets deprication_duration and convert it to months
-        self.deprication_duration = 12 * get_config_value(_config, 'AMORTIZATION.duration', float)
+        ######################### Depreciation #################################
+        #gets Depreciation_duration and convert it to months
+        self.Depreciation_duration = 12 * get_config_value(_config, 'AMORTIZATION.duration', float)
 
         ######################### ElectricityMarketPriceSimulation ############
         # loading varibales needed to ElectricityMarketPriceSimulation

@@ -125,17 +125,17 @@ class Poisson_step():
 class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     """Module for holding all economic values calculation"""
 
-    def __init__(self, config_module, technology_module, subside_module, country):
+    def __init__(self, config_module, technology_module, subsidy_module, country):
         """
         @config_module - link to main config module
         @technology_module - link to technology module
-        @subside_module - link to subside module
+        @subsidy_module - link to subsidy module
         """
         BaseClassConfig.__init__(self, config_module)  #loading Main config
         EconomicModuleConfigReader.__init__(self, country, self.start_date_project)  #loading Economic Config
         self.db = Database()  #connection to DB
         self.technology_module = technology_module
-        self.subside_module = subside_module
+        self.subsidy_module = subsidy_module
         self.country = country
         self.investments_monthly = OrderedDefaultdict(int)
         self.calcBaseValues()
@@ -147,7 +147,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.investmentEquipment = self.technology_module.getInvestmentCost() #sets the investment in equipment as the whole investment in technology
         self.debt = self.debt_share * self.investments #calculates the amount of debt based on share of debt in financing
         self.capital = self.investments - self.debt #calculates the amount of capital based on the amount of debt
-        self.deprication_monthly = self.investments / self.deprication_duration  #Calc monthly value for deprication
+        self.Depreciation_monthly = self.investments / self.Depreciation_duration  #Calc monthly value for Depreciation
 
     @cached_property
     def electricity_production(self):
@@ -178,32 +178,28 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         return  (date > self.last_day_construction)
 
     def getRevenue(self, date_start, date_end):
-        """return revenue from selling electricity and subsides for given period of time"""
+        """return revenue from selling electricity and subsidy for given period of time"""
         revenue_electricity = 0
-        revenue_subside = 0
+        revenue_subsidy = 0
         cur_date = date_start
 
         for cur_date in get_list_dates(date_start, date_end):  # loop for user defined date range
             electricity_production = self.getElectricityProduction(cur_date)  #get electricity production at current date
-            electricity_price = self.getPriceKwh(cur_date)  #electricity price and cur_date
-            subside_KW = self.subside_module.subsidyProduction1KW(cur_date)  #subside per KW at cur_date
-            day_revenue_electricity = electricity_production * electricity_price  #calc revenue = price*production
-            day_revenue_subsidy = electricity_production * subside_KW  #subside per KW * production
-
+            electricity_price = self.getPriceKwh(cur_date)  #electricity price at cur_date
+            day_revenue_electricity = electricity_production * electricity_price  #calc revenue = price * production
             revenue_electricity += day_revenue_electricity  #increment revenue for period  date_start - date_end
-            revenue_subside += day_revenue_subsidy  #increment subside for period  date_start - date_end
-
-        return revenue_electricity, revenue_subside
+        
+        return revenue_electricity, revenue_subsidy
 
     def getElectricityProduction(self,  date):
         """return  production of electricity at given date"""
         return  self.electricity_production[date]
 
-    def calcDepricationMonthly(self, date):
+    def calcDepreciationMonthly(self, date):
         """Calcultation of amortization in current month"""
         cur_month = monthsBetween(self.last_day_construction+datetime.timedelta(days=1), date)  #calculating number of months between last_day_construction and cur date
-        if cur_month > 0 and cur_month <= self.deprication_duration:
-            return self.deprication_monthly
+        if cur_month > 0 and cur_month <= self.Depreciation_duration:
+            return self.Depreciation_monthly
         else:
             return 0
 
@@ -280,7 +276,12 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
-        return  self.electricity_prices[date]
+        fit = self.subsidy_module.valueOfFeedInTarrifPerkWh(date)
+        if fit == 0 :
+           return  self.electricity_prices[date]     #if FIT is zero, take market price else take FIT
+        else :
+           return  fit
+
 
     def _getDevelopmentCosts(self, date):
         """costs for developing phase of project at given date (1day)"""
@@ -302,7 +303,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def _getOperationalCosts(self, date):
         """Operational costs at given date (1day)"""
         if self.isProductionElectricityStarted(date):
-            return self.insuranceCosts + self._getAdministrativeCosts(date)  #sum of INSUARENCE COSTS and AMDINISTR COSTS at given date
+            return self.insuranceCosts + self._getAdministrativeCosts(date)  #sum of INSURANCE COSTS and AMDINISTR COSTS at given date
         return  0
 
     def _getAdministrativeCosts(self, date):
@@ -369,12 +370,12 @@ if __name__ == '__main__':
     mainconfig = MainConfig('ITALY')
     em = EnergyModule(mainconfig)
     technology_module = TechnologyModule(mainconfig, em)
-    subside_module = SubsidyModule(mainconfig)
+    subsidy_module = SubsidyModule(mainconfig)
     from annex import timer
 
     @timer
     def test1():
-        ecm = EconomicModule(mainconfig, technology_module, subside_module)
+        ecm = EconomicModule(mainconfig, technology_module, subsidy_module)
 
     test1()
 
