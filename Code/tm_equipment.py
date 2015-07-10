@@ -16,7 +16,10 @@ class Equipment():
         @system_crucial - if state is not working then the whole system does not work
         @group_cruical - if crucial then if state is not working then the respective group to which belongs does not work
         @reliability - % as of probability that it is working
-        @price - investments price in EUR
+        @price - investments price in EU
+        @efficiency - percentage of efficiency in transmiting or transforming power - expressed for modules in relation to 100% from intial efficency - in inverterst and transfromers and other elements it is effective efficieny of transmission
+        @power - current peak power of the system
+        @nominal power - peak power at start
         """
         self.state = 0
         self.crucial = True
@@ -24,6 +27,7 @@ class Equipment():
         self.efficiency = power_efficiency
         self.invesment_price = price
         self.reliability = reliability
+        self.nominal_power = power
         self.power = power
         self.name = ""
 
@@ -88,7 +92,7 @@ class EquipmentSolarModule(Equipment):
 
     def getElectricityProductionEquipment(self, insolation):
         """Gets electiricity production for SolarModule"""
-        return insolation * self.power * self.efficiency / 1000.0
+        return insolation * self.power / 1000.0
 
     def getPower(self):
         return self.power
@@ -265,7 +269,7 @@ class PlantEquipment():
     """Class for whole plant equipment"""
     def __init__(self, network_available_probability, country):
         self.groups = defaultdict(list)  #for holding list of groups in plant
-        self.network_available_probability = network_available_probability  #probability of system network
+        self.network_available_probability = network_available_probability  #probability of AC system network
         self.AC_group = None
         self.country = country
 
@@ -301,7 +305,7 @@ class PlantEquipment():
     def isSystemUnderMaintenance(self):
         """check for maintenace of components (objects Equipment)"""
         for group in self.groups:
-            if group.isGroupUnderMaintenance():  #check for each group is it under maintance, and if one group is -> than all plant is under maintance
+            if group.isGroupUnderMaintenance():  #check for each group is it under maintance, and if one group is -> than all plant is under maintance - CORRECT THIS TO: If AC group is under maintenance or if all arrays are in maintenance then system is in maintenance
                 return  True
         return False
 

@@ -1,4 +1,5 @@
 import sys
+import numpy
 import pymongo
 from collections import defaultdict
 from annex import addYearlyPrefix, convertDictDates
@@ -218,7 +219,7 @@ class Database():
         correllation_dict = {}
         for param, v in results.items():
             v1 = v[:]; v1[0] += 0.00001  #add too small to have some small correllation in case the same values
-            cor = corrcoef([main_list_values, v1] )[0][1]  #calculation of correlation
+            cor = numpy.corrcoef([main_list_values, v1] )[0][1]  #calculation of correlation
             rounded_value = round(cor, 3)  #rounding
             correllation_dict[param] = rounded_value  #filling correllation dict
 

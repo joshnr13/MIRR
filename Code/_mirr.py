@@ -18,8 +18,8 @@ class Mirr():
         self.main_config = main_config
         self.energy_module = EnergyModule(main_config, country)
         self.technology_module = TechnologyModule(main_config, self.energy_module, country)
-        self.subside_module = SubsidyModule(main_config, country)
-        self.economic_module = EconomicModule(main_config, self.technology_module, self.subside_module, country)
+        self.subsidy_module = SubsidyModule(main_config, country)
+        self.economic_module = EconomicModule(main_config, self.technology_module, self.subsidy_module, country)
         self.r = Report(main_config, self.economic_module, iteration_no, simulation_no)
 
     def getMainConfig(self):
@@ -34,9 +34,9 @@ class Mirr():
         """return  link to technology module"""
         return  self.technology_module
 
-    def getSubsideModule(self):
-        """return  link to subside module"""
-        return  self.subside_module
+    def getsubsidyModule(self):
+        """return  link to subsidy module"""
+        return  self.subsidy_module
 
     def getEconomicModule(self):
         """return  link to economic module"""

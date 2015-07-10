@@ -209,8 +209,8 @@ if __name__ == '__main__':
     mainconfig = MainConfig('ITALY')
     energy_module = EnergyModule(mainconfig)
     technology_module = TechnologyModule(mainconfig, energy_module)
-    subside_module = SubsidyModule(mainconfig)
-    economic_module = EconomicModule(mainconfig, technology_module, subside_module)
+    subsidy_module = SubsidyModule(mainconfig)
+    economic_module = EconomicModule(mainconfig, technology_module, subsidy_module)
 
     o = ReportOutput(None)
     o.source_filename = r"C:\temp2.csv"

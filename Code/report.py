@@ -27,7 +27,7 @@ class Report(BaseClassConfig):
         BaseClassConfig.__init__(self, config_module)  #loading Main configs
         self.economic_module = economic_module
         self.technology_module = economic_module.technology_module  #creating short link to TM
-        self.subside_module = economic_module.subside_module #creating short link to SM
+        self.subsidy_module = economic_module.subsidy_module #creating short link to SM
         self.energy_module = self.technology_module.energy_module #creating short link to EM
 
     def calcReportValues(self):
@@ -78,7 +78,7 @@ class Report(BaseClassConfig):
         ################### IS ########################################
         self.revenue = self.startProjectOrderedDict(name=PROJECT_START,value="")  #all revenue
         self.revenue_electricity = self.startProjectOrderedDict(name=PROJECT_START,value="")  #revenue -part electricity
-        self.revenue_subsides = self.startProjectOrderedDict(name=PROJECT_START,value="")  #revenue - part subsides
+        self.revenue_subsidy = self.startProjectOrderedDict(name=PROJECT_START,value="")  #revenue - part subsidy
         self.cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  #costs
         self.operational_cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  # operational costs
         self.development_cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  #development costs
@@ -86,7 +86,7 @@ class Report(BaseClassConfig):
         self.ebit = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.ebt = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.iterest_paid = self.startProjectOrderedDict(name=PROJECT_START,value="")
-        self.deprication = self.startProjectOrderedDict(name=PROJECT_START,value="")
+        self.depreciation = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.tax = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.net_earning = self.startProjectOrderedDict(name=PROJECT_START,value=0)
 
@@ -115,7 +115,7 @@ class Report(BaseClassConfig):
         ################### IS-Y #######################################
         self.revenue_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.revenue_electricity_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
-        self.revenue_subsides_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
+        self.revenue_subsidy_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.cost_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.operational_cost_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.development_cost_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
@@ -123,7 +123,7 @@ class Report(BaseClassConfig):
         self.ebit_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.ebt_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.iterest_paid_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
-        self.deprication_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
+        self.depreciation_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.tax_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.net_earning_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
 
@@ -168,16 +168,16 @@ class Report(BaseClassConfig):
     def calcMonthlyValuesPart1(self, start_day, end_day):
         """Main function to calc montly value for reports P1"""
         M = end_day
-        rev_electricity, rev_subside = self.economic_module.getRevenue(start_day, end_day)  #revenue for current month
+        rev_electricity, rev_subsidy = self.economic_module.getRevenue(start_day, end_day)  #revenue for current month
 
-        self.revenue_electricity[M], self.revenue_subsides[M] = rev_electricity, rev_subside
-        self.revenue[M] = rev_electricity + rev_subside
+        self.revenue_electricity[M], self.revenue_subsidy[M] = rev_electricity, rev_subsidy
+        self.revenue[M] = rev_electricity + rev_subsidy
 
         self.electricity_production[M] = self.electricity_monthly[M]
         self.sun_insolation[M] = self.solar_insolations_monthly[M]
         self.electricity_prices[M] = self.electricity_prices_monthly[M]
 
-        self.deprication[M] = self.economic_module.calcDepricationMonthly(end_day)
+        self.depreciation[M] = self.economic_module.calcDepreciationMonthly(end_day)
         self.iterest_paid[M] = self.economic_module.calculateDebtInterests(end_day)
 
         self.development_cost[M] = self.economic_module.getDevelopmentCosts(start_day, end_day)
@@ -229,10 +229,10 @@ class Report(BaseClassConfig):
             M = end_day_m
 
             self.revenue_electricity_y[Y] += self.revenue_electricity[M]
-            self.revenue_subsides_y[Y] += self.revenue_subsides[M]
+            self.revenue_subsidy_y[Y] += self.revenue_subsidy[M]
             self.revenue_y[Y] += self.revenue[M]
 
-            self.deprication_y[Y] += self.deprication[M]
+            self.depreciation_y[Y] += self.depreciation[M]
             self.iterest_paid_y[Y] += self.iterest_paid[M]
             self.cost_y[Y] += self.cost[M]
             self.development_cost_y[Y] += self.development_cost[M]
@@ -550,8 +550,8 @@ class Report(BaseClassConfig):
         return self.revenue[date] - self.cost[date]
 
     def calcEbit(self, date):
-        """calculation of ebit = ebitda - deprication"""
-        return self.ebitda[date] - self.deprication[date]
+        """calculation of ebit = ebitda - Depreciation"""
+        return self.ebitda[date] - self.depreciation[date]
 
     def calcEbt(self, date):
         """calculation of ebt = ebit - interests paid"""
@@ -607,8 +607,8 @@ class Report(BaseClassConfig):
         return ( self.current_asset[date] + self.fixed_asset[date] )
 
     def calcFixedAssets(self, date):
-        """calculating fixed assests as diff between investment and deprication
-        return  cur_investments + prev_fixed_asset - cur_deprication
+        """calculating fixed assests as diff between investment and Depreciation
+        return  cur_investments + prev_fixed_asset - cur_Depreciation
         """
         prev_month_date = lastDayPrevMonth(date)
         if prev_month_date < self.start_date_project:
@@ -616,9 +616,9 @@ class Report(BaseClassConfig):
 
         prev_fixed_asset = self.fixed_asset[prev_month_date] #.get(prev_month_last_day, 0)
         cur_investments = self.economic_module.getMonthlyInvestments(date)
-        cur_deprication = self.deprication[date]
+        cur_depreciation = self.depreciation[date]
 
-        return (cur_investments + prev_fixed_asset - cur_deprication)
+        return (cur_investments + prev_fixed_asset - cur_depreciation)
 
     def calcOperatingReceivable(self,  date):
         """Calculation Monthly operating_receivable using following rule
@@ -664,8 +664,8 @@ if __name__ == '__main__':
     mainconfig = MainConfig('ITALY')
     energy_module = EnergyModule(mainconfig)
     technology_module = TechnologyModule(mainconfig, energy_module)
-    subside_module = SubsidyModule(mainconfig)
-    economic_module = EconomicModule(mainconfig, technology_module, subside_module)
+    subsidy_module = SubsidyModule(mainconfig)
+    economic_module = EconomicModule(mainconfig, technology_module, subsidy_module)
 
     r = Report(mainconfig, economic_module)
     import time

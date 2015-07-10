@@ -26,21 +26,20 @@ commands = OrderedDict()  #Commands sequence for menu, all commands is method of
 commands['1'] = 'runSimulation'
 commands['2'] = 'analyseSimulationResults'
 commands['3'] = 'mainReport'
-commands['4'] = 'charts'
+commands['4'] = 'cashflowCharts'
 commands['5'] = 'printEquipment'
 commands['6'] = 'outputPrimaryEnergy'
 commands['7'] = 'outputElectricityProduction'
 commands['8'] = 'irrCorrelations'
-commands['9'] = 'irrScatterCharts'
+commands['9'] = 'showIRRScatterCharts'
 commands['10'] = 'npvCorrelations'
 commands['11'] = 'distributionOfInputVariables'
 commands['12'] = 'simulationsLog'
-
 commands['13'] = 'deleteSimulation'
 commands['14'] = 'generateWeatherData'  #daily insolation and Temperature
 commands['15'] = 'generateElectricityMarketPrice'  #daily electricty market prices
 commands['16'] = 'outputGeneratedElectricityPrices'  #Graph of daily electricty market prices
-commands['17'] = 'outputGeneratedWeatherData'  #Graph of daily electricty market prices
+commands['17'] = 'outputGeneratedWeatherData'  #Graph of daily aily insolation and temperature
 commands['0'] = 'stop'
 commands['h'] = 'help'
 commands['help'] = 'help'
@@ -80,7 +79,7 @@ class Interface():
         ReportOutput(None).prepareReportISBSCFIRR(params, yearly=False)  #preparing monthly report
         ReportOutput(None).prepareReportISBSCFIRR(params, yearly=True)  #preparing yearly report
 
-    def charts(self):
+    def cashflowCharts(self):
         """Plots Revenue, Cost charts monthly and yearly for user definded simulation no"""
         simulation_no, iteration_no = self.getSimulationIterationNums("for plotting revenue-costs charts ")
         country = self.db.getSimulationCountry(simulation_no, print_result=True)
@@ -110,7 +109,7 @@ class Interface():
         """plots correlations chart with IRR values"""
         self._run_correlations(CORRELLATION_IRR_FIELD)
 
-    def irrScatterCharts(self, simulation_no=None):
+    def showIRRScatterCharts(self, simulation_no=None):
         """Plots irr scatter chart for irr_project and irr_owners yearly values"""
         if simulation_no is None:
             simulation_no = self.getInputSimulation("IRR scatter_chart: ")

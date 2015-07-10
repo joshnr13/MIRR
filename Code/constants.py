@@ -17,12 +17,12 @@ IS = OrderedDict()  #INCOME STATEMENT , format dic[field_name]=attr_name or blan
 IS["Dates"] = ""
 IS["Revenue"] = "revenue"
 IS["Revenues electricity sales"] = "revenue_electricity"
-IS["Revenues subsidy"] = "revenue_subsides"
+IS["Revenues subsidy"] = "revenue_subsidy"
 IS["Costs"] = "cost"
 IS["Operational costs"] = "operational_cost"
 IS["Development costs"] = "development_cost"
 IS["EBITDA"] = "ebitda"
-IS["Deprication"] = "deprication"
+IS["Depreciation"] = "Depreciation"
 IS["EBIT"] = "ebit"
 IS["Interest paid"] = "iterest_paid"
 IS["EBT"] = "ebt"
@@ -72,7 +72,7 @@ REPORT_DEFAULT_NUMBER_ITERATIONS = 20
 CORRELLATION_FIELDS = OrderedDict() # IRR ONE SHOULD HAVE NAME =IRR and be FIRST ONE
 CORRELLATION_FIELDS["permit_procurement_duration"] = "main_configs.real_permit_procurement_duration"
 CORRELLATION_FIELDS["construction_duration"] = "main_configs.real_construction_duration"
-CORRELLATION_FIELDS["subsidy_Kw"] = "sm_configs.kWh_subsidy"
+CORRELLATION_FIELDS["kWhFIT"] = "sm_configs.kWhFIT"
 CORRELLATION_FIELDS["subsidy_delay"] = "sm_configs.subsidy_delay"
 CORRELLATION_FIELDS["subsidy_duration"] = "sm_configs.subsidy_duration"
 
@@ -98,5 +98,5 @@ SOURCE = OrderedDict()  #DATA FOR SECOND SHEET EXCEL
 SOURCE["Main config"] = 'main_configs'
 SOURCE["Economic config"] = 'ecm_configs'
 SOURCE["Technology config"] = 'tm_configs'
-SOURCE["Subside config"] = 'sm_configs'
+SOURCE["subsidy config"] = 'sm_configs'
 SOURCE["Energy config"] = 'em_configs'
