@@ -19,7 +19,7 @@ class Equipment():
         @price - investments price in EU
         @efficiency - percentage of efficiency in transmiting or transforming power - expressed for modules in relation to 100% from intial efficency - in inverterst and transfromers and other elements it is effective efficieny of transmission
         @power - current peak power of the system
-        @nominal power - peak power at start
+        @start power - peak power at start
         """
         self.state = 0
         self.crucial = True
@@ -27,7 +27,7 @@ class Equipment():
         self.efficiency = power_efficiency
         self.invesment_price = price
         self.reliability = reliability
-        self.nominal_power = power
+        self.start_power = power
         self.power = power
         self.name = ""
 
@@ -96,6 +96,12 @@ class EquipmentSolarModule(Equipment):
 
     def getPower(self):
         return self.power
+
+    def getNominalPower(self):
+        return self.nominal_power
+
+    def getStartPower(self):
+        return self.nominal_power
 
 
 class EquipmentConnectionGrid(Equipment):

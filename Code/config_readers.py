@@ -161,6 +161,7 @@ class TechnologyModuleConfigReader():
         self.network_available_probability = get_config_value(_config, 'NETWORK.network_available_probability', 'float_percent')
         self.degradation_yearly = get_config_value(_config, 'SOLAR_MODULE.PV_degradation_rate', 'float_percent')
         self.module_power = get_config_value(_config, 'SOLAR_MODULE.module_power', float)
+        self.module_nominal_power = get_config_value(_config, 'SOLAR_MODULE.module_nominal_power', float)
 
         ######################## PRICE ###################
         self.module_price = get_config_value(_config, 'SOLAR_MODULE.module_price', float)

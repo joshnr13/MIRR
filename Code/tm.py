@@ -15,13 +15,19 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         TechnologyModuleConfigReader.__init__(self, country)  #loading Technology module configs
         self.country = country
         self.energy_module = energy_module
-        self.calcTotalPower()  #calculates Total Power
         self.assembleSystem()  #creates Plant
+        self.calcTotalPower()  #calculates Total Power
+        self.calcTotalNominalPower()  #calculates Total Nominal Power
         self.getInvestmentCost()  #calc investment costs of all plant + documentation
 
     def calcTotalPower(self):
         """Calculates total power for whole plant"""
         self.total_power = self.groups_number * self.modules_in_group * self.module_power
+
+    def calcTotalNominalPower(self):
+        """Calculates total power for whole plant"""
+        self.total_nominal_power = self.groups_number * self.modules_in_group * self.module_nominal_power
+
 
     def assembleSystem(self):
         """generates objects for each solarmodule in plant"""
@@ -68,7 +74,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         print self.equipmentDescription()
 
     @cached_property
-    def conservation_coefficients(self):#conservation as the opposite of degradation
+    def conservation_coefficients(self):  #conservation as the opposite of degradation
         """calculation of degradation coefficients for equipment"""
         start_date = self.start_date_project
         koef_degradation = 1-self.degradation_yearly

@@ -62,7 +62,7 @@ def parse_list_and_get_random(values, value_type=int):
     list_values = values.split(',')
     len_values = len(list_values)
 
-    if not values or len_values > 3:
+    if not values or len_values > 4:
         raise ValueError("Config value error " + values)
 
     if len_values == 1:
