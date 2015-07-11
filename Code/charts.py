@@ -260,7 +260,7 @@ def plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution,
     sm = 0
 
     for day_from, day_to in getResolutionStartEnd(start_date, end_date, resolution): #get dates for axis using resolution value
-        delta = (day_to - day_from).days
+        delta = (day_to - day_from).days + 1  # +1 -> to include last day
         sum_period = sum([y_all_values[day_from+datetime.timedelta(days=days)] for days in range(delta)])
         y_values.append(sum_period)
         x_values.append(sm+delta)
