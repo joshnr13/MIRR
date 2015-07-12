@@ -8,7 +8,7 @@ from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
 from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property, \
-    setupPrintProgress
+    setupPrintProgress, isFirstDayMonth
 from annex import addXMonths, nubmerDaysInMonth, getConfigs,  OrderedDefaultdict
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
@@ -22,10 +22,10 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         @period - list of dates from start to end
         @simulations_no - number of needed simulations
         """
-        EconomicModuleConfigReader.__init__(self, country, start_date_project=period[0])  #loading EconomicModule Configs, with passing startdata of project
         self.period = period
         self.N = len(period)  #number of days
         self.simulations_no = simulations_no
+        self.start_date_project = self.period[0]
         self.db = Database()
         self.country = country
 
@@ -44,6 +44,9 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         print_progress = setupPrintProgress('%d')
         self.cleanPreviousData() #before each Simulatation, we should clean previous data
         for simulation_no in range(1, self.simulations_no+1):  #loop for simulations numbers starting from 1
+            # re-loading EconomicModule Configs, with passing start date of project
+            # self.y will have new value each time
+            EconomicModuleConfigReader.__init__(self, self.country, start_date_project=self.start_date_project)
             data = self.generateOneSimulation(simulation_no)  #generating each simulation
             self.writeElectricityPriceData(data)  #writing each simulation to DB
             print_progress(simulation_no)  # print progress bar with simulation_no
@@ -66,22 +69,33 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         """Calcultation of J (normaly distibuted Jump size) as random with mean=loc and std=scale"""
         return  np.random.normal(loc=0,scale=1)  #loc means - mean, scale -std
 
-    def calcPriceDelta(self, prev_price, iteration_no):
+    def calcPriceDelta(self, prev_price, iteration_no, y):
         """Calculated delta price (dp) based on @prev_price"""
         delta_Z = np.random.normal(loc=0, scale=0.4)  #random value distribution
         J = self.calcJ()
         delta_q = self.poisson_steps.getDelta(iteration_no)
-        delta_price = self.k * (self.theta * (1 + self.y*iteration_no/365)- prev_price) * self.dt + self.sigma * delta_Z + (J*(1 + self.y*iteration_no/365)) * delta_q  #formulat 2.2 from book
+
+        # formulat 2.2 from book
+        delta_price = self.k * (self.theta * (1 + y * iteration_no / 365) - prev_price) * self.dt + \
+                      self.sigma * delta_Z + (J * (1 + y * iteration_no / 365)) * delta_q
         return  delta_price
 
     def calcPriceWholePeriod(self, prev_price):
         """Calculate price for whole period from start date to end - return  list with prices for all project days"""
         result = []
-        for i in range(1, self.N+1):
-            price = prev_price + self.calcPriceDelta(prev_price, i)
+        y = self.makeInterannualVariabilityY()
+        for i, date in enumerate(self.period):
+            if isFirstDayMonth(date):  # recalculate y for each new month
+                y = self.makeInterannualVariabilityY()
+            price = prev_price + self.calcPriceDelta(prev_price, i+1, y)
             prev_price = price
             result.append(price)
-        return  result
+        return result
+
+    def makeInterannualVariabilityY(self):
+        """interannual variability of y"""
+        return self.y * np.random.normal(self.y_annual_mean, self.y_annual_std)
+
 
 class Poisson_step():
     """class for holding generated Poisson values"""

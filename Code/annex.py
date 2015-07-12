@@ -245,6 +245,10 @@ def firstDayMonth(date):
     """return date - first day date in month with input date"""
     return dt.date( date.year, date.month, 1)
 
+def isFirstDayMonth(date):
+    """return date - first day date in month with input date"""
+    return date.day == 1
+
 def addXYears(date, years):
     """return date X years later - 1 day"""
     return  date + relativedelta(years=int(years)) - relativedelta(days=1)
