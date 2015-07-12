@@ -1,4 +1,4 @@
-from Code.constants import TESTMODE
+from constants import TESTMODE
 
 
 class BaseClassConfig():
