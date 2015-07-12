@@ -58,7 +58,7 @@ def parse_list_and_get_random(values, value_type=int):
     """
     Parses input
     if one value - return it
-    if more than three
+    if three or more
       first val - average
       second val - type of distribution
       others - params for distribution
@@ -67,7 +67,7 @@ def parse_list_and_get_random(values, value_type=int):
          1000, normal, 1, 0.09    - where 1000 is the average value and is the multiplied by the
                                     standardised normal distribution
          1000, linear, 0.8, 1.2   ---- the last are min and max
-         1000, weibull, 1, 10  -- lambda and k
+         1000, weibull, 10  -- lambda -first and k - last
          1000, triangular, 0.8, 1.5, 1.1  - min, max, peak
     """
     list_values = values.split(',')
@@ -75,12 +75,7 @@ def parse_list_and_get_random(values, value_type=int):
 
     if len_values == 1:
         return value_type(list_values[0])
-    elif len_values <= 3:
-        msg = "Incorrect format for value %r. Should be 1 or >3 values. " % list_values
-        msg += "See details in 'parse_list_and_get_random'"
-        raise ValueError(msg)
-    else:
-        # probabilistic distribution
+    else:  # probabilistic distribution
         average, distribution_type = float(list_values[0]), list_values[1].strip()
         distribution_parameters = list_values[2:]
         if distribution_type == 'normal':
@@ -92,9 +87,9 @@ def parse_list_and_get_random(values, value_type=int):
             low, high = distribution_parameters
             value = numpy.random.uniform(low=low, high=high)
         elif distribution_type == 'weibull':
-            assert len(distribution_parameters) == 2, "Parameters should be 2 - lambda and k"
-            a_lambda, k_shape = float(distribution_parameters[0]), int(distribution_parameters[1])
-            value = a_lambda * numpy.random.weibull(a=k_shape)
+            assert len(distribution_parameters) == 1, "Parameters should be 1 - k"
+            k_shape = float(distribution_parameters[0])
+            value = numpy.random.weibull(a=k_shape)
         elif distribution_type == 'triangular':
             assert len(distribution_parameters) == 3, "Parameters should be 2 - min, max, peak"
             left_min, right_max, mode_peak = map(float, distribution_parameters)

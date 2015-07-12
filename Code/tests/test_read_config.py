@@ -9,7 +9,7 @@ class TestCase(unittest.TestCase):
             '1110',
             '1000, normal, 1, 0.09',
             '1000, linear, 0.8, 1.2',
-            '1000, weibull, 1, 10',
+            '1000, weibull, 10',
             '1000, triangular, 0.8, 1.5, 1.1'
         ]:
             result = parse_list_and_get_random(data)
