@@ -1,11 +1,10 @@
 from copy import deepcopy
+import numpy
 import os
-import random
 import datetime
-import cStringIO
 import yaml
-from annex import floatRange
 from constants import TESTMODE
+
 
 def read_file(name):
     """
@@ -19,6 +18,7 @@ def read_file(name):
         raise
     else:
         return content
+
 
 def update_dict(orig_dict, new_dict):
     """
@@ -36,6 +36,7 @@ def update_dict(orig_dict, new_dict):
             orig_dict[key] = new_dict[key]
     return orig_dict
 
+
 def get_country_values(name, country, silent):
     """
     get country config from file @name using key @country
@@ -52,32 +53,60 @@ def get_country_values(name, country, silent):
 
     return default_data
 
+
 def parse_list_and_get_random(values, value_type=int):
     """
     Parses input
     if one value - return it
-    if two - return range(min, max, with step = 1)
-    if three - return range(min, max, with step = last_value)
+    if more than three
+      first val - average
+      second val - type of distribution
+      others - params for distribution
+
+      examples:
+         1000, normal, 1, 0.09    - where 1000 is the average value and is the multiplied by the
+                                    standardised normal distribution
+         1000, linear, 0.8, 1.2   ---- the last are min and max
+         1000, weibull, 1, 10  -- lambda and k
+         1000, triangular, 0.8, 1.5, 1.1  - min, max, peak
     """
     list_values = values.split(',')
     len_values = len(list_values)
 
-    if not values or len_values > 4:
-        raise ValueError("Config value error " + values)
-
     if len_values == 1:
         return value_type(list_values[0])
-    elif len_values == 3:
-        step = value_type(list_values.pop(2))
+    elif len_values <= 3:
+        msg = "Incorrect format for value %r. Should be 1 or >3 values. " % list_values
+        msg += "See details in 'parse_list_and_get_random'"
+        raise ValueError(msg)
     else:
-        step = 1
+        # probabilistic distribution
+        average, distribution_type = float(list_values[0]), list_values[1].strip()
+        distribution_parameters = list_values[2:]
+        if distribution_type == 'normal':
+            assert len(distribution_parameters) == 2, "Parameters should be 2 - mean and stdev"
+            mean, stdev = float(distribution_parameters[0]), float(distribution_parameters[1])
+            value = numpy.random.normal(loc=mean, scale=stdev)
+        elif distribution_type == 'linear':
+            assert len(distribution_parameters) == 2, "Parameters should be 2 - min and max"
+            low, high = distribution_parameters
+            value = numpy.random.uniform(low=low, high=high)
+        elif distribution_type == 'weibull':
+            assert len(distribution_parameters) == 2, "Parameters should be 2 - lambda and k"
+            a_lambda, k_shape = float(distribution_parameters[0]), int(distribution_parameters[1])
+            value = a_lambda * numpy.random.weibull(a=k_shape)
+        elif distribution_type == 'triangular':
+            assert len(distribution_parameters) == 3, "Parameters should be 2 - min, max, peak"
+            left_min, right_max, mode_peak = map(float, distribution_parameters)
+            value = numpy.random.triangular(left=left_min, mode=mode_peak, right=right_max)
+        else:
+            raise ValueError("Unknown distribution type %r" % distribution_type)
 
-    min_value = min(map(value_type, list_values))
-    max_value = max(map(value_type, list_values))
-    if TESTMODE:
-        return value_type(0.5 * (min_value + max_value))
-    else:
-        return random.choice(floatRange(min_value, max_value, step, True))
+        if TESTMODE:
+            value = 1
+
+        return value_type(average * value)
+
 
 def get_random_config_value(value, value_type='guess'):
     """
@@ -113,10 +142,12 @@ def parse(dic):
             result[key] = parse(value)
     return result
 
+
 def parse_yaml(name, country, silent=False):
     config_dict = get_country_values(name, country, silent)
     parsed_config_dict = parse(config_dict)
     return parsed_config_dict
+
 
 def apply_format(value, new_format):
     """
@@ -151,6 +182,7 @@ def get_config_value(dic, path, type_format=None):
             raise
 
     return apply_format(result, type_format)
+
 
 if __name__ == '__main__':
     config = parse_yaml('em_config.ini', 'ITALY')
