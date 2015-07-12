@@ -110,12 +110,13 @@ def get_random_config_value(value, value_type='guess'):
     """
 
     if value_type == 'guess':
-        if '.' in value:
-            if value.replace(' ', '').replace('.', '').replace(',', '').replace('-', '').isdigit():
+        clean_value = value.replace('normal', '').replace('linear', '').\
+            replace('weibull', '').replace('triangular', '')
+        if '.' in clean_value:
+            if clean_value.replace(' ', '').replace('.', '').replace(',', '').replace('-', '').isdigit():
                 value_type = float
-        elif value.replace(' ', '').replace(',', '').replace('-', '').isdigit():
+        elif clean_value.replace(' ', '').replace(',', '').replace('-', '').isdigit():
             value_type = int
-
         else:
             value_type = str
 

@@ -1,5 +1,5 @@
 import unittest
-from config_yaml_reader import parse_list_and_get_random
+from config_yaml_reader import parse_list_and_get_random, get_random_config_value
 
 
 class TestCase(unittest.TestCase):
@@ -16,4 +16,11 @@ class TestCase(unittest.TestCase):
             self.assertTrue(isinstance(result, (int, float)))
             self.assertLess(result, 2000)
             self.assertGreater(result, 10)
+
+            result2 = get_random_config_value(data)
+            self.assertTrue(isinstance(result2, (int, float)))
+            self.assertLess(result2, 2000)
+            self.assertGreater(result2, 10)
+
+
 
