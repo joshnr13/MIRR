@@ -5,7 +5,7 @@ import numpy
 from em import EnergyModule
 from config_readers import MainConfig, TechnologyModuleConfigReader
 from base_class import BaseClassConfig
-from annex import yearsBetween1Jan, getResolutionStartEnd, cached_property
+from annex import yearsBetween1Jan, getResolutionStartEnd, cached_property, get_list_dates
 from tm_equipment import PlantEquipment
 from collections import OrderedDict
 
@@ -100,7 +100,6 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def generateElectricityProductionLifeTime(self):
         """generates electricity production for whole project lifetime"""
-        dates = self.all_project_dates
         last_day_construction = self.last_day_construction
         insolations = self.energy_module.insolations
         #electricity_production - dict with ideal electricity_production for every date
