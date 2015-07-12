@@ -14,24 +14,24 @@ from itertools import izip_longest
 db = Database()
 
 def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False, country=None):
-    """Plots 'revenue', 'cost', 'ebitda', 'Depreciation' chart"""
+    """Plots 'revenue', 'cost', 'ebitda', 'depreciation' chart"""
 
-    fields = ['revenue', 'cost', 'ebitda', 'Depreciation']
+    fields = ['revenue', 'cost', 'ebitda', 'depreciation']
     results = Database().getIterationValuesFromDb(simulation_no, fields, yearly,
-        iteration_no=iteration_no, country=country)  #loding field values form DB
+        iteration_no=iteration_no, country=country)  # loading field values form DB
 
     suffix = '_y' * yearly
     revenue = results['revenue'+suffix]
     cost = results['cost'+suffix]
     ebitda = results['ebitda'+suffix]
-    Depreciation = results['Depreciation'+suffix]
+    depreciation = results['depreciation'+suffix]
 
-    last_revenue, last_cost, last_ebitda, last_Depreciation = revenue[1:], cost[1:], ebitda[1:], Depreciation[1:]
+    last_revenue, last_cost, last_ebitda, last_depreciation = revenue[1:], cost[1:], ebitda[1:], depreciation[1:]
 
     pylab.plot(last_revenue, label='REVENUE')
     pylab.plot(last_cost, label='COST')
     pylab.plot(last_ebitda, label='EBITDA')
-    pylab.plot(last_Depreciation, label='Depreciation')
+    pylab.plot(last_depreciation, label='Depreciation')
 
     pylab.ylabel("EUROs")
     pylab.legend()
