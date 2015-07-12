@@ -208,7 +208,7 @@ class Interface():
 
     def getInputIteration(self, text, simulation_no):
         """User input for choosing iteration no"""
-        iterations = "[1-%s]" % (self.db.getIterationsNumber(simulation_no) + 1)
+        iterations = "[1-%s]" % (self.db.getIterationsNumber(simulation_no))
         return getInputInt(
             "Please enter iteration of Simulation %s for %s from %s (or press Enter to use first): " % (simulation_no, text, iterations), 1)
 
