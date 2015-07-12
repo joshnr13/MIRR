@@ -223,7 +223,7 @@ class Report(BaseClassConfig):
            increasing current year values each month by month value
            summing every month value
         """
-
+        assert len(self.report_dates_y[end_day_y]) <= 12, "simple check thay Y data has <= 12 M"
         for start_day_m, end_day_m in self.report_dates_y[end_day_y]:  #loop for all months in current year
             Y = end_day_y
             M = end_day_m

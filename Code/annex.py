@@ -308,9 +308,11 @@ def getReportDates(start_date_project, end_date_project):
         report_dates[start_date] = end_date
         report_dates_y[end_date_y].append((start_date, end_date))
 
-        date = addXMonths(date, 1)
-        if  date > date_to:
-            break
+        next_month_start_date = addXMonths(date, 1) + timedelta(days=1)
+        if next_month_start_date >= date_to:
+            break  # stop iteration - go to return statement
+        else:
+            date = next_month_start_date
 
     return (report_dates, report_dates_y)
 
