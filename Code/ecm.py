@@ -158,7 +158,6 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def calcBaseValues(self):
         """caclulation of initial values"""
         self.investments = self.technology_module.getInvestmentCost() #gets the value of the whole investment from the technology module
-        self.investmentEquipment = self.technology_module.getInvestmentCost() #sets the investment in equipment as the whole investment in technology
         self.debt = self.debt_share * self.investments #calculates the amount of debt based on share of debt in financing
         self.capital = self.investments - self.debt #calculates the amount of capital based on the amount of debt
         self.Depreciation_monthly = self.investments / self.Depreciation_duration  #Calc monthly value for Depreciation
@@ -330,7 +329,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def insuranceCosts(self):
         """return insurance costs at give date (1day)
         because it is fixed value, we calculate it only one time"""
-        return  self.insuranceFeeEquipment * self.investmentEquipment / 365  #deviding by 365 days in year
+        return self.insuranceFeeEquipment * self.investments / 365  #deviding by 365 days in year
 
     def getCosts(self, date_start, date_end):
         """sum of costs for all days in RANGE period """
