@@ -284,9 +284,9 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
             else:
                 self.paid_in_rest -= invest_value  #decreses rest payments
                 invest_value = self.paid_in_rest
-            return  invest_value
+            return invest_value
         else:
-            return 0
+            return invest_value
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
@@ -388,4 +388,4 @@ if __name__ == '__main__':
     subsidy_module = SubsidyModule(mainconfig, country)
 
     ecm = EconomicModule(mainconfig, technology_module, subsidy_module, country)
-
+    print ecm.investments_monthly
