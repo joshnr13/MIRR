@@ -25,7 +25,7 @@ class Equipment():
         self.crucial = True
         self.group_cruical = False
         self.efficiency = power_efficiency
-        self.invesment_price = price
+        self.investment_price = price
         self.reliability = reliability
         self.start_power = power
         self.power = power
@@ -65,7 +65,7 @@ class Equipment():
         return  self.group_cruical
 
     def __str__(self):
-        return "Name: %s  Price: %s  Reliability: %s  Effiency: %s" % (self.name,self.invesment_price, self.reliability, self.efficiency)
+        return "Name: %s  Price: %s  Reliability: %s  Effiency: %s" % (self.name,self.investment_price, self.reliability, self.efficiency)
 
     def getParams(self):
         """return  Equipment params dictionary"""
@@ -73,7 +73,7 @@ class Equipment():
 
     def getInvestmentCost(self):
         """return  investment cost (price) of eqipment"""
-        return self.invesment_price
+        return self.investment_price
 
     def getElectricityProductionEquipment(self, insolation):
         """Gets electiricity production for equipment"""
