@@ -274,7 +274,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         @part - float value [0.0-1.0] share of current part
         """
         investment_share = (1 - self.debt_share)
-        invest_value = investment_share * part * self.debt  #calc investment value in $
+        invest_value = investment_share * part * self.investments  #calc investment value in $
 
         if self.paid_in_rest > 0:  #if we have not paid all sum
 
@@ -381,26 +381,11 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         return  self.debt_rest_payments_wo_percents.get(date, 0)
 
 if __name__ == '__main__':
-    mainconfig = MainConfig('ITALY')
-    em = EnergyModule(mainconfig)
-    technology_module = TechnologyModule(mainconfig, em)
-    subsidy_module = SubsidyModule(mainconfig)
-    from annex import timer
+    country = 'SLOVENIA'
+    mainconfig = MainConfig(country)
+    em = EnergyModule(mainconfig, country)
+    technology_module = TechnologyModule(mainconfig, em, country)
+    subsidy_module = SubsidyModule(mainconfig, country)
 
-    @timer
-    def test1():
-        ecm = EconomicModule(mainconfig, technology_module, subsidy_module)
-
-    test1()
-
-
-
-
-
-
-
-
-
-
-
+    ecm = EconomicModule(mainconfig, technology_module, subsidy_module, country)
 
