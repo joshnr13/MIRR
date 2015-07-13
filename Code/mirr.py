@@ -237,10 +237,9 @@ class Interface():
         countries[4] = 'GERMANY'
         countries[5] = 'SPAIN'
         countries[6] = 'CROATIA'
-        
 
         if country in countries:
-            return country
+            return countries[country]
 
         for key, value in countries.items():
             print key, ' --> ', value
