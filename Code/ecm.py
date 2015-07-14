@@ -58,10 +58,11 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         days_dict = OrderedDict()
         self.poisson_steps = Poisson_step(self.Lambda, size=self.N)
         prices = self.calcPriceWholePeriod(self.S0)
+        prices = [p/1000.0 for p in prices]  # because price in configs for MEGAWT
 
         for date, price in zip(self.period, prices):  #loop for date, electricity price
             date_str = date.strftime("%Y-%m-%d")
-            days_dict[date_str] = price / 1000.0  #because price in configs for MEGAWT
+            days_dict[date_str] = price
 
         stats = calcStatistics(prices)
         simulation_result = {"simulation_no": simulation_no, "data": days_dict, "stats": stats}
