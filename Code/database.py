@@ -298,6 +298,9 @@ class Database():
         """write electricity prices simulation to db"""
         self.electricity_prices.insert(data, safe=True)
 
+    def getElecticityStats(self, country):
+        return self.electricity_prices.find({"country": country,}, {"_id": False, 'stats': True})
+
     def getElectricityPrices(self, simulation_no, country):
         """return  electricity prices data with defined @simulation_no or list of simulations_no"""
         if isinstance(simulation_no, int):
@@ -309,6 +312,12 @@ class Database():
             result = self.electricity_prices.find({"country": country, 'simulation_no': {"$in": simulation_no}}, {"_id": False, 'data': True})
             if result:
                 result = [convertDictDates(r['data']) for r in result]
+        elif simulation_no is None:
+            # get all simulations with only country filter
+            result = self.electricity_prices.find({"country": country}, {"_id": False, 'data': True})
+            if result:
+                result = [convertDictDates(r['data']) for r in result]
+
         else:
             raise ValueError('Incorrect format simulation_no: ' + simulation_no)
 

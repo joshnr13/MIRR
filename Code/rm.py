@@ -8,7 +8,7 @@ from collections import OrderedDict
 from config_readers import RiskModuleConfigReader
 import scipy.stats as stat
 from constants import report_directory, CORRELLATION_FIELDS
-from annex import convert2excel, uniquifyFilename, getOnlyDigitsList
+from annex import convert2excel, uniquifyFilename, getOnlyDigitsList, transponseCsv, addHeaderCsv
 from charts import plotIRRChart, plotHistogramsChart, plotElectricityChart, plotWeatherChart
 
 def calcStatistics(values):
@@ -179,8 +179,14 @@ def plotGeneratedWeather(weather_data, what, simulation_no, country):
     """plots graph of generated Weather Insolation and temperature from user defined simulation_no """
     plotWeatherChart(weather_data, what, simulation_no, country)  #plotting chart based on DB data
 
-def getWeatherDataFromDb(what, simulation_no, country):
+
+def getWeatherDataFromDb(simulation_no, country):
     return Database().getWeatherData(simulation_no, country)  # loading data from db
+
+
+def getElectricityDataFromDb(simulation_no, country):
+    return Database().getElectricityPrices(simulation_no, country)  # loading data from db
+
 
 def saveWeatheData(weather_data, what, simulation_no, country):
     cur_date = get_cur_date()
@@ -213,9 +219,58 @@ def saveWeatheData(weather_data, what, simulation_no, country):
     print "Weather data Report outputed to file %s" % xls_output_filename  #printing path to generated report
 
 
+def exportElectricityPrices(country, simulation_no=None):
+    prices = getElectricityDataFromDb(simulation_no, country)  # loading data from db
+    print 1
+    stats = Database().getElecticityStats(country)
+    print 2
+    report_name = "{country}_electricity_prices.csv".format(**locals())
+    report_full_name = os.path.join(report_directory, report_name)
+    output_filename = uniquifyFilename(report_full_name)
+
+    price_rows = [s.items() for s in prices]
+    rows_stats = [simulation['stats'] for simulation in stats]
+
+    info1 = "Electricity prices stats for %s \n" % country
+    info2 = "Electricity prices for %s \n" % country
+
+    simulations_names = ['Sim-%s' % (i+1) for i in range(len(rows_stats))]
+
+    print 3
+    with open(output_filename, 'wb') as f:
+        w = csv.DictWriter(f, rows_stats[0].keys(), delimiter=';')  # writing report
+        w.writeheader()
+        w.writerows(rows_stats)
+
+    transponseCsv(output_filename)
+    addHeaderCsv(output_filename, ["Stat"] + simulations_names)  # adding header
+    content = open(output_filename).readlines()
+
+    with open(output_filename, 'wb') as f:
+        w = csv.DictWriter(f, prices[0].keys(), delimiter=';')  # writing report
+        w.writeheader()
+        w.writerows(prices)
+    transponseCsv(output_filename)
+    addHeaderCsv(output_filename, ["Date/Price"] + simulations_names)  # adding header
+    content2 = open(output_filename).readlines()
+
+    with open(output_filename, 'wb') as output:
+        output.write(info1)
+        output.writelines(content)
+        output.write('\n')
+        output.write(info2)
+        output.writelines(content2)
+
+    # xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
+    # xls_output_filename = uniquifyFilename(xls_output_filename)  # generating filename for XLS
+    # convert2excel(source=output_filename, output=xls_output_filename)  # converting CSV to XLS
+
+    print "Weather data Report outputed to file %s" % output_filename
+
+
 def plotGeneratedElectricity(what, simulation_no, country):
     """plots graph of generated Electricity Prices from user defined simulation_no """
-    results = Database().getElectricityPrices(simulation_no, country)  #loading data from db
+    results = getElectricityDataFromDb(simulation_no, country)  #loading data from db
     plotElectricityChart(results, what=what, simulation_no=simulation_no, country=country)  #plotting chart based on DB data
 
 def get_cur_date():

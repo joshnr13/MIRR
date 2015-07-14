@@ -19,8 +19,7 @@ from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRSc
 from report_output import ReportOutput
 from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD, REPORT_DEFAULT_NUMBER_ITERATIONS
 from rm import analyseSimulationResults, plotSaveStochasticValuesSimulation, plotGeneratedWeather, plotGeneratedElectricity, \
-    getWeatherDataFromDb, saveWeatheData
-
+    getWeatherDataFromDb, saveWeatheData, exportElectricityPrices
 
 commands = OrderedDict()  #Commands sequence for menu, all commands is method of Interfave class
 commands['1'] = 'runSimulation'
@@ -40,6 +39,7 @@ commands['14'] = 'generateWeatherData'  #daily insolation and Temperature
 commands['15'] = 'generateElectricityMarketPrice'  #daily electricty market prices
 commands['16'] = 'outputGeneratedElectricityPrices'  #Graph of daily electricty market prices
 commands['17'] = 'outputGeneratedWeatherData'  #Graph of daily aily insolation and temperature
+commands['18'] = 'exportGeneratedElectricityPrices'  #Graph of daily aily insolation and temperature
 commands['0'] = 'stop'
 commands['h'] = 'help'
 commands['help'] = 'help'
@@ -178,9 +178,14 @@ class Interface():
         what = "Weather data"
         if simulation_no is None:
             simulation_no = self.getInputWeatherElectricitySimulationNo(what)
-        weather_data = getWeatherDataFromDb(what, simulation_no, country)
+        weather_data = getWeatherDataFromDb(simulation_no, country)
         saveWeatheData(weather_data, what, simulation_no, country)
         plotGeneratedWeather(weather_data, what, simulation_no, country)
+
+    def exportGeneratedElectricityPrices(self, country=None):
+        """Export to xls generated Electricity Prices for defined Country"""
+        country = self.getInputCountry(country)
+        exportElectricityPrices(country, simulation_no=None)
 
     ####################################################################################################################
 
