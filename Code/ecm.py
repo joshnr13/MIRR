@@ -3,6 +3,7 @@
 
 import datetime
 import numpy as np
+from rm import calcStatistics
 
 from tm import TechnologyModule
 from em import EnergyModule
@@ -62,8 +63,9 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
             date_str = date.strftime("%Y-%m-%d")
             days_dict[date_str] = price / 1000.0  #because price in configs for MEGAWT
 
-        simulation_result = {"simulation_no": simulation_no, "data": days_dict}
-        return  simulation_result
+        stats = calcStatistics(prices)
+        simulation_result = {"simulation_no": simulation_no, "data": days_dict, "stats": stats}
+        return simulation_result
 
     def calcJ(self):
         """Calcultation of J (normaly distibuted Jump size) as random with mean=loc and std=scale"""
