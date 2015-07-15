@@ -253,7 +253,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def calcPaidInInvestment(self, date, part):
         """Calculation of PaidIn and Investments for every month"""
         investment_paid_in = self.calcPaidInInvestmentPart(part)  #Calculation of inverstment value for current part of payment
-        debt_value = self.debt * part - investment_paid_in  #dept values for current investment paid-in
+        debt_value = self.debt * part  #dept values for current investment paid-in
 
         #saving paidin and investments for report
         self.investments_monthly[date] = investment_paid_in + debt_value  #saving monthly investments
@@ -391,3 +391,4 @@ if __name__ == '__main__':
 
     ecm = EconomicModule(mainconfig, technology_module, subsidy_module, country)
     print ecm.investments_monthly
+    print sum(ecm.investments_monthly.values())
