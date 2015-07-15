@@ -624,16 +624,16 @@ class Report(BaseClassConfig):
         """Calculation Monthly operating_receivable using following rule
         Revenue is paid in 60 days - so at the end of the month you have for two months of recievables
         """
-        prev1_date = lastDayPrevMonth(date)
 
-        if prev1_date >= self.start_date_project:
-            prev1_value = self.cost[prev1_date]
-            cur_value = self.revenue[date]
-        else :
+        cur_value = self.revenue[date]
+
+        prev_date = lastDayPrevMonth(date)
+        if prev_date >= self.start_date_project:
+            prev1_value = self.revenue[prev_date]
+        else:
             prev1_value = 0
-            cur_value = self.revenue[date]
 
-        return  prev1_value + cur_value
+        return prev1_value + cur_value
 
     def calcShortTermDebtSuppliers(self,  date):
         """Calculation Monthly Short-Term Debt to Suppliers using same rule as for operating_receivable
