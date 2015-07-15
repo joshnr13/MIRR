@@ -2,14 +2,16 @@ import os
 import csv
 import datetime
 from database import Database
-from numpy import std, mean, median
+from numpy import std, mean, median, absolute, diff
 from scipy.stats import skew, kurtosis
 from collections import OrderedDict
 from config_readers import RiskModuleConfigReader
 import scipy.stats as stat
 from constants import report_directory, CORRELLATION_FIELDS
 from annex import convert2excel, uniquifyFilename, getOnlyDigitsList, transponseCsv, addHeaderCsv
-from charts import plotIRRChart, plotHistogramsChart, plotElectricityChart, plotWeatherChart
+from charts import plotIRRChart, plotHistogramsChart, plotElectricityChart, plotWeatherChart, \
+    plotElectricityHistogram
+
 
 def calcStatistics(values):
     """input @list of values
@@ -272,6 +274,13 @@ def plotGeneratedElectricity(what, simulation_no, country):
     """plots graph of generated Electricity Prices from user defined simulation_no """
     results = getElectricityDataFromDb(simulation_no, country)  #loading data from db
     plotElectricityChart(results, what=what, simulation_no=simulation_no, country=country)  #plotting chart based on DB data
+    if isinstance(simulation_no, int):  # plotting diagrams only for single simulation
+        prices = results.values()
+        price_diff = diff(prices)
+        abs_price_diff = absolute(price_diff)
+        data = {'prices': prices, 'price_diff': price_diff, 'abs_price_diff': abs_price_diff}
+        plotElectricityHistogram(data, what=what, simulation_no=simulation_no, country=country)
+
 
 def get_cur_date():
     return datetime.datetime.now().strftime("%Y-%m-%d")

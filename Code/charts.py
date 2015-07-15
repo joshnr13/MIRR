@@ -107,6 +107,35 @@ def plotHistogramsChart(dic_values, simulation_no, yearly, country=None):
     fig.suptitle(title, fontsize=14)
     pylab.show()
 
+
+def plotElectricityHistogram(dic_values, what, simulation_no, country):
+    """Plots several (3) histograms of electricity prices"""
+
+    TITLES = {'price_diff': 'Price differences from day to day',
+              'abs_price_diff': 'Absolute prices differences from day to day',
+              'prices': 'Price from day to day'}
+    figures = OrderedDict()
+    for name, values in dic_values.items():
+        title = TITLES.get(name, "%s" % name)  # to use human readable title
+        figures[title] = values
+
+    cols, rows = getNumberColsRows(len(figures))
+    fig, axeslist = pylab.subplots(ncols=cols, nrows=rows)
+
+    for ind, title in izip_longest(range(cols * rows), figures):
+        if title is not None:
+            values = figures[title]
+            axeslist.ravel()[ind].hist(values, bins=BINS)
+            axeslist.ravel()[ind].set_title(title)
+        else:
+            axeslist.ravel()[ind].set_axis_off()
+
+    title = "Sim %s. Daily electricity price distribuiton for %s" % (simulation_no, country)
+    fig = pylab.gcf()
+    fig.suptitle(title, fontsize=14)
+    pylab.show()
+
+
 def plotCorrelationTornadoChart(field_dic, simulation_id, yearly=False, country=None):
     """Plot tornado chart with correlation of field and other stochastic variables"""
 
