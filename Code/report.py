@@ -410,8 +410,13 @@ class Report(BaseClassConfig):
         # fcf_owners_values_y = getOnlyDigits(self.fcf_owners_y)
         # fcf_project_y = getOnlyDigits(self.fcf_project_y)
 
-        self.irr_owners = self.irr(fcf_owners_values)  #calculation of IRR based on FCF  owners
-        self.irr_project = self.irr(fcf_project_values) #calculation of IRR based on FCF project
+        # calculation of IRR based on FCF  owners, None values are replaced with -1 (Borut request)
+        irr_owners = self.irr(fcf_owners_values)
+        self.irr_owners = irr_owners if irr_owners is not None else -1
+
+        # calculation of IRR based on FCF project, None values are replaced with -1 (Borut request)
+        irr_project = self.irr(fcf_project_values)
+        self.irr_project = irr_project if irr_project is not None else -1
 
         if self.irr_owners is not None and not numpy.isnan(self.irr_owners):  #calculation of IRR yearly OWNERS
             self.irr_owners_y = ((1 + self.irr_owners) ** 12) - 1 # FORMULA by Borut
