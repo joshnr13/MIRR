@@ -185,6 +185,10 @@ class TechnologyModuleConfigReader():
     def getConfigsValues(self):
         return self.configs
 
+    def randomizeDegradationRate(self, country, _filename='tm_config.ini'):
+        _config = parse_yaml(_filename, country, silent())  #loads config to memory
+        self.degradation_yearly = get_config_value(_config, 'SOLAR_MODULE.PV_degradation_rate', 'float_percent')
+
 
 class EconomicModuleConfigReader():
     """Module for reading Economic configs from file"""
