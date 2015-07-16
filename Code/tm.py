@@ -105,7 +105,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         insolations = self.energy_module.insolations
         #electricity_production - dict with ideal electricity_production for every date
         electricity_production = OrderedDict((day, self.plant.getElectricityProductionPlant1Day(insol) if day > last_day_construction else 0) for day, insol in insolations.items())
-        #multiply each electricity_production at degradation coeff
+        #multiply each electricity_production with degradation coeff
         electricity_production.update((x, electricity_production[x]*y) for x, y in self.conservation_coefficients.items())
 
         return electricity_production
