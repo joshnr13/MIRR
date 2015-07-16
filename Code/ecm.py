@@ -157,7 +157,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.country = country
         self.investments_monthly = OrderedDefaultdict(int)
         self.calcBaseValues()
-        self.calcDebtPercents()
+        self.calcInvestmentAndFinancing()
 
     def calcBaseValues(self):
         """caclulation of initial values"""
@@ -220,7 +220,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         else:
             return 0
 
-    def calcDebtPercents(self):
+    def calcInvestmentAndFinancing(self):
         """The investment is spread as follows:
              30% - 2 month before the start of construction
              50% - at start of construction
@@ -238,32 +238,32 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         part1 = 0.3
         start_date1 = lastDayPrevMonth(self.first_day_construction, 2)  #get start date of first step
         start_date1 = max(min_payment_date, start_date1)  # limit payment date to be inside project
-        self.calcPaidInInvestment(start_date1, part1)  #calculation of paid-in for first step
+        self.calcPaidInCapitalDebtInvestment(start_date1, part1)  #calculation of paid-in for first step
 
         ####### SECOND - 50% - at start of construction (end of month before contruction starts)
         part2 = 0.5
         start_date2 = lastDayPrevMonth(self.first_day_construction, 1)  # get start date of second step
         start_date2 = max(min_payment_date, start_date2)  # limit payment date to be inside project
-        self.calcPaidInInvestment(start_date2, part2)  #calculation of paid-in for second step
+        self.calcPaidInCapitalDebtInvestment(start_date2, part2)  #calculation of paid-in for second step
 
         ####### THIRD - 20% - at the end of construction (on next month since last_day_construction)
         part3 = 0.2
         start_date3 = lastDayNextMonth(self.last_day_construction)  #get start date of third step
         start_date3 = max(min_payment_date, start_date3)  # limit payment date to be inside project
-        self.calcPaidInInvestment(start_date3, part3)  #calculation of paid-in for third step
+        self.calcPaidInCapitalDebtInvestment(start_date3, part3)  #calculation of paid-in for third step
 
     def getPaidInAtDate(self, date):
         """return  current month new value of paid-in capital"""
         return  self.paid_in_monthly[date]
 
-    def calcPaidInInvestment(self, date, part):
+    def calcPaidInCapitalDebtInvestment(self, date, share):
         """Calculation of PaidIn and Investments for every month"""
-        investment_paid_in = self.calcPaidInInvestmentPart(part)  #Calculation of inverstment value for current part of payment
-        debt_value = self.debt * part  #dept values for current investment paid-in
+        capital_paid_in = self.calcPaidInCapitalPart(share)  #Calculation of inverstment value for current part of payment
+        debt_value = self.debt * share  #debt values for current investment paid-in
 
         #saving paidin and investments for report
-        self.investments_monthly[date] += investment_paid_in + debt_value  # saving+updating monthly investments
-        self.paid_in_monthly[date] += investment_paid_in  # saving+updating monthly paid-in
+        self.investments_monthly[date] += capital_paid_in + debt_value  # saving+updating monthly investments
+        self.paid_in_monthly[date] += capital_paid_in  # saving+updating monthly paid-in
 
         a = Annuitet(debt_value, self.debt_rate, self.debt_years, date)
         a.calculate()  #calculation on Annuitet
@@ -277,24 +277,24 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         for date, value in debt_rest_payments_with_dates:
             self.debt_rest_payments_wo_percents[date] += value #increasing debt_rest_payments_wo_percents [date] += debt rest payments for cur date
 
-    def calcPaidInInvestmentPart(self, part):
+    def calcPaidInCapitalPart(self, part):
         """return  inverstment value for current part of payments (1,2,3)
         @part - float value [0.0-1.0] share of current part
         """
-        investment_share = (1 - self.debt_share)
-        invest_value = investment_share * part * self.investments  #calc investment value in $
+        capital_share = (1 - self.debt_share)
+        capital_value = capital_share * part * self.investments  #calc investment value in $
 
         if self.paid_in_rest > 0:  #if we have not paid all sum
 
-            if invest_value > self.paid_in_rest:
+            if capital_value > self.paid_in_rest:
                 self.paid_in_rest = 0  #we dont need to pay more
-                invest_value -= self.paid_in_rest  #decrease invest_value
+                capital_value -= self.paid_in_rest  #decrease invest_value
             else:
-                self.paid_in_rest -= invest_value  #decreses rest payments
-                invest_value = self.paid_in_rest
-            return invest_value
+                self.paid_in_rest -= capital_value  #decreses rest payments
+                capital_value = self.paid_in_rest
+            return capital_value
         else:
-            return invest_value
+            return capital_value
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
