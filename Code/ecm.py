@@ -271,11 +271,11 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         percent_payments_with_dates = a.percent_payments.items()  #short links to annuitet calculation
         debt_rest_payments_with_dates = a.rest_payments_wo_percents.items() #short links to annuitet calculation
 
-        for date, value in percent_payments_with_dates:
-            self.debt_percents[date] += value  #increasing debt_percents [date] += percent payments for cur date
+        for debt_date, value in percent_payments_with_dates:
+            self.debt_percents[debt_date] += value  #increasing debt_percents [date] += percent payments for cur date
 
-        for date, value in debt_rest_payments_with_dates:
-            self.debt_rest_payments_wo_percents[date] += value #increasing debt_rest_payments_wo_percents [date] += debt rest payments for cur date
+        for debt_date, value in debt_rest_payments_with_dates:
+            self.debt_rest_payments_wo_percents[debt_date] += value #increasing debt_rest_payments_wo_percents [date] += debt rest payments for cur date
 
     def calcPaidInCapitalPart(self, part):
         """return  inverstment value for current part of payments (1,2,3)
@@ -288,10 +288,8 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
             if capital_value > self.paid_in_rest:
                 self.paid_in_rest = 0  #we dont need to pay more
-                capital_value -= self.paid_in_rest  #decrease invest_value
             else:
                 self.paid_in_rest -= capital_value  #decreses rest payments
-                capital_value = self.paid_in_rest
             return capital_value
         else:
             return capital_value
