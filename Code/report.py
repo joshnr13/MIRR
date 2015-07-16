@@ -200,9 +200,6 @@ class Report(BaseClassConfig):
         if M == self.end_date_project and int(self.fixed_asset[M]) != 0:
             msg = "Warning! Fixed assets are not ZERO at the end, = %s" % self.fixed_asset[M]
             print_warning(msg)
-            print self.economic_module.investments_monthly
-            print self.fixed_asset
-            raise ValueError('123')
 
         self.operating_receivable[M] = self.calcOperatingReceivable(end_day)
         self.inventory[M] = 0 #NOT IMPLEMENTED
