@@ -231,19 +231,24 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.debt_percents = OrderedDefaultdict(int)  #init container for dept percents $ value
         self.paid_in_monthly = OrderedDefaultdict(int)  #init container for paid-in monthly values in $ value
 
+        min_payment_date = lastDayMonth(self.start_date_project)
+
         ####### FIRST - 30% 2 month before the start of construction
         part1 = 0.3
         start_date1 = lastDayMonth(addXMonths(self.first_day_construction, -2))  #get start date of first step
+        start_date1 = max(min_payment_date, start_date1)  # limit payment date to be inside project
         self.calcPaidInInvestment(start_date1, part1)  #calculation of paid-in for first step
 
         ####### SECOND - 50% - at start of construction
         part2 = 0.5
         start_date2 = lastDayMonth(self.first_day_construction)  # get start date of second step
+        start_date2 = max(min_payment_date, start_date2)  # limit payment date to be inside project
         self.calcPaidInInvestment(start_date2, part2)  #calculation of paid-in for second step
 
         ####### THIRD - 20% - at the end of construction
         part3 = 0.2
         start_date3 = lastDayMonth(self.last_day_construction)  #get start date of third step
+        start_date3 = max(min_payment_date, start_date3)  # limit payment date to be inside project
         self.calcPaidInInvestment(start_date3, part3)  #calculation of paid-in for third step
 
     def getPaidInAtDate(self, date):
