@@ -642,6 +642,13 @@ def setupPrintProgress(format, function=lambda x: x):
 def print_separator():
     print "=" * 70
 
+
+def print_warning(text):
+    print "!" * 80
+    print text
+    print "!" * 80
+
+
 if __name__ == '__main__':
     start_date = dt.date(2000, 1, 1)
     end_date = dt.date(2001, 12, 31)

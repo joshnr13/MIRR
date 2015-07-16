@@ -2,7 +2,7 @@
 # -*- coding utf-8 -*-
 import numpy
 from collections import  OrderedDict
-from annex import lastDayMonth, cached_property, lastDayPrevMonth
+from annex import lastDayMonth, cached_property, lastDayPrevMonth, print_warning
 from annex import isLastDayYear, OrderedDefaultdict
 from annex import getOnlyDigits, sameDayLastYear, get_list_dates
 from financial_analysis import npvPv, CashFlows
@@ -197,6 +197,9 @@ class Report(BaseClassConfig):
 
         self.investment[M] = self.economic_module.getMonthlyInvestments(end_day)
         self.fixed_asset[M] = self.calcFixedAssets(end_day)
+        if M == self.end_date_project and int(self.fixed_asset[M]) != 0:
+            msg = "Warning! Fixed assets are not ZERO at the end, = %s" % self.fixed_asset[M]
+            print_warning(msg)
 
         self.operating_receivable[M] = self.calcOperatingReceivable(end_day)
         self.inventory[M] = 0 #NOT IMPLEMENTED
