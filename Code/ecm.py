@@ -9,12 +9,13 @@ from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
 from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property, \
-    setupPrintProgress, isFirstDayMonth
-from annex import addXMonths, nubmerDaysInMonth, getConfigs,  OrderedDefaultdict
+    setupPrintProgress, isFirstDayMonth, lastDayPrevMonth, nubmerDaysInMonth, OrderedDefaultdict, \
+    lastDayNextMonth
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
 from collections import OrderedDict
 from database import Database
+
 
 class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     """class for generating Electricity prices"""
@@ -235,19 +236,19 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
         ####### FIRST - 30% 2 month before the start of construction
         part1 = 0.3
-        start_date1 = lastDayMonth(addXMonths(self.first_day_construction, -2))  #get start date of first step
+        start_date1 = lastDayPrevMonth(self.first_day_construction, 2)  #get start date of first step
         start_date1 = max(min_payment_date, start_date1)  # limit payment date to be inside project
         self.calcPaidInInvestment(start_date1, part1)  #calculation of paid-in for first step
 
-        ####### SECOND - 50% - at start of construction
+        ####### SECOND - 50% - at start of construction (end of month before contruction starts)
         part2 = 0.5
-        start_date2 = lastDayMonth(self.first_day_construction)  # get start date of second step
+        start_date2 = lastDayPrevMonth(self.first_day_construction, 1)  # get start date of second step
         start_date2 = max(min_payment_date, start_date2)  # limit payment date to be inside project
         self.calcPaidInInvestment(start_date2, part2)  #calculation of paid-in for second step
 
-        ####### THIRD - 20% - at the end of construction
+        ####### THIRD - 20% - at the end of construction (on next month since last_day_construction)
         part3 = 0.2
-        start_date3 = lastDayMonth(self.last_day_construction)  #get start date of third step
+        start_date3 = lastDayNextMonth(self.last_day_construction)  #get start date of third step
         start_date3 = max(min_payment_date, start_date3)  # limit payment date to be inside project
         self.calcPaidInInvestment(start_date3, part3)  #calculation of paid-in for third step
 
@@ -261,8 +262,8 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         debt_value = self.debt * part  #dept values for current investment paid-in
 
         #saving paidin and investments for report
-        self.investments_monthly[date] = investment_paid_in + debt_value  #saving monthly investments
-        self.paid_in_monthly[date] = investment_paid_in  #saveing monthly paid-in
+        self.investments_monthly[date] += investment_paid_in + debt_value  # saving+updating monthly investments
+        self.paid_in_monthly[date] += investment_paid_in  # saving+updating monthly paid-in
 
         a = Annuitet(debt_value, self.debt_rate, self.debt_years, date)
         a.calculate()  #calculation on Annuitet
