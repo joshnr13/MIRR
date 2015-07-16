@@ -258,12 +258,12 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def calcPaidInCapitalDebtInvestment(self, date, share):
         """Calculation of PaidIn and Investments for every month"""
-        capital_paid_in = self.calcPaidInCapitalPart(share)  #Calculation of inverstment value for current part of payment
+        invest_value, paid_from_initial_capital = self.calcPaidInCapitalPart(share)  #Calculation of inverstment value for current part of payment
         debt_value = self.debt * share  #debt values for current investment paid-in
 
         #saving paidin and investments for report
-        self.investments_monthly[date] += capital_paid_in + debt_value  # saving+updating monthly investments
-        self.paid_in_monthly[date] += capital_paid_in  # saving+updating monthly paid-in
+        self.investments_monthly[date] += invest_value + debt_value  # saving+updating monthly investments
+        self.paid_in_monthly[date] += invest_value - paid_from_initial_capital  # saving+updating monthly paid-in
 
         a = Annuitet(debt_value, self.debt_rate, self.debt_years, date)
         a.calculate()  #calculation on Annuitet
@@ -287,12 +287,15 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         if self.paid_in_rest > 0:  #if we have not paid all sum
 
             if capital_value > self.paid_in_rest:
+                paid_from_initial_capital = self.paid_in_rest
                 self.paid_in_rest = 0  #we dont need to pay more
             else:
+                paid_from_initial_capital = capital_value
                 self.paid_in_rest -= capital_value  #decreses rest payments
-            return capital_value
         else:
-            return capital_value
+            paid_from_initial_capital = 0
+
+        return capital_value, paid_from_initial_capital
 
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
