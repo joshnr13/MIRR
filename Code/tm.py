@@ -45,7 +45,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
             eq_group = self.plant.addSolarGroup()
             eq_group.addInverter(self.inverter_price, self.inverter_reliability, self.inverter_power_efficiency)
             for j in range(self.modules_in_group):
-                self.randomizeDegradationRate(self.country)
+                self.randomizeSolarModuleParameters(self.country)
                 eq_group.addSolarModule(self.module_price, self.module_reliability, self.module_power_efficiency, self.module_power)
 
     def addACTransmission(self):
