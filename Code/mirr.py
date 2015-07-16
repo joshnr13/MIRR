@@ -117,7 +117,7 @@ class Interface():
         plotIRRScatterChart(simulation_no, 'irr_owners', yearly=True)
 
     def npvCorrelations(self):
-        """plots npv correlatins npv_project_y """
+        """plots npv correlatins npv_project_y"""
         self._run_correlations(CORRELLATION_NPV_FIELD)
 
     def distributionOfInputVariables(self, simulation_no=None):

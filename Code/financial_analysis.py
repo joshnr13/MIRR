@@ -16,7 +16,7 @@ class CashFlows():
         self.zerodivisionerror = False
 
     def derivativeNpv(self,  rate):
-        """calculate derivative npv """
+        """calculate derivative npv"""
         total = 0.0
         rate_plus_1 = 1 + rate
         cf = self.cashflows[1:]  #copy of CF except first value for calc derivative

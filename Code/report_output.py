@@ -13,7 +13,7 @@ from collections import OrderedDict
 from database import Database
 
 class ReportOutput():
-    """class for preparing data for XLS report from DB and writing it to file """
+    """class for preparing data for XLS report from DB and writing it to file"""
     def __init__(self, report_data):
         self.r = report_data  #data of report
         self.db = Database()  #connection to DB
@@ -86,7 +86,7 @@ class ReportOutput():
         double_round = REPORT_ROUNDING*2
         single_round = REPORT_ROUNDING
         def round_value(v):
-            """Smart rounging - if number is small - use double round, otherwise - single """
+            """Smart rounging - if number is small - use double round, otherwise - single"""
             if isinstance(v, float):
                 if  v > 5 or v < -5:  #if value is LARGE 5 abs than use single ROUND
                     return   round(v, single_round)

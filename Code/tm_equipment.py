@@ -9,7 +9,7 @@ from datetime import date
 
 
 class Equipment():
-    """Is the principal class for all equipment. """
+    """Is the principal class for all equipment."""
     def __init__(self,reliability, price, power_efficiency, power, state, system_crucial, group_cruical):
         """
         @state - current state - working, maintance, failure

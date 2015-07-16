@@ -205,7 +205,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
             electricity_price = self.getPriceKwh(cur_date)  #electricity price at cur_date
             day_revenue_electricity = electricity_production * electricity_price  #calc revenue = price * production
             revenue_electricity += day_revenue_electricity  #increment revenue for period  date_start - date_end
-        
+
         return revenue_electricity, revenue_subsidy
 
     def getElectricityProduction(self,  date):
@@ -341,31 +341,31 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         return self.insuranceFeeEquipment * self.investments / 365  #deviding by 365 days in year
 
     def getCosts(self, date_start, date_end):
-        """sum of costs for all days in RANGE period """
+        """sum of costs for all days in RANGE period"""
         return self.getDevelopmentCosts(date_start, date_end) + self.getOperationalCosts(date_start, date_end)
 
     def getInsuranceCosts(self, date_start, date_end):
-        """sum of Insurance Costs for all days in RANGE period """
+        """sum of Insurance Costs for all days in RANGE period"""
         return self.insuranceCosts * (date_end - date_start).days
 
     def getDevelopmentCosts(self, date_start, date_end):
-        """sum of Development Costs for all days in RANGE period """
+        """sum of Development Costs for all days in RANGE period"""
         return self.getSomeCostsRange(self._getDevelopmentCosts, date_start, date_end)
 
     def getDevelopmentCostDuringPermitProcurement(self, date_start, date_end):
-        """sum of Development Cost DuringPermitProcurement for all days in RANGE period """
+        """sum of Development Cost DuringPermitProcurement for all days in RANGE period"""
         return self.getSomeCostsRange(self._getDevelopmentCostDuringPermitProcurement, date_start, date_end)
 
     def getDevelopmentCostDuringConstruction(self, date_start, date_end):
-        """sum of Development Cost DuringConstruction for all days in RANGE period """
+        """sum of Development Cost DuringConstruction for all days in RANGE period"""
         return self.getSomeCostsRange(self._getDevelopmentCostDuringConstruction, date_start, date_end)
 
     def getOperationalCosts(self, date_start, date_end):
-        """sum of Operational Costs for all days in RANGE period """
+        """sum of Operational Costs for all days in RANGE period"""
         return self.getSomeCostsRange(self._getOperationalCosts, date_start, date_end)
 
     def getAdministrativeCosts(self, date_start, date_end):
-        """sum of Administrative Costs for all days in RANGE period """
+        """sum of Administrative Costs for all days in RANGE period"""
         return self.getSomeCostsRange(self._getAdministrativeCosts, date_start, date_end)
 
     def getSomeCostsRange(self, cost_function, date_start, date_end):

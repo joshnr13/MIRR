@@ -73,7 +73,7 @@ class Database():
             return data.get(field, "no-result or error")
 
     def getReportHeader(self,simulation_no, iteration_no, yearly=False ):
-        """return  report header - list of dates """
+        """return  report header - list of dates"""
         return self.getIterationField(simulation_no, iteration_no, addYearlyPrefix('report_header', yearly))
 
     def getNextSimulationNo(self):
@@ -231,7 +231,7 @@ class Database():
         print "Updated comment for simulation %s : %s" % (simulation_no, comment)
 
     def printLastSimulationsLog(self, last=10):
-        """prints @last simulations data from database """
+        """prints @last simulations data from database"""
         last_simulation_no = self.getLastSimulationNo()  #get last simulation_no
         min_s = last_simulation_no - last + 1
         max_s = last_simulation_no  #range of simulation numbers

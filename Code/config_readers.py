@@ -31,7 +31,7 @@ class MainConfig():
     """Module for reading configs from main config file"""
 
     def __init__(self, country, _filename='main_config.ini'):
-        """Reads main config file """
+        """Reads main config file"""
 
         _config = parse_yaml(_filename, country, silent())
 
@@ -136,7 +136,7 @@ class SubsidyModuleConfigReader():
         self.subsidy_duration = get_config_value(_config, 'SUBSIDY.subsidy_duration', int)
         _subsidy_delay = get_config_value(_config, 'SUBSIDY.subsidy_delay', float)  #reciving values from config
         self.subsidy_delay = _subsidy_delay if not TESTMODE else 0
-        
+
         #calculate first day of subsidy by adding subsidy_delay to last_day_construction+1
         self.first_day_subsidy = addXMonths(last_day_construction + datetime.timedelta(days=1), self.subsidy_delay)
         self.last_day_subsidy = addXMonths(self.first_day_subsidy, self.subsidy_duration)
@@ -148,7 +148,7 @@ class SubsidyModuleConfigReader():
 
 
 class TechnologyModuleConfigReader():
-    """Module fore reading Technology configs from file"""
+    """Module for reading Technology configs from file"""
 
     def __init__(self, country, _filename='tm_config.ini'):
 
@@ -252,7 +252,7 @@ class EconomicModuleConfigReader():
 
 
 class EnergyModuleConfigReader():
-    """Module fore reading Energy configs from file"""
+    """Module for reading Energy configs from file"""
 
     def __init__(self, country, _filename='em_config.ini', silently=False):
         silently = silently or silent()
@@ -291,7 +291,7 @@ class EnergyModuleConfigReader():
 
 
 class RiskModuleConfigReader():
-    """Module fore reading Risk configs from file"""
+    """Module for reading Risk configs from file"""
 
     def __init__(self, country, _filename='rm_config.ini'):
         _config = parse_yaml(_filename, country, silent())

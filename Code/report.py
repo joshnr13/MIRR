@@ -483,7 +483,7 @@ class Report(BaseClassConfig):
         self.wacc =  (1 + self.wacc_y) ** (1 / 12.0) - 1  #WACC formula
 
     def calcUnallocatedEarnings(self, date):
-        """Calculating accumulated earnings = previous (net_earning+unallocated_earning) """
+        """Calculating accumulated earnings = previous (net_earning+unallocated_earning)"""
         prev_month_date = lastDayPrevMonth(date)
         if prev_month_date < self.start_date_project:  #finding prev month date
             prev_month_date = PROJECT_START
@@ -533,7 +533,7 @@ class Report(BaseClassConfig):
         return self.equity[end_day] + self.financial_operating_obligation[end_day]
 
     def calcStLoans(self, end_day):
-        """Monthly calculation of Short-Term Loans """
+        """Monthly calculation of Short-Term Loans"""
         cur_earn = self.retained_earning[end_day]
         if cur_earn < 0:
             return abs(cur_earn)

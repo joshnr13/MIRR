@@ -181,14 +181,14 @@ class Simulation():
         self.prepared_line = line
 
     def runSimulation(self,  iterations_number):
-        """Run Simulation with multiple @iterations_number """
+        """Run Simulation with multiple @iterations_number"""
         self.initSimulationRecord(iterations_number)  #Prepare atributes for saving simulation record
         self.runIterations(iterations_number)  #run all iterations with saving results
         self.addIrrStatsToSimulation()  #add IRR stats to simulation record for future speed access
         self.db.insertSimulation(self.simulation_record)  #insert simulation record
 
     def runIterations(self, iterations_number):
-        """Run multiple @iterations_number """
+        """Run multiple @iterations_number"""
         print_progress = setupPrintProgress(
             '%d%%', lambda x: (x + 1) * 100 / float(iterations_number))
         for i in range(iterations_number):

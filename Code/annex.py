@@ -158,7 +158,7 @@ def floatRange(_from, _to, step, include=False):
     return float_result
 
 def getConfigs(dic):
-    """Gets dict ,return   dict with keys not starts with _
+    """Gets dict, returns dict with keys not starts with _
     Used to get all attrs from class
     """
     result = {}
@@ -205,7 +205,7 @@ def isLastDayYear(date):
         return False
 
 def yearsBetween1Jan(date1,date2):
-    """return year difference between 2 dates """
+    """return year difference between 2 dates"""
     return date2.year - date1.year
 
 def lastDayMonth(date):
@@ -340,7 +340,7 @@ def addHeaderCsv(csv_filename, header):
         f.write(line.rstrip('\r\n') + '\n' + content)
 
 def mkdir_p(path):
-    """ Mkdir if not exists """
+    """ Mkdir if not exists"""
     try:
         os.makedirs(path)
     except OSError as exc: # Python >2.5

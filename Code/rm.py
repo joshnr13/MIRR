@@ -90,7 +90,7 @@ def calcJbProbability(jb_stat_value, levels=(95, 99, 99.9)):
     return  result
 
 def JarqueBeraTest(values):
-    """calculates JarqueBeraTest """
+    """calculates JarqueBeraTest"""
     jb_stat_value = calcJbStats(values)
     return jb_stat_value
 
@@ -112,7 +112,7 @@ def printIRRStats(irr_values_lst):
 
 def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
     """Saves IRR values to excel file
-    @irr_values_lst - list  with 2 complicated dicts inside """
+    @irr_values_lst - list  with 2 complicated dicts inside"""
     cur_date = get_cur_date()
 
     report_name = "{cur_date}_{country}_irr_values_s{simulation_no}.csv".format(**locals())
@@ -165,20 +165,20 @@ def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
 
     xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
     xls_output_filename = uniquifyFilename(xls_output_filename)  #preparing XLS filename before converting from CSV
-    convert2excel(source=output_filename, output=xls_output_filename)  #coverting from CSV to XLS , using prepared report name
+    convert2excel(source=output_filename, output=xls_output_filename)  #coverting from CSV to XLS, using prepared report name
     print "CSV Report outputed to file %s" % (xls_output_filename)  #printing to screen path to generated report
 
 def plotSaveStochasticValuesSimulation(simulation_no, yearly=True):
     """plots simulation stochastic values and saves them in xls"""
     fields = CORRELLATION_FIELDS.values()  #taking correlation fields needed for analys
     db = Database()
-    results = db.getIterationValuesFromDb(simulation_no, fields=[], yearly=yearly , not_changing_fields=fields)  #loading data from db for correlation fields
+    results = db.getIterationValuesFromDb(simulation_no, fields=[], yearly=yearly, not_changing_fields=fields)  #loading data from db for correlation fields
     country = db.getSimulationCountry(simulation_no=simulation_no, print_result=True)
     plotHistogramsChart(results, simulation_no, yearly, country=country)  #plotting histogram based on DB data
     saveStochasticValuesSimulation(results, simulation_no, country=country)  #saving results to XLS file
 
 def plotGeneratedWeather(weather_data, what, simulation_no, country):
-    """plots graph of generated Weather Insolation and temperature from user defined simulation_no """
+    """plots graph of generated Weather Insolation and temperature from user defined simulation_no"""
     plotWeatherChart(weather_data, what, simulation_no, country)  #plotting chart based on DB data
 
 
@@ -271,7 +271,7 @@ def exportElectricityPrices(country, simulation_no=None):
 
 
 def plotGeneratedElectricity(what, simulation_no, country):
-    """plots graph of generated Electricity Prices from user defined simulation_no """
+    """plots graph of generated Electricity Prices from user defined simulation_no"""
     results = getElectricityDataFromDb(simulation_no, country)  #loading data from db
     plotElectricityChart(results, what=what, simulation_no=simulation_no, country=country)  #plotting chart based on DB data
     if isinstance(simulation_no, int):  # plotting diagrams only for single simulation
@@ -287,7 +287,7 @@ def get_cur_date():
 
 def saveStochasticValuesSimulation(dic_values, simulation_no, country):
     """Saves IRR values to excel file
-    @dic_values - dict[name]=list of values """
+    @dic_values - dict[name]=list of values"""
     cur_date = get_cur_date()
     report_name = "{cur_date}_{country}_stochastic_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
