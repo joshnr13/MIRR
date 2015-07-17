@@ -85,20 +85,6 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         """return degradation coefficient at given @date"""
         return  self.conservation_coefficients[date]
 
-    def generateElectiricityProduction(self, date):
-        """generates electricity production at given @date"""
-        insolation = self.energy_module.getInsolation(date)
-        conservation = self.conservationAtDate(date)
-        production = self.plant.getElectricityProductionPlant1Day(insolation)
-        return  production * conservation
-
-    def getElectricityProduction(self, date_start, date_end):
-        """return sum of electricity in kWh for each day for the selected period"""
-        s = self.plant.getElectricityProductionPlant1Day
-        i = self.energy_module.insolations
-        d = self.conservation_coefficients
-        return sum([s(1)*i[date]*d[date] for date in get_list_dates(date_start, date_end)])
-
     def generateElectricityProductionLifeTime(self):
         """generates electricity production for whole project lifetime"""
         last_day_construction = self.last_day_construction
