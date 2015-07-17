@@ -224,6 +224,7 @@ class EconomicModuleConfigReader():
         self.debt_rate = get_config_value(_config, 'DEBT.interest_rate', 'float_percent')
         self.debt_rate_short = get_config_value(_config, 'DEBT.interest_rate_short', 'float_percent')
         self.debt_years = get_config_value(_config, 'DEBT.periods', int)
+        self.delay_of_principal_repayment = get_config_value(_config, 'DEBT.start_of_principal_repayment', int)
 
         ######################### Depreciation #################################
         #gets Depreciation_duration and convert it to months
