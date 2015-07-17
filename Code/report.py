@@ -520,7 +520,7 @@ class Report(BaseClassConfig):
 
     def calcLtLoans(self, end_day):
         """Monthly calculation of  Long-Term Loans"""
-        return  self.economic_module.debt_rest_payments_wo_percents.get(end_day, 0)
+        return  self.economic_module.debt_rest_payments_principal.get(end_day, 0)
 
     def calcLtOperLiab(self, end_day):
         """Monthly calculation of Long-Term Operating Liabilities - NOT IMPLEMENTED"""
