@@ -237,9 +237,9 @@ def lastDayPrevMonth(date, month_count=1):
     return last_day_prev_month
 
 
-def lastDayNextMonth(date):
+def lastDayNextMonth(date, month_count=1):
     """return date - last day of next month"""
-    next_month_date =  date + relativedelta(months=1)
+    next_month_date =  date + relativedelta(months=month_count)
     last_day_next_month = lastDayMonth(next_month_date)
     return last_day_next_month
 
@@ -489,6 +489,65 @@ def addYearlyPrefix(field, yearly):
             return field
 
     return field
+
+
+class PMT():
+    def __init__(self, summa, yrate, yperiods, date):
+        self.summa = summa
+        self.yrate = yrate
+        self.rate = yrate/12
+        self.mperiods = yperiods * 12
+        self.start_date = date
+
+    def calculate(self):
+        """Calculated annuitet values
+
+        @percent_payments = dict with sum we need to pay at current period - for percent of loan
+        @debt_payments = dict with sum we need to pay at current period - for body of loan
+        @rest_payments = dict with sum, we still need to pay in next periods
+        """
+
+        from numpy import ppmt, ipmt, arange
+        periods = arange(self.mperiods) + 1
+        principal_repayments = ppmt(rate=self.rate, per=periods, nper=self.mperiods, pv=self.summa)
+        interest_payments = ipmt(rate=self.rate, per=periods, nper=self.mperiods, pv=self.summa)
+
+        date = self.start_date
+
+        percent_payment = 0  # (self.summa * self.yrate / 12)
+        debt_payment = 0
+        rest_payment = self.summa + abs(interest_payments.sum())
+        rest_payment_wo_percent = self.summa
+
+        percent_payments = OrderedDict({date: percent_payment})
+        debt_payments = OrderedDict({date: debt_payment})
+        rest_payments = OrderedDict({date: rest_payment})
+        rest_payments_wo_percents = OrderedDict({date: rest_payment_wo_percent})
+
+        for i in range(self.mperiods):
+            date = lastDayNextMonth(date)
+
+            percent_payment = interest_payments[i]
+            debt_payment = principal_repayments[i]
+            rest_payment -= abs(percent_payment) + abs(debt_payment)
+            rest_payment_wo_percent -= abs(debt_payment)
+
+            if rest_payment < 0.01:
+                rest_payment = 0
+
+            if rest_payment_wo_percent < 0.01:
+                rest_payment_wo_percent = 0
+
+            percent_payments[date] = percent_payment
+            debt_payments[date] = debt_payment
+            rest_payments[date] = rest_payment
+            rest_payments_wo_percents[date] = rest_payment_wo_percent
+
+        self.percent_payments = percent_payments
+        self.debt_payments = debt_payments
+        self.rest_payments = rest_payments
+        self.rest_payments_wo_percents = rest_payments_wo_percents
+
 
 class Annuitet():
     def __init__(self,summa,yrate,yperiods, start_date):
