@@ -10,26 +10,27 @@ from datetime import date
 
 class Equipment():
     """Is the principal class for all equipment."""
-    def __init__(self,reliability, price, power_efficiency, power, state, system_crucial, group_cruical):
+    def __init__(self, reliability, price, power_efficiency, power, degradation_yearly, state, system_crucial, group_cruical):
         """
-        @state - current state - working, maintance, failure
-        @system_crucial - if state is not working then the whole system does not work
-        @group_cruical - if crucial then if state is not working then the respective group to which belongs does not work
         @reliability - % as of probability that it is working
         @price - investments price in EU
         @efficiency - percentage of efficiency in transmiting or transforming power - expressed for modules in relation to 100% from intial efficency - in inverterst and transfromers and other elements it is effective efficieny of transmission
         @power - current peak power of the system
-        @start power - peak power at start
+        @degradation_yearly - yearly degradation rate, eg. 0.0354
+        @state - current state - working, maintance, failure
+        @system_crucial - if state is not working then the whole system does not work
+        @group_cruical - if crucial then if state is not working then the respective group to which belongs does not work
         """
+        self.name = ""
+        self.reliability = reliability
+        self.investment_price = price
+        self.efficiency = power_efficiency
+        self.power = power
+        self.degradation_yearly = degradation_yearly
         self.state = 0
         self.crucial = True
         self.group_cruical = False
-        self.efficiency = power_efficiency
-        self.investment_price = price
-        self.reliability = reliability
         self.start_power = power
-        self.power = power
-        self.name = ""
 
     def isStateWorking(self):
         """return  True if Equipment state Working"""
@@ -90,9 +91,14 @@ class EquipmentSolarModule(Equipment):
         Equipment.__init__(self, *args, **kwargs)
         self.name = "SolarModule Equipment"
 
-    def getElectricityProductionEquipment(self, insolation):
+    def getElectricityProductionEquipment(self, insolation, years_from_start):
         """Gets electiricity production for SolarModule"""
-        return insolation * self.power / 1000.0
+        return insolation * self.power / 1000.0 * self.conservation_coefficient(years_from_start)
+
+    def conservation_coefficient(self, years_from_start):  #conservation as the opposite of degradation
+        """calculation of degradation coefficients for equipment depending years running"""
+        koef_conservation = 1 - self.degradation_yearly
+        return  koef_conservation ** years_from_start
 
     def getPower(self):
         return self.power
@@ -145,24 +151,24 @@ class EquipmentGroup():
 
     def addConnectionGrid(self, price):
         """Adds connection Grid! Could be only ONE"""
-        eq = EquipmentConnectionGrid(reliability=1, price=price, power_efficiency=1, power=None, state=0, system_crucial=False, group_cruical=False) #create Equipment class instance
+        eq = EquipmentConnectionGrid(reliability=1, price=price, power_efficiency=1, power=None, degradation_yearly=None, state=0, system_crucial=False, group_cruical=False) #create Equipment class instance
         self.connectiongrid_object = eq
         self.connection_grids = 1
         self.addEquipment(eq, type='connection_grid')  #adds new created equipment to group with defined type
 
-    def addSolarModule(self, price, reliability, power_efficiency, power):
-        eq = EquipmentSolarModule(reliability, price, power_efficiency,power, state=0, system_crucial=False, group_cruical=False) #create Equipment class instance
+    def addSolarModule(self, price, reliability, power_efficiency, power, degradation_yearly):
+        eq = EquipmentSolarModule(reliability=reliability, price=price, power_efficiency=power_efficiency, power=power, degradation_yearly=degradation_yearly, state=0, system_crucial=False, group_cruical=False) #create Equipment class instance
         self.solar_modules += 1  #increase number of solar modules in group
         self.addEquipment(eq, type='solar_module') #adds new created equipment to group with defined type
 
     def addInverter(self, price, reliability, power_efficiency):
-        eq = EquipmentInverter(reliability, price, power_efficiency, power=None, state=0, system_crucial=False, group_cruical=True ) #create Equipment class instance
+        eq = EquipmentInverter(reliability=reliability, price=price, power_efficiency=power_efficiency, power=None, degradation_yearly=None, state=0, system_crucial=False, group_cruical=True ) #create Equipment class instance
         self.inverters += 1  #increase number of inverters in group
         self.addEquipment(eq, type='inverter') #adds new created equipment to group with defined type
 
     def addTransformer(self, price, reliability, power_efficiency):
         """Adds connection Grid! Could be only ONE"""
-        eq = EquipmentTransformer(reliability, price, power_efficiency, power=None, state=0, system_crucial=False, group_cruical=True )  #create Equipment class instance
+        eq = EquipmentTransformer(reliability=reliability, price=price, power_efficiency=power_efficiency, power=None, degradation_yearly=None, state=0, system_crucial=False, group_cruical=True )  #create Equipment class instance
         self.transformers = 1
         self.transformer_object = eq
         self.addEquipment(eq, type='transformer')  #adds new created equipment to group with defined type
@@ -261,9 +267,9 @@ class EquipmentGroup():
         else:
             return 0
 
-    def getElectricityProductionGroup(self, insolation):
+    def getElectricityProductionGroup(self, insolation, years_from_start):
         """return  ElectiricityProduction for group"""
-        group_production = sum([eq.getElectricityProductionEquipment(insolation) for eq in self.getSolarEquipment()])  #calc sum of all group electricity production
+        group_production = sum([eq.getElectricityProductionEquipment(insolation, years_from_start) for eq in self.getSolarEquipment()])  #calc sum of all group electricity production
         inverter_efficiency = self.getInverterEffiency()
         return  group_production * inverter_efficiency
 
@@ -348,10 +354,10 @@ class PlantEquipment():
                 return True  #return  True if we have connection grid in AC group
         return False
 
-    def getElectricityProductionPlant1Day(self, insolation):
+    def getElectricityProductionPlant1Day(self, insolation, years_from_start):
         """return  ElectiricityProduction for whole Plant"""
         if self.isGridAvailable():  #if we have connection grid in plant
-            groups_production = sum(g.getElectricityProductionGroup(insolation) for g in self.getPlantSolarGroups())  #calc sum of el.production for all solar groups
+            groups_production = sum(g.getElectricityProductionGroup(insolation, years_from_start) for g in self.getPlantSolarGroups())  #calc sum of el.production for all solar groups
             transformer_efficiency = self.getTransformerEffiency()
             return  groups_production * transformer_efficiency
         else:
@@ -372,7 +378,7 @@ class PlantEquipment():
             av_insolations.append(em_config.getAvMonthInsolationMonth(i))  #add to list av.month insollation for 1 day
             days_in_month.append(lastDayMonth(date(2000,  i, 1)).day)  #  add to list number of days in cur month
 
-        one_day_production = numpy.array([self.getElectricityProductionPlant1Day(insolation) for insolation in av_insolations])  #calc one day production for this 12 days
+        one_day_production = numpy.array([self.getElectricityProductionPlant1Day(insolation, 0) for insolation in av_insolations])  #calc one day production for this 12 days
         whole_year_production = numpy.sum(numpy.array(days_in_month) * one_day_production)  #multiply number of days in month * one day production and summarise them all
 
         return round(whole_year_production, 0)  #return rounded value
