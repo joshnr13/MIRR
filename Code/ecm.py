@@ -10,7 +10,7 @@ from em import EnergyModule
 from sm import SubsidyModule
 from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property, \
     setupPrintProgress, isFirstDayMonth, lastDayPrevMonth, nubmerDaysInMonth, OrderedDefaultdict, \
-    lastDayNextMonth
+    lastDayNextMonth, PMT
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
 from collections import OrderedDict
@@ -238,44 +238,90 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         part1 = 0.3
         start_date1 = lastDayPrevMonth(self.first_day_construction, 2)  #get start date of first step
         start_date1 = max(min_payment_date, start_date1)  # limit payment date to be inside project
-        self.calcPaidInCapitalDebtInvestment(start_date1, part1)  #calculation of paid-in for first step
+
+        invest_value1, paid_from_initial_capital1, debt_value1 = \
+            self.getInvestCaptitalDeptValues(start_date1, part1)  #calculation of paid-in for first step
+
+        self.calcInvestmentsAndPaidIn(start_date1, invest_value1, paid_from_initial_capital1, debt_value1)
 
         ####### SECOND - 50% - at start of construction (end of month before contruction starts)
         part2 = 0.5
         start_date2 = lastDayPrevMonth(self.first_day_construction, 1)  # get start date of second step
         start_date2 = max(min_payment_date, start_date2)  # limit payment date to be inside project
-        self.calcPaidInCapitalDebtInvestment(start_date2, part2)  #calculation of paid-in for second step
+
+        invest_value2, paid_from_initial_capital2, debt_value2 =\
+            self.getInvestCaptitalDeptValues(start_date2, part2)  #calculation of paid-in for second step
+
+        self.calcInvestmentsAndPaidIn(start_date2, invest_value2, paid_from_initial_capital2, debt_value2)
 
         ####### THIRD - 20% - at the end of construction (on next month since last_day_construction)
         part3 = 0.2
         start_date3 = lastDayNextMonth(self.last_day_construction)  #get start date of third step
         start_date3 = max(min_payment_date, start_date3)  # limit payment date to be inside project
-        self.calcPaidInCapitalDebtInvestment(start_date3, part3)  #calculation of paid-in for third step
+
+        invest_value3, paid_from_initial_capital3, debt_value3 = \
+            self.getInvestCaptitalDeptValues(start_date3, part3)  #calculation of paid-in for third step
+
+        self.calcInvestmentsAndPaidIn(start_date3, invest_value3, paid_from_initial_capital3, debt_value3)
+
+        ####### Calc debt and payments (interests and principal)
+        # before repayment of the principal - we pay just interests
+        only_percent_pairs = [
+            (start_date1, debt_value1),
+            (start_date2, debt_value2),
+            (start_date3, debt_value3)
+        ]
+
+        #the start of repayment of the principal is delayed for specified amount of time
+        first_date_principal_repayment = lastDayNextMonth(start_date3, self.delay_of_principal_repayment)
+        last_date_interest_payment = lastDayPrevMonth(first_date_principal_repayment)
+        principal = debt_value1 + debt_value2 + debt_value3
+
+        # calculate self.debt_percents and self.debt_rest_payments_wo_percents
+        self.payOnlyInterests(only_percent_pairs, last_date=last_date_interest_payment)
+        self.payInterestsWithPrincipal(principal, date=last_date_interest_payment)
 
     def getPaidInAtDate(self, date):
         """return  current month new value of paid-in capital"""
         return  self.paid_in_monthly[date]
 
-    def calcPaidInCapitalDebtInvestment(self, date, share):
+    def getInvestCaptitalDeptValues(self, date, share):
         """Calculation of PaidIn and Investments for every month"""
         invest_value, paid_from_initial_capital = self.calcPaidInCapitalPart(share)  #Calculation of inverstment value for current part of payment
         debt_value = self.debt * share  #debt values for current investment paid-in
+        return invest_value, paid_from_initial_capital, debt_value
 
+    def calcInvestmentsAndPaidIn(self, date, invest_value, paid_from_initial_capital, debt_value):
         #saving paidin and investments for report
         self.investments_monthly[date] += invest_value + debt_value  # saving+updating monthly investments
         self.paid_in_monthly[date] += invest_value - paid_from_initial_capital  # saving+updating monthly paid-in
 
-        a = Annuitet(debt_value, self.debt_rate, self.debt_years, date)
-        a.calculate()  #calculation on Annuitet
+    def payOnlyInterests(self, only_percent_pairs, last_date):
+        """Pay only interest payments until @last_date"""
+        current_dept = 0
+        for date in self.report_dates.values():
+            pay_interest_date = lastDayNextMonth(date)
+            if pay_interest_date > last_date:   # exit , next payments will be with payInterestsWithPrincipal
+                return
 
-        percent_payments_with_dates = a.percent_payments.items()  #short links to annuitet calculation
-        debt_rest_payments_with_dates = a.rest_payments_wo_percents.items() #short links to annuitet calculation
+            for debt_date, value in only_percent_pairs:
+                if date == debt_date:
+                    current_dept += value  # calculate total dept at current date
 
-        for debt_date, value in percent_payments_with_dates:
-            self.debt_percents[debt_date] += value  #increasing debt_percents [date] += percent payments for cur date
+            debt_interest = current_dept * self.debt_rate / 12  # calculate monthly interest
+            self.debt_percents[pay_interest_date] += debt_interest  # increasing debt_percents [date] += percent payments for cur date
+            self.debt_rest_payments_wo_percents[date] += current_dept
 
-        for debt_date, value in debt_rest_payments_with_dates:
-            self.debt_rest_payments_wo_percents[debt_date] += value #increasing debt_rest_payments_wo_percents [date] += debt rest payments for cur date
+    def payInterestsWithPrincipal(self, debt_value, date):
+        # short links to principal_repayment in calculations calculation
+        ppm = PMT(debt_value, yrate=self.debt_rate, yperiods=self.debt_years, date=date)
+        ppm.calculate()
+
+        for debt_date, value in ppm.percent_payments.items():
+            self.debt_percents[debt_date] += value   # increasing debt_percents [date] += percent payments for cur date
+
+        for debt_date, value in ppm.rest_payments_wo_percents.items():
+            self.debt_rest_payments_wo_percents[debt_date] += value  # increasing debt_rest_payments_wo_percents [date]
 
     def calcPaidInCapitalPart(self, part):
         """return  inverstment value for current part of payments (1,2,3)
@@ -304,7 +350,6 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
            return  self.electricity_prices[date]     #if FIT is zero, take market price else take FIT
         else :
            return  fit
-
 
     def _getDevelopmentCosts(self, date):
         """costs for developing phase of project at given date (1day)"""
