@@ -228,7 +228,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         """
         self.paid_in_rest = self.initial_paid_in_capital  #initial value of paid_in, this will be shared
 
-        self.debt_rest_payments_wo_percents = OrderedDefaultdict(int)  #init container for rest_payments without percents
+        self.debt_rest_payments_principal = OrderedDefaultdict(int)  #init container for rest_payments without percents
         self.debt_percents = OrderedDefaultdict(int)  #init container for dept percents $ value
         self.paid_in_monthly = OrderedDefaultdict(int)  #init container for paid-in monthly values in $ value
 
@@ -277,7 +277,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         last_date_interest_payment = lastDayPrevMonth(first_date_principal_repayment)
         principal = debt_value1 + debt_value2 + debt_value3
 
-        # calculate self.debt_percents and self.debt_rest_payments_wo_percents
+        # calculate self.debt_percents and self.debt_rest_payments_principal
         self.payOnlyInterests(only_percent_pairs, last_date=last_date_interest_payment)
         self.payInterestsWithPrincipal(principal, date=last_date_interest_payment)
 
@@ -310,7 +310,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
             debt_interest = current_dept * self.debt_rate / 12  # calculate monthly interest
             self.debt_percents[pay_interest_date] += debt_interest  # increasing debt_percents [date] += percent payments for cur date
-            self.debt_rest_payments_wo_percents[date] += current_dept
+            self.debt_rest_payments_principal[date] += current_dept
 
     def payInterestsWithPrincipal(self, debt_value, date):
         # short links to principal_repayment in calculations calculation
@@ -321,7 +321,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
             self.debt_percents[debt_date] += value   # increasing debt_percents [date] += percent payments for cur date
 
         for debt_date, value in ppm.rest_payments_wo_percents.items():
-            self.debt_rest_payments_wo_percents[debt_date] += value  # increasing debt_rest_payments_wo_percents [date]
+            self.debt_rest_payments_principal[debt_date] += value  # increasing debt_rest_payments_principal [date]
 
     def calcPaidInCapitalPart(self, part):
         """return  inverstment value for current part of payments (1,2,3)
@@ -432,7 +432,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def calculateDebtBody(self, date):
         """Return monthly debt percents we need to pay"""
-        return  self.debt_rest_payments_wo_percents.get(date, 0)
+        return  self.debt_rest_payments_principal.get(date, 0)
 
 if __name__ == '__main__':
     country = 'SLOVENIA'
