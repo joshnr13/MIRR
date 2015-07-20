@@ -18,10 +18,10 @@ class CashFlows():
     def derivativeNpv(self,  rate):
         """calculate derivative npv"""
         total = 0.0
-        rate_plus_1 = 1 + rate
+        rate_plus_1 = float(1 + rate)
         cf = self.cashflows[1:]  #copy of CF except first value for calc derivative
         for i, cashflow in enumerate(cf):
-            val = (-1 * (i) * cashflow / (rate_plus_1** (i + 1)+SMALL))
+            val = (-1 * i * float(cashflow) / (rate_plus_1 ** (i+1) + SMALL))
             total += val
         return total
 
@@ -29,11 +29,10 @@ class CashFlows():
         """Calculation on NPV based on given @rate"""
         if rate not in self.npvs:
             total = 0.0
-            rate_plus_1 = 1 + rate
+            rate_plus_1 = float(1 + rate)
             for i, cashflow in enumerate(self.cashflows):
-                stepen = (i)
-                small = SMALL if i > 0 else 0  #small value - not to devide by zero
-                val = (cashflow / ((rate_plus_1)** (stepen) + small))
+                small = SMALL if i > 0 else 0  # small value - not to devide by zero
+                val = float(cashflow) / (rate_plus_1 ** i + small)
                 total += val
                 if save_pv:  #if @save_pv
                     self.pv.append(val)
@@ -41,7 +40,7 @@ class CashFlows():
             self.npvs[rate] = total  #saving in dict because it is heavy calculations
             return total
         else:
-            return  self.npvs[rate]  #load from dict, if it was already calculated
+            return self.npvs[rate]  #load from dict, if it was already calculated
 
     def improve(self,  guess):
         """Tries to improve last guess"""
