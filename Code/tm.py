@@ -59,6 +59,13 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         """return  investment costs of all plant"""
         return  self.plant.getInvestmentCost() + self.documentation_price
 
+    def getAverageDegradationRate(self):
+        degradation_rates = []
+        for g in self.plant.getPlantSolarGroups():
+            for sm in g.getSolarEquipment():
+                degradation_rates.append(sm.degradation_yearly)
+        return numpy.average(degradation_rates)
+
     def equipmentDescription(self):
         """Returns string with description of eqipment"""
         description = []

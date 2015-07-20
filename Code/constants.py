@@ -84,6 +84,7 @@ CORRELLATION_FIELDS["dev_costs_construct"] = "ecm_configs.developmentCostDuringC
 CORRELLATION_FIELDS["interest_rate"] = "ecm_configs.debt_rate"
 CORRELLATION_FIELDS["interest_rate_short"] = "ecm_configs.debt_rate_short"
 
+CORRELLATION_FIELDS["average_degradation_rate"] = "average_degradation_rate"
 
 CORRELLATION_IRR_FIELD = {"IRR": IRR_REPORT_FIELD}
 CORRELLATION_NPV_FIELD = {"NPV": NPV_REPORT_FIELD}
