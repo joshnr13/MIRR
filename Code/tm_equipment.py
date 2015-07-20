@@ -103,13 +103,6 @@ class EquipmentSolarModule(Equipment):
     def getPower(self):
         return self.power
 
-    def getNominalPower(self):
-        return self.nominal_power
-
-    def getStartPower(self):
-        return self.nominal_power
-
-
 class EquipmentConnectionGrid(Equipment):
     """Class for holding special info about Solar Modules"""
     def __init__(self, *args, **kwargs):
