@@ -60,11 +60,21 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         return  self.plant.getInvestmentCost() + self.documentation_price
 
     def getAverageDegradationRate(self):
+        """Return average yearly degradation rate over all modules."""
         degradation_rates = []
         for g in self.plant.getPlantSolarGroups():
             for sm in g.getSolarEquipment():
                 degradation_rates.append(sm.degradation_yearly)
         return numpy.average(degradation_rates)
+
+    def getAveragePowerRatio(self):
+        """Calculates the average ratio between module_power and module_nominal_power."""
+        module_powers = []
+        for g in self.plant.getPlantSolarGroups():
+            for sm in g.getSolarEquipment():
+                module_powers.append(sm.power)
+        avg_module_power = numpy.average(module_powers)
+        return avg_module_power / self.module_nominal_power
 
     def equipmentDescription(self):
         """Returns string with description of eqipment"""

@@ -157,9 +157,10 @@ class Simulation():
 
         #########################################
         line["project_days"] = self.ecm.electricity_prices.keys()  #list of all project days
-        line["average_degradation_rate"] = self.tm.getAverageDegradationRate()
 
         line["equipment_description"] = self.tm.equipmentDescription()
+        line["average_degradation_rate"] = self.tm.getAverageDegradationRate()
+        line["average_power_ratio"] = self.tm.getAveragePowerRatio()
 
         line["insolations_daily"] = self.em.getInsolationsLifetime().values()
         line["electricity_production_daily"] = self.ecm.electricity_production.values()
