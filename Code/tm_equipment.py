@@ -96,9 +96,9 @@ class EquipmentSolarModule(Equipment):
         return insolation * self.power / 1000.0 * self.conservation_coefficient(years_from_start)
 
     def conservation_coefficient(self, years_from_start):  #conservation as the opposite of degradation
-        """calculation of degradation coefficients for equipment depending years running"""
-        koef_conservation = 1 - self.degradation_yearly
-        return  koef_conservation ** years_from_start
+        """Calculation of degradation coefficients for equipment depending years running.
+           If degradation is so large that the production would be negative then it returns zero."""
+        return max(0, 1 - years_from_start * self.degradation_yearly)
 
     def getPower(self):
         return self.power
