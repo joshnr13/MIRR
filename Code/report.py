@@ -383,7 +383,7 @@ class Report(BaseClassConfig):
                                    self.getDeltaCurPrev(self.fixed_asset, M) -
                                    self.getDeltaCurPrev(self.operating_receivable, M) +
                                    self.getDeltaCurPrev(self.short_term_debt_suppliers, M) +
-                                   self.iterest_paid[M] - self.asset_bank_account[M]
+                                   self.iterest_paid[M]
                                    )
 
             self.fcf_owners[M] = - self.paid_in_capital[M]
