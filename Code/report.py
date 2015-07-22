@@ -499,7 +499,7 @@ class Report(BaseClassConfig):
         return  sum(self.calcNetEarning(date) for date in filter(lambda d:d < to_date, self.report_dates.values()))
 
     @cached_property
-    def price(self):
+    def electricity_prices_monthly(self):
         """return DICT with kwh price for price of electricity MONTHLY -- FOR ALL PROJECT PERIOD"""
         return self.calcReportMonthlyValues1(self.economic_module.getPriceKwh)
 
@@ -507,11 +507,6 @@ class Report(BaseClassConfig):
     def electricity_monthly(self):
         """return DICT with volume of for electricity MONTHLY -- FOR ALL PROJECT PERIOD"""
         return self.calcReportMonthlyValues3(self.economic_module.getElectricityProductionLifetime()) #based on daily data
-
-    @cached_property
-    def electricity_prices_monthly(self):
-        """return DICT for electricity prices MONTHLY -- FOR ALL PROJECT PERIOD"""
-        return self.calcReportMonthlyValues4(self.economic_module.electricity_prices) #based on daily prices
 
     @cached_property
     def solar_insolations_monthly(self):

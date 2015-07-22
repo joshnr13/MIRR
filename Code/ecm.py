@@ -2,15 +2,16 @@
 # -*- coding utf-8 -*-
 
 import datetime
+from dateutil.relativedelta import relativedelta
 import numpy as np
 from rm import calcStatistics
 
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
-from annex import Annuitet, getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property, \
+from annex import getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property, \
     setupPrintProgress, isFirstDayMonth, lastDayPrevMonth, nubmerDaysInMonth, OrderedDefaultdict, \
-    lastDayNextMonth, PMT
+    lastDayNextMonth, PMT, yearsBetween
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
 from collections import OrderedDict
@@ -346,10 +347,34 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def getPriceKwh(self, date):
         """return kwh price for electricity at given day"""
         fit = self.subsidy_module.valueOfFeedInTarrifPerkWh(date)
-        if fit == 0 :
-           return  self.electricity_prices[date]     #if FIT is zero, take market price else take FIT
-        else :
-           return  fit
+        if fit == 0:
+            if date < self.subsidy_module.first_day_subsidy:
+                # if FIT is zero, and period before subsidy - take price on the 1 day of production
+                return self.electricity_prices[self.first_day_construction]
+            elif date > self.subsidy_module.last_day_subsidy:
+                # 3 months before the end of the FIT  (feed in tariff) we set the price
+                # of the electricity based on the price on the date. e.g.
+                # the fit end on 30.4.2015
+                # 90 days before = 30.1.2015 we close the deal for the price
+                #  of electriicty for the period 1.5.2015 to 30.4.2016  -
+                # the price is equla to the market price on 30.1.2015
+                # the same is repeated every 30.1.
+
+                three_month_before_end_fit = self.subsidy_module.last_day_subsidy - relativedelta(months=3)
+
+                # first date when thers is no subsidy
+                first_day_wo_subsidy = self.subsidy_module.last_day_subsidy + relativedelta(days=1)
+
+                # number of years between requested @date and date of first contract price after subside ends
+                years_delta = yearsBetween(first_day_wo_subsidy, date)
+
+                # date when we sign contract with price for a year
+                date_sign_yearly_price = three_month_before_end_fit + relativedelta(years=years_delta)
+
+                return self.electricity_prices[date_sign_yearly_price]
+        else:
+            # if we have FIT - take it
+            return fit
 
     def _getDevelopmentCosts(self, date):
         """costs for developing phase of project at given date (1day)"""

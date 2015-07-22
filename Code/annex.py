@@ -208,6 +208,16 @@ def yearsBetween1Jan(date1,date2):
     """return year difference between 2 dates"""
     return date2.year - date1.year
 
+
+def yearsBetween(date1, date2):
+    """return year difference between 2 dates"""
+    num_years = int((date2 - date1).days / 365.25)
+    if date1 > date2 - relativedelta(years=num_years):
+        return num_years - 1
+    else:
+        return num_years
+
+
 def lastDayMonth(date):
     """return date - last day date in month with input date"""
     day = getDaysNoInMonth(date)
