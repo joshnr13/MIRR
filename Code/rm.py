@@ -83,10 +83,10 @@ def calcJbProbability(jb_stat_value, levels=(95, 99, 99.9)):
     result = OrderedDict()  #init result container
     for level in percent_levels:
         str_level = str(round(level, 3)).replace('.', ',')  #string representation of percent level, we replace dot to comma because of excel
-        if jb_stat_value >= jbCritValue(level):  #if stat value > cricitacal, means distribution is normal
-            result[str_level] = True
-        else:
+        if jb_stat_value >= jbCritValue(level):  #if stat value < cricitcal, means distribution is normal
             result[str_level] = False
+        else:
+            result[str_level] = True
     return  result
 
 def JarqueBeraTest(values):
@@ -102,9 +102,9 @@ def printIRRStats(irr_values_lst):
         print "\tVariance value %s" % dic.get('variance', None)
         print "\tMin value %s" % dic.get('min', None)
         print "\tMax value %s" % dic.get('max', None)
-        print "\tMedium value %s" % dic.get('median', None)
+        print "\tMedian value %s" % dic.get('median', None)
         print "\tMean value %s" % dic.get('mean', None)
-        print "\tSkew value %s" % dic.get('skew', None)
+        print "\tSkewness value %s" % dic.get('skew', None)
         print "\tKurtosis value %s" % dic.get('kurtosis', None)
         print "\tRequired rate of return value %s" % dic.get('required_rate_of_return', None)
         print "\tJB test values %s" % dic.get('JBTest', None)

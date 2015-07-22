@@ -85,7 +85,7 @@ class Report(BaseClassConfig):
         self.ebitda = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.ebit = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.ebt = self.startProjectOrderedDict(name=PROJECT_START,value="")
-        self.iterest_paid = self.startProjectOrderedDict(name=PROJECT_START,value="")
+        self.interest_paid = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.depreciation = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.tax = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.net_earning = self.startProjectOrderedDict(name=PROJECT_START,value=0)
@@ -122,7 +122,7 @@ class Report(BaseClassConfig):
         self.ebitda_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.ebit_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.ebt_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
-        self.iterest_paid_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
+        self.interest_paid_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.depreciation_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.tax_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.net_earning_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
@@ -178,7 +178,7 @@ class Report(BaseClassConfig):
         self.electricity_prices[M] = self.electricity_prices_monthly[M]
 
         self.depreciation[M] = self.economic_module.calcDepreciationMonthly(end_day)
-        self.iterest_paid[M] = self.economic_module.calculateDebtInterests(end_day)
+        self.interest_paid[M] = self.economic_module.calculateDebtInterests(end_day)
 
         self.development_cost[M] = self.economic_module.getDevelopmentCosts(start_day, end_day)
         self.operational_cost[M] = self.economic_module.getOperationalCosts(start_day, end_day)
@@ -238,7 +238,7 @@ class Report(BaseClassConfig):
             self.revenue_y[Y] += self.revenue[M]
 
             self.depreciation_y[Y] += self.depreciation[M]
-            self.iterest_paid_y[Y] += self.iterest_paid[M]
+            self.interest_paid_y[Y] += self.interest_paid[M]
             self.cost_y[Y] += self.cost[M]
             self.development_cost_y[Y] += self.development_cost[M]
             self.operational_cost_y[Y] += self.operational_cost[M]
@@ -383,7 +383,7 @@ class Report(BaseClassConfig):
                                    self.getDeltaCurPrev(self.fixed_asset, M) -
                                    self.getDeltaCurPrev(self.operating_receivable, M) +
                                    self.getDeltaCurPrev(self.short_term_debt_suppliers, M) +
-                                   self.iterest_paid[M]
+                                   self.interest_paid[M]
                                    )
 
             self.fcf_owners[M] = - self.paid_in_capital[M]
@@ -394,7 +394,7 @@ class Report(BaseClassConfig):
                                    self.getDeltaCurPrev(self.fixed_asset, M) -
                                    self.getDeltaCurPrev(self.operating_receivable, M) +
                                    self.getDeltaCurPrev(self.short_term_debt_suppliers, M) +
-                                   self.iterest_paid[M]
+                                   self.interest_paid[M]
                                    )
 
             self.fcf_owners[M] = (- self.getDeltaCurPrev(self.paid_in_capital, M) +
@@ -560,7 +560,7 @@ class Report(BaseClassConfig):
 
     def calcEbt(self, date):
         """calculation of ebt = ebit - interests paid"""
-        return self.ebit[date] - self.iterest_paid[date]
+        return self.ebit[date] - self.interest_paid[date]
 
     def calcNetEarning(self, date):
         """calculation of net_earning = ebt - taxes"""
