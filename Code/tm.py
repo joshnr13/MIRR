@@ -5,7 +5,7 @@ import numpy
 from em import EnergyModule
 from config_readers import MainConfig, TechnologyModuleConfigReader
 from base_class import BaseClassConfig
-from annex import yearsBetween1Jan, getResolutionStartEnd, cached_property, get_list_dates
+from annex import daysBetween, getResolutionStartEnd, cached_property, get_list_dates
 from tm_equipment import PlantEquipment
 from collections import OrderedDict
 
@@ -97,7 +97,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         insolations = self.energy_module.insolations
         #electricity_production - dict with ideal electricity_production for every date
         electricity_production = OrderedDict(
-            (day, self.plant.getElectricityProductionPlant1Day(insol,yearsBetween1Jan(self.start_date_project, day))
+            (day, self.plant.getElectricityProductionPlant1Day(insol, daysBetween(self.start_date_project, day))
                 if day > last_day_construction else 0) for day, insol in insolations.items())
 
         return electricity_production

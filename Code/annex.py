@@ -217,6 +217,9 @@ def yearsBetween(date1, date2):
     else:
         return num_years
 
+def daysBetween(date1, date2):
+    """Returns the numbers of days elapsed from date1 to date2."""
+    return (date2 - date1).days
 
 def lastDayMonth(date):
     """return date - last day date in month with input date"""
