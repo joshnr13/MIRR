@@ -67,10 +67,11 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
         if title is not None:
             values = figures[title]
             if ind % 2 == 0:
-                weights = numpy.ones_like(values) / len(values)
-                counts, bins, patches = axeslist.ravel()[ind].hist(values, bins=numpy.linspace(0, 1, 101), weights=weights)
                 mu = numpy.mean(values)
                 sigma = numpy.std(values)
+
+                weights = numpy.ones_like(values) / len(values)
+                counts, bins, patches = axeslist.ravel()[ind].hist(values, bins=numpy.linspace(mu-0.25, mu+0.25, 51), weights=weights)
 
                 y = []
                 for x in bins:
