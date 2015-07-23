@@ -152,6 +152,7 @@ class Report(BaseClassConfig):
     def initFCFArgs(self):
         """Creating attrs for FCF calculation"""
         self.fcf_project = self.startProjectOrderedDict(name=PROJECT_START,value="")
+        self.fcf_project_before_tax = self.startProjectOrderedDict(name=PROJECT_START, value="")
         self.fcf_owners = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.fcf_project_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.fcf_owners_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
@@ -377,29 +378,25 @@ class Report(BaseClassConfig):
         """Calculation of monthly FCF, it depends what period is now
         - first time or others"""
         M = end_day
+
+        self.fcf_project[M] = (self.net_earning[M] -
+                               self.getDeltaCurPrev(self.fixed_asset, M) -
+                               self.getDeltaCurPrev(self.operating_receivable, M) +
+                               self.getDeltaCurPrev(self.short_term_debt_suppliers, M) +
+                               self.interest_paid[M])
+
+        self.fcf_project_before_tax[M] = (self.ebit[M] -
+                                          self.getDeltaCurPrev(self.fixed_asset, M) -
+                                          self.getDeltaCurPrev(self.operating_receivable, M) +
+                                          self.getDeltaCurPrev(self.short_term_debt_suppliers, M))
+
         if M == lastDayMonth(self.start_date_project):
             #if @end_day of first month of project
-            self.fcf_project[M] = (self.net_earning[M] -
-                                   self.getDeltaCurPrev(self.fixed_asset, M) -
-                                   self.getDeltaCurPrev(self.operating_receivable, M) +
-                                   self.getDeltaCurPrev(self.short_term_debt_suppliers, M) +
-                                   self.interest_paid[M]
-                                   )
-
             self.fcf_owners[M] = - self.paid_in_capital[M]
-
         else:
             #if @end_day month > 1 from start project
-            self.fcf_project[M] = (self.net_earning[M] -
-                                   self.getDeltaCurPrev(self.fixed_asset, M) -
-                                   self.getDeltaCurPrev(self.operating_receivable, M) +
-                                   self.getDeltaCurPrev(self.short_term_debt_suppliers, M) +
-                                   self.interest_paid[M]
-                                   )
-
             self.fcf_owners[M] = (- self.getDeltaCurPrev(self.paid_in_capital, M) +
-                                  self.getDeltaCurPrev(self.asset_bank_account, M)
-                                  )
+                                  self.getDeltaCurPrev(self.asset_bank_account, M))
 
     def irr(self, vals):
         """Function to calculate irr value"""
