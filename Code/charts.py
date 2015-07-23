@@ -63,15 +63,25 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
         figures[title2] = dig_values
 
     fig, axeslist = pylab.subplots(ncols=2, nrows=2)
-    for ind,title in zip(range(4), figures):
+
+    for ind, title in zip(range(4), figures):
         if title is not None:
             values = figures[title]
             if ind in [0, 2]:
-                n, bins, patches = axeslist.ravel()[ind].hist(values, bins=BINS, normed=True)
+                weights = numpy.ones_like(values) / len(values)
+                counts, bins, patches = axeslist.ravel()[ind].hist(values, bins=numpy.linspace(0, 1, 101), weights=weights)
                 mu = numpy.mean(values)
                 sigma = numpy.std(values)
-                y = pylab.normpdf( bins, mu, sigma)
-                axeslist.ravel()[ind].plot(bins, y, 'r--', linewidth=1)
+
+                y = []
+                for x in bins:
+                    try:
+                        y.append(pylab.normpdf(x, mu, sigma) / 100)
+                    except FloatingPointError: # underflow encountered
+                        y.append(0)
+
+                axeslist.ravel()[ind].plot(bins, y, 'r--', linewidth=2)
+                axeslist.ravel()[ind].set_xticks(numpy.linspace(0, 1, 11))
             else:
                 limx, limy = getLimitValues(range(len(values)), values)
                 axeslist.ravel()[ind].plot(values, 'o')
