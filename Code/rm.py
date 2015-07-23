@@ -29,7 +29,7 @@ def calcStatistics(values):
         result['min'] = min(values_upd)
         result['max'] = max(values_upd)
         result['median'] = median(values_upd)
-        result['variance'] = result['std'] ** 0.5
+        result['variance'] = result['std'] ** 2
     else:  #in case we have only one value, so we cant normally calculate stats, espessialy skew and kutorsis
         result['std'] = std(values)
         result['skew'] = float('nan')
@@ -38,7 +38,7 @@ def calcStatistics(values):
         result['min'] = min(values)
         result['max'] = max(values)
         result['median'] = median(values)
-        result['variance'] = result['std'] ** 0.5
+        result['variance'] = result['std'] ** 2
     return  result
 
 def calculateRequiredRateOfReturn(irr_values, riskFreeRate, benchmarkSharpeRatio ):
