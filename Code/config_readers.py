@@ -56,7 +56,6 @@ class MainConfig():
         self.end_date = addXYears(self.start_date, self.lifetime)
         self.report_dates, self.report_dates_y = getReportDates(self.start_date, self.end_date)  #dict with Monthly report dates
 
-        self.simulation_number = get_config_value(_config, 'SIMULATION.simulation_number', int)
         self.configs = getConfigs(self.__dict__)
 
     def getStartDate(self):
