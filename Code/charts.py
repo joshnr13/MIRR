@@ -49,9 +49,8 @@ def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False, country=N
     pylab.show()
 
 def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
-    """
-    figures : <title, figure> dictionary
-    """
+    """Plots irr_values histogram and scatter plot for the @country and @simulation_no."""
+
     figures = OrderedDict()
     for dic in irr_values_lst:
         dig_values = dic['digit_values']
@@ -62,12 +61,12 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
         title2 = "%s - Sim N%s. Chart of %s - %s values" % (country, simulation_no, dic['field'], len(dig_values))
         figures[title2] = dig_values
 
-    fig, axeslist = pylab.subplots(ncols=2, nrows=2)
+    fig, axeslist = pylab.subplots(ncols=2, nrows=3)
 
-    for ind, title in zip(range(4), figures):
+    for ind, title in zip(range(len(figures)), figures):
         if title is not None:
             values = figures[title]
-            if ind in [0, 2]:
+            if ind % 2 == 0:
                 weights = numpy.ones_like(values) / len(values)
                 counts, bins, patches = axeslist.ravel()[ind].hist(values, bins=numpy.linspace(0, 1, 101), weights=weights)
                 mu = numpy.mean(values)

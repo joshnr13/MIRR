@@ -155,6 +155,7 @@ class Report(BaseClassConfig):
         self.fcf_project_before_tax = self.startProjectOrderedDict(name=PROJECT_START, value="")
         self.fcf_owners = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.fcf_project_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
+        self.fcf_project_before_tax_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.fcf_owners_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
 
     def initHelperAttrs(self):
@@ -263,6 +264,7 @@ class Report(BaseClassConfig):
             self.retained_earning_y[Y] += self.retained_earning[M]
             self.fcf_owners_y[Y] += self.fcf_owners[M]
             self.fcf_project_y[Y] += self.fcf_project[M]
+            self.fcf_project_before_tax_y[Y] += self.fcf_project_before_tax[M]
 
             self.electricity_production_y[Y] += self.electricity_production[M]
             self.sun_insolation_y[Y] += self.sun_insolation[M]
@@ -408,6 +410,7 @@ class Report(BaseClassConfig):
         """
         fcf_owners_values = getOnlyDigits(self.fcf_owners)  #filtering FCF values (taking only digit values)
         fcf_project_values = getOnlyDigits(self.fcf_project)
+        fcf_project_before_tax_values = getOnlyDigits(self.fcf_project_before_tax)
 
         # fcf_owners_values_y = getOnlyDigits(self.fcf_owners_y)
         # fcf_project_y = getOnlyDigits(self.fcf_project_y)
@@ -420,6 +423,9 @@ class Report(BaseClassConfig):
         irr_project = self.irr(fcf_project_values)
         self.irr_project = irr_project if irr_project is not None else -1
 
+        irr_project_before_tax = self.irr(fcf_project_before_tax_values)
+        self.irr_project_before_tax = irr_project_before_tax if irr_project_before_tax is not None else -1
+
         if self.irr_owners is not None and not numpy.isnan(self.irr_owners):  #calculation of IRR yearly OWNERS
             self.irr_owners_y = ((1 + self.irr_owners) ** 12) - 1 # FORMULA by Borut
         else:
@@ -430,10 +436,17 @@ class Report(BaseClassConfig):
         else:
             self.irr_project_y = float('Nan')
 
+        if self.irr_project_before_tax is not None and not numpy.isnan(self.irr_project_before_tax): #calculation of IRR yearly PROJECT BEFORE TAX
+            self.irr_project_before_tax_y = ((1 + self.irr_project_before_tax) ** 12) - 1 # FORMULA by Borut
+        else:
+            self.irr_project_before_tax_y = float('Nan')
+
         self.fcf_owners[PROJECT_START] = "IRR = %s" % self.irr_owners_y #adding IRR value to FCF row
         self.fcf_project[PROJECT_START] = "IRR = %s" % self.irr_project_y  #adding IRR value to FCF row
+        self.fcf_project_before_tax[PROJECT_START] = "IRR = %s" % self.irr_project_before_tax_y  #adding IRR value to FCF row
         self.fcf_owners_y[PROJECT_START] = "IRR = %s" % self.irr_owners_y #adding IRR value to FCF row
         self.fcf_project_y[PROJECT_START] = "IRR = %s" % self.irr_project_y #adding IRR value to FCF row
+        self.fcf_project_before_tax_y[PROJECT_START] = "IRR = %s" % self.irr_project_before_tax_y  #adding IRR value to FCF row
 
     def calcNPV(self):
         """Calculation of monthly and yearly NPV for owners and project"""

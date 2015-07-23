@@ -7,7 +7,7 @@ from collections import defaultdict
 from config_readers import RiskModuleConfigReader, start_iteration
 from database import Database
 from rm import caclIrrsStatisctics
-from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2
+from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3
 
 
 
@@ -21,6 +21,7 @@ class Simulation():
         self.simulation_no = self.getNextSimulationNo()  #load last simulation no from db
         self.irrs0 = []  #for keeping irr values for each iteration
         self.irrs1 = []
+        self.irrs2 = []
 
     def getSimulationNo(self):
         """return  current simulation no"""
@@ -138,13 +139,17 @@ class Simulation():
 
         ##################################
         line["fcf_project"] = obj.fcf_project.values()  #FCF values
+        line["fcf_project_before_tax"] = obj.fcf_project_before_tax.values()
         line["fcf_owners"] = obj.fcf_owners.values()
         line["fcf_project_y"] = obj.fcf_project_y.values()
+        line["fcf_project_before_tax_y"] = obj.fcf_project_before_tax_y.values()
         line["fcf_owners_y"] = obj.fcf_owners_y.values()
 
         line["irr_project"] = obj.irr_project
+        line["irr_project_before_tax"] = obj.irr_project_before_tax
         line["irr_owners"] = obj.irr_owners
         line["irr_project_y"] = obj.irr_project_y
+        line["irr_project_before_tax_y"] = obj.irr_project_before_tax_y
         line["irr_owners_y"] = obj.irr_owners_y
 
         line["npv_project"] = obj.npv_project
@@ -216,9 +221,9 @@ class Simulation():
         - skweness : http://en.wikipedia.org/wiki/Skewness
         - kurtosis: http://en.wikipedia.org/wiki/Kurtosis
         """
-        fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2]  #which field names will be used to calc stats
+        fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3]  #which field names will be used to calc stats
         riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
-        self.simulation_record['irr_stats'] = caclIrrsStatisctics(fields, [self.irrs0, self.irrs1], riskFreeRate, benchmarkSharpeRatio )  #calculating and adding IRR stats to simulation record
+        self.simulation_record['irr_stats'] = caclIrrsStatisctics(fields, [self.irrs0, self.irrs1, self.irrs2], riskFreeRate, benchmarkSharpeRatio )  #calculating and adding IRR stats to simulation record
 
     def runOneIteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""
@@ -236,6 +241,7 @@ class Simulation():
         """Adds irr results to attrributes"""
         self.irrs0.append(getattr(self.r, IRR_REPORT_FIELD))
         self.irrs1.append(getattr(self.r, IRR_REPORT_FIELD2))
+        self.irrs2.append(getattr(self.r, IRR_REPORT_FIELD3))
 
 def runAndSaveSimulation(country, iterations_no, comment):
     """

@@ -65,6 +65,7 @@ NPV["NPV owners"] = "pv_owners"
 
 IRR_REPORT_FIELD = 'irr_project_y'  #Name of IRR values
 IRR_REPORT_FIELD2 = 'irr_owners_y'  #for statistics after simulation
+IRR_REPORT_FIELD3 = 'irr_project_before_tax_y'
 NPV_REPORT_FIELD = 'npv_project_y'
 
 REPORT_DEFAULT_NUMBER_ITERATIONS = 20
