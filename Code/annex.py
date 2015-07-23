@@ -268,9 +268,12 @@ def addXYears(date, years):
     """return date X years later - 1 day"""
     return  date + relativedelta(years=int(years)) - relativedelta(days=1)
 
-def addXMonths(date, months):
+def addXMonths(date, months, minus_day=True):
     """return date X months later - 1 day"""
-    return  date + relativedelta(months=int(months)) - relativedelta(days=1)
+    result = date + relativedelta(months=int(months))
+    if minus_day:
+        result -= relativedelta(days=1)
+    return result
 
 @memoized
 def getListDates( date_start, date_end):

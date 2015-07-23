@@ -137,7 +137,8 @@ class SubsidyModuleConfigReader():
         self.subsidy_delay = _subsidy_delay if not TESTMODE else 0
 
         #calculate first day of subsidy by adding subsidy_delay to last_day_construction+1
-        self.first_day_subsidy = addXMonths(last_day_construction + datetime.timedelta(days=1), self.subsidy_delay)
+        self.first_day_subsidy = addXMonths(last_day_construction + datetime.timedelta(days=1),
+                                            self.subsidy_delay, minus_day=False)
         self.last_day_subsidy = addXMonths(self.first_day_subsidy, self.subsidy_duration)
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
