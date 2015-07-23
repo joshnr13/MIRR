@@ -68,7 +68,7 @@ IRR_REPORT_FIELD2 = 'irr_owners_y'  #for statistics after simulation
 IRR_REPORT_FIELD3 = 'irr_project_before_tax_y'
 NPV_REPORT_FIELD = 'npv_project_y'
 
-REPORT_DEFAULT_NUMBER_ITERATIONS = 20
+REPORT_DEFAULT_NUMBER_ITERATIONS = 100
 
 CORRELLATION_FIELDS = OrderedDict() # IRR ONE SHOULD HAVE NAME =IRR and be FIRST ONE
 CORRELLATION_FIELDS["permit_procurement_duration"] = "main_configs.real_permit_procurement_duration"
