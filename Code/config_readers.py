@@ -240,7 +240,6 @@ class EconomicModuleConfigReader():
             _config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.interannual_variability_of_y_mean', float)
         self.y_annual_std = get_config_value(
             _config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.interannual_variability_of_y_std', float)
-        self.delta_q = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.delta_q', float)
         self.theta = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.theta', float)
         self.k = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.k', float)
         self.sigma = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.sigma', float)
