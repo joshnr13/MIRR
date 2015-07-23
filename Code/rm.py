@@ -2,7 +2,7 @@ import os
 import csv
 import datetime
 from database import Database
-from numpy import std, mean, median, absolute, diff
+from numpy import std, mean, median, absolute, diff, var
 from scipy.stats import skew, kurtosis
 from collections import OrderedDict
 from config_readers import RiskModuleConfigReader
