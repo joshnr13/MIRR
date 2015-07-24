@@ -122,9 +122,11 @@ def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
     blank_row = [""]
     field1 = irr_values_lst[0]['field']  #field1 and field2 is IRR project or owners
     field2 = irr_values_lst[1]['field']
+    field3 = irr_values_lst[2]['field']
 
     irr_values1 = [field1] + irr_values_lst[0][field1]  #prepare row with first value field name, others - values
     irr_values2 = [field2] + irr_values_lst[1][field2]  #prepare row with first value field name, others - values
+    irr_values3 = [field3] + irr_values_lst[2][field3]
 
     iterations = ["Iteration number"] + list(range(1, len(irr_values1)))  #prepare row with first value Iterations number, others - iterations 1,2,3...
     simulation_info = ["Simulation number"] + [simulation_no]  #prepare row with field name and value
@@ -133,14 +135,17 @@ def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
     stat_fields = ['field'] + stat_params
     stat_info1 = [field1]
     stat_info2 = [field2]
+    stat_info3 = [field3]
 
     jb_fileds = ['JB_TEST' ] + irr_values_lst[0]['JBTest'].keys() + ["JB_VALUE"]  #prepare row with first column JB_TEST and second - values
     jb_values1 = [field1] + irr_values_lst[0]['JBTest'].values() +  [irr_values_lst[0]['JBTest_value']]
     jb_values2 = [field2] + irr_values_lst[1]['JBTest'].values() +  [irr_values_lst[1]['JBTest_value']]
+    jb_values3 = [field3] + irr_values_lst[2]['JBTest'].values() +  [irr_values_lst[2]['JBTest_value']]
 
     for key in stat_params:
         stat_info1.append(irr_values_lst[0].get(key, ''))
         stat_info2.append(irr_values_lst[1].get(key, ''))
+        stat_info3.append(irr_values_lst[2].get(key, ''))
 
     with open(output_filename, 'ab') as f:  #starting write to FILE
 
@@ -151,16 +156,19 @@ def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
         w.writerow(iterations)
         w.writerow(irr_values1)
         w.writerow(irr_values2)
+        w.writerow(irr_values3)
 
         w.writerow(blank_row)
         w.writerow(stat_fields)
         w.writerow(stat_info1)
         w.writerow(stat_info2)
+        w.writerow(stat_info3)
 
         w.writerow(blank_row)
         w.writerow(jb_fileds)
         w.writerow(jb_values1)
         w.writerow(jb_values2)
+        w.writerow(jb_values3)
 
 
     xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
