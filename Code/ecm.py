@@ -4,6 +4,7 @@
 import datetime
 from dateutil.relativedelta import relativedelta
 import numpy as np
+import random
 from rm import calcStatistics
 
 from tm import TechnologyModule
@@ -58,7 +59,6 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     def generateOneSimulation(self, simulation_no):
         """Main method for generating prices and preparing them to posting to database"""
         days_dict = OrderedDict()
-        self.poisson_steps = Poisson_step(self.Lambda, size=self.N)
         prices = self.calcPriceWholePeriod(self.S0)
         prices = [p/1000.0 for p in prices]  # because price in configs for MEGAWT
 
@@ -72,74 +72,48 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
     def calcJ(self):
         """Calcultation of J (normaly distibuted Jump size) as random with mean=loc and std=scale"""
-        return  np.random.normal(loc=0,scale=1)  #loc means - mean, scale -std
+        return  np.random.normal(loc=10,scale=5)  #loc means - mean, scale -std
 
-    def calcPriceDelta(self, prev_price, iteration_no, y):
-        """Calculated delta price (dp) based on @prev_price"""
-        delta_Z = np.random.normal(loc=0, scale=0.4)  #random value distribution
-        J = self.calcJ()
-        delta_q = self.poisson_steps.getDelta(iteration_no)
-
-        # formulat 2.2 from book
+    def calcPriceDeltaNoJump(self, prev_price, iteration_no, y):
+        """Calculates delta price (dp) based on @prev_price without a price jump"""
+        delta_Z = np.random.normal(loc=0, scale=1)  #random value distribution
+        
         delta_price = self.k * (self.theta * (1 + y * iteration_no / 365) - prev_price) * self.dt + \
-                      self.sigma * delta_Z + (J * (1 + y * iteration_no / 365)) * delta_q
+                      self.sigma * delta_Z
         return  delta_price
 
-    def calcPriceWholePeriod(self, prev_price):
+    def calcPriceDeltaWithJump(self, prev_price, iteration_no, y):
+        """Calculated delta price (dp) based on @prev_price with a price jump"""
+        
+        J = self.calcJ() #calculate jump
+        
+        delta_price = self.calcPriceDeltaNoJump(prev_price, iteration_no, y)  + J   #add jump to delta price
+        return  delta_price
+
+    def calcPriceWholePeriod(self, start_price):
         """Calculate price for whole period from start date to end - return  list with prices for all project days"""
         result = []
+        date_next_jump = int(random.expovariate(self.Lambda)) #calculate the first date of price jump
         y = self.makeInterannualVariabilityY()
+        prev_price = start_price
+        
         for i, date in enumerate(self.period):
-            if isFirstDayMonth(date):  # recalculate y for each new month
-                y = self.makeInterannualVariabilityY()
-            price = prev_price + self.calcPriceDelta(prev_price, i+1, y)
+            if i == date_next_jump:
+                price = prev_price + self.calcPriceDeltaWithJump(prev_price, i+1, y)
+                date_next_jump += int(random.expovariate(self.Lambda))+1 # ad one if interval is 0
+            else:
+                price = prev_price + self.calcPriceDeltaNoJump(prev_price, i+1, y)
+
             prev_price = price
             result.append(price)
+            if isLastDayYear(date):  # recalculate y each new year
+                y = self.makeInterannualVariabilityY()
         return result
 
     def makeInterannualVariabilityY(self):
         """interannual variability of y"""
         return self.y * np.random.normal(self.y_annual_mean, self.y_annual_std)
 
-
-class Poisson_step():
-    """class for holding generated Poisson values"""
-    def __init__(self, lam, size):
-        self.lam = lam  #Lambda
-        self.size = size  #number of values
-        self.generatePoissonDistributionValues()
-        self.makeStep()
-        self.makeFunction()
-
-    def makeStep(self):
-        """Make step (path) from generated poisson values"""
-        self.step_vals = np.cumsum(self.vals)
-
-    def makeFunction(self):
-        """Make function - dict
-        where key in integers from x value,
-        value - current iteration no, ie y value
-        """
-        result = {}
-        x0 = 0
-        for i, x in enumerate(self.step_vals):
-            vals_range = xrange(x0, x)
-            for k in vals_range:
-                result[k] = i
-            x0 = x
-        self.function = result
-
-    def getDelta(self, index):
-        """return  delta between current index and previous"""
-        return  self.function[index] - self.function[index-1]
-
-    def generatePoissonDistributionValues(self):
-        """Generate poisson values
-        return  Poisson disribution with @lam
-        if size is None - return 1 value (numerical)
-        otherwise return list with values with length = size
-        """
-        self.vals =  np.random.poisson(self.lam, self.size)
 
 class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     """Module for holding all economic values calculation"""
