@@ -91,13 +91,22 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         """prints all equipment tree"""
         print self.equipmentDescription()
 
-    def generateElectricityProductionLifeTime(self):
+    def generateElectricityProductionLifeTimeUsingInsolation(self):
         """generates electricity production for whole project lifetime"""
         last_day_construction = self.last_day_construction
         insolations = self.energy_module.insolations
         #electricity_production - dict with ideal electricity_production for every date
         electricity_production = OrderedDict(
-            (day, self.plant.getElectricityProductionPlant1Day(insol, daysBetween(self.start_date_project, day))
+            (day, self.plant.getElectricityProductionPlant1DayUsingInsolation(insol, daysBetween(self.start_date_project, day))
                 if day > last_day_construction else 0) for day, insol in insolations.items())
+
+        return electricity_production
+
+    def generateElectricityProductionLifeTime(self):
+        """returns dict with electricity_production for every date of project lifetime"""
+        electricity_production = OrderedDict(
+            (day, self.plant.getElectricityProductionPlant1Day(
+                self.energy_module.getAvgProductionDayPerKw(day), daysBetween(self.start_date_project, day))
+                    if day > self.last_day_construction else 0) for day in self.all_project_dates)
 
         return electricity_production

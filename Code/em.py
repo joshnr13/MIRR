@@ -6,7 +6,7 @@ from base_class import BaseClassConfig
 from config_readers import EnergyModuleConfigReader
 from constants import TESTMODE
 from collections import OrderedDict
-from annex import cached_property, setupPrintProgress
+from annex import cached_property, setupPrintProgress, yearsBetween1Jan
 from database import  Database
 from numpy.random import normal as gauss
 
@@ -41,6 +41,31 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         """return  all dict with insolations dates and values"""
         return self.insolations
 
+    def getAvgProductionDayPerKw(self, date):
+        avg_production_per_kw = self.getAvProductionDayPerKw(date.month)
+        avg_production_per_kw += self.data_uncertanty
+        avg_production_per_kw += self.long_term_irradiation_uncertanty
+        avg_production_per_kw += self.getInterannualVariability(date.year) # changes on yearly basis
+        avg_production_per_kw += self.getDustSnowUncertainty(date.year, date.month) # changes on monthly basis
+        return avg_production_per_kw
+
+    @cached_property
+    def interannual_variability(self):
+        """Generates interannual variabilities in advance for all project years."""
+        years = {d.year for d in self.all_project_dates}
+        return {y: gauss(0, self.interannual_variability_std) for y in years}
+
+    def getInterannualVariability(self, year):
+        return self.interannual_variability[year]
+
+    @cached_property
+    def dust_snow_uncertanty(self):
+        """Generates dust and snow for all project months."""
+        months_years = {(d.year, d.month) for d in self.all_project_dates}
+        return {d: gauss(0, self.dust_snow_uncertainty_std) for d in months_years}
+
+    def getDustSnowUncertainty(self, year, month):
+        return self.dust_snow_uncertanty[year, month]
 
 class WeatherSimulation(EnergyModuleConfigReader):
     """module for simulation of weather"""

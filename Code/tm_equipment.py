@@ -76,7 +76,11 @@ class Equipment():
         """return  investment cost (price) of eqipment"""
         return self.investment_price
 
-    def getElectricityProductionEquipment(self, insolation):
+    def getElectricityProductionEquipmentUsingInsolation(self, insolation):
+        """Gets electiricity production for equipment"""
+        return 0
+
+    def getElectricityProductionEquipment(self):
         """Gets electiricity production for equipment"""
         return 0
 
@@ -91,9 +95,13 @@ class EquipmentSolarModule(Equipment):
         Equipment.__init__(self, *args, **kwargs)
         self.name = "SolarModule Equipment"
 
-    def getElectricityProductionEquipment(self, insolation, days_from_start):
+    def getElectricityProductionEquipmentUsingInsolation(self, insolation, days_from_start):
         """Gets electiricity production for SolarModule"""
         return insolation * self.power / 1000.0 * self.conservation_coefficient(days_from_start)
+
+    def getElectricityProductionEquipment(self, avg_production_day_per_kW, days_from_start):
+        """Gets electiricity production for SolarModule"""
+        return avg_production_day_per_kW * self.power * self.conservation_coefficient(days_from_start)
 
     def conservation_coefficient(self, days_from_start):  #conservation as the opposite of degradation
         """Calculation of degradation coefficients for equipment depending years running.
@@ -260,12 +268,17 @@ class EquipmentGroup():
         else:
             return 0
 
-    def getElectricityProductionGroup(self, insolation, days_from_start):
+    def getElectricityProductionGroupUsingInsolation(self, insolation, days_from_start):
         """return  ElectricityProduction for group"""
-        group_production = sum([eq.getElectricityProductionEquipment(insolation, days_from_start) for eq in self.getSolarEquipment()])  #calc sum of all group electricity production
+        group_production = sum([eq.getElectricityProductionEquipmentUsingInsolation(insolation, days_from_start) for eq in self.getSolarEquipment()])  #calc sum of all group electricity production
         inverter_efficiency = self.getInverterEffiency()
         return  group_production * inverter_efficiency
 
+    def getElectricityProductionGroup(self, avg_production_day_per_kW, days_from_start):
+        """return  ElectricityProduction for group"""
+        group_production = sum([eq.getElectricityProductionEquipment(avg_production_day_per_kW, days_from_start) for eq in self.getSolarEquipment()])  #calc sum of all group electricity production
+        inverter_efficiency = self.getInverterEffiency()
+        return  group_production * inverter_efficiency
 
 ################################ PLANT #######################
 
@@ -347,10 +360,19 @@ class PlantEquipment():
                 return True  #return  True if we have connection grid in AC group
         return False
 
-    def getElectricityProductionPlant1Day(self, insolation, days_from_start):
+    def getElectricityProductionPlant1DayUsingInsolation(self, insolation, days_from_start):
         """return  ElectiricityProduction for whole Plant"""
         if self.isGridAvailable():  #if we have connection grid in plant
-            groups_production = sum(g.getElectricityProductionGroup(insolation, days_from_start) for g in self.getPlantSolarGroups())  #calc sum of el.production for all solar groups
+            groups_production = sum(g.getElectricityProductionGroupUsingInsolation(insolation, days_from_start) for g in self.getPlantSolarGroups())  #calc sum of el.production for all solar groups
+            transformer_efficiency = self.getTransformerEffiency()
+            return  groups_production * transformer_efficiency
+        else:
+            return 0
+
+    def getElectricityProductionPlant1Day(self, avg_production_day_per_kW, days_from_start):
+        """return  ElectiricityProduction for whole Plant"""
+        if self.isGridAvailable():  #if we have connection grid in plant
+            groups_production = sum(g.getElectricityProductionGroup(avg_production_day_per_kW, days_from_start) for g in self.getPlantSolarGroups())  #calc sum of el.production for all solar groups
             transformer_efficiency = self.getTransformerEffiency()
             return  groups_production * transformer_efficiency
         else:
@@ -371,7 +393,7 @@ class PlantEquipment():
             av_insolations.append(em_config.getAvMonthInsolationMonth(i))  #add to list av.month insollation for 1 day
             days_in_month.append(lastDayMonth(date(2000,  i, 1)).day)  #  add to list number of days in cur month
 
-        one_day_production = numpy.array([self.getElectricityProductionPlant1Day(insolation, 0) for insolation in av_insolations])  #calc one day production for this 12 days
+        one_day_production = numpy.array([self.getElectricityProductionPlant1DayUsingInsolation(insolation, 0) for insolation in av_insolations])  #calc one day production for this 12 days
         whole_year_production = numpy.sum(numpy.array(days_in_month) * one_day_production)  #multiply number of days in month * one day production and summarise them all
 
         return round(whole_year_production, 0)  #return rounded value
