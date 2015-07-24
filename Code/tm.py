@@ -106,7 +106,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         """returns dict with electricity_production for every date of project lifetime"""
         electricity_production = OrderedDict(
             (day, self.plant.getElectricityProductionPlant1Day(
-                self.energy_module.getAvgProductionDayPerKw(day), daysBetween(self.start_date_project, day))
+                self.energy_module.getAvgProductionDayPerKW(day), daysBetween(self.start_date_project, day))
                     if day > self.last_day_construction else 0) for day in self.all_project_dates)
 
         return electricity_production

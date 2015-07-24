@@ -33,7 +33,7 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         last_day_construction = self.last_day_construction
         return OrderedDict((date, self.weather_data[date][0] if date > last_day_construction else 0) for date in self.all_project_dates)
 
-    def getInsolation(self,  date):
+    def getInsolation(self, date):
         """return  insolationg at given date"""
         return self.insolations[date]
 
@@ -41,31 +41,20 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         """return  all dict with insolations dates and values"""
         return self.insolations
 
-    def getAvgProductionDayPerKw(self, date):
-        avg_production_per_kw = self.getAvProductionDayPerKw(date.month)
-        avg_production_per_kw *= (1 + self.data_uncertainty)
-        avg_production_per_kw *= (1 + self.long_term_irradiation_uncertainty)
-        avg_production_per_kw *= (1 + self.getInterannualVariability(date.year)) # changes on yearly basis
-        avg_production_per_kw *= (1 + self.getDustSnowUncertainty(date.year, date.month)) # changes on monthly basis
-        return avg_production_per_kw
-
     @cached_property
-    def interannual_variability(self):
-        """Generates interannual variabilities in advance for all project years."""
-        years = {d.year for d in self.all_project_dates}
-        return {y: gauss(0, self.interannual_variability_std) for y in years}
+    def avg_production_day_per_kW(self):
+        """Calculating average daily pruduction per kW for whole project."""
+        return OrderedDict((date, self.weather_data[date][2]) for date in self.all_project_dates)
 
-    def getInterannualVariability(self, year):
-        return self.interannual_variability[year]
+    def getAvgProductionDayPerKW(self, date):
+        """return  average daily pruduction per kW at given date"""
+        return self.avg_production_day_per_kW[date]
 
-    @cached_property
-    def dust_snow_uncertainty(self):
-        """Generates dust and snow for all project months."""
-        months_years = {(d.year, d.month) for d in self.all_project_dates}
-        return {d: gauss(0, self.dust_snow_uncertainty_std) for d in months_years}
+    def getAvgProductionDayPerKWLifetime(self):
+        """return all dict with average daily pruduction per kW dates and values"""
+        return self.avg_production_day_per_kW
 
-    def getDustSnowUncertainty(self, year, month):
-        return self.dust_snow_uncertainty[year, month]
+
 
 class WeatherSimulation(EnergyModuleConfigReader):
     """module for simulation of weather"""
@@ -100,9 +89,11 @@ class WeatherSimulation(EnergyModuleConfigReader):
         return  dict with [date]=(insolation, temperature)
         """
         days_dict = OrderedDict()
+        self.interannual_variability = self.generateInterannualVariability()
+        self.dust_snow_uncertainty = self.generateDustSnowUncertanty()
         for date in self.period:
-            insolation, temperature = self.generateWeatherData(date)
-            days_dict[date.strftime("%Y-%m-%d")] = (insolation, temperature)
+            insolation, temperature, avg_production_day_per_kW = self.generateWeatherData(date)
+            days_dict[date.strftime("%Y-%m-%d")] = (insolation, temperature, avg_production_day_per_kW)
         simulation_result = {"simulation_no": simulation_no, "data": days_dict}
         return simulation_result
 
@@ -123,7 +114,7 @@ class WeatherSimulation(EnergyModuleConfigReader):
           if T not in bounds tries next time,
           else uses generated value
 
-        return  2 values:  insolation, temperature
+        return 3 values:  insolation, temperature, avg_production_day_per_kW
         """
         av_temperature = self.getAvMonthTemperature(date)
         av_insolation = self.getAvMonthInsolation(date)
@@ -135,7 +126,26 @@ class WeatherSimulation(EnergyModuleConfigReader):
             if temperature >= self.TMin and temperature <= self.TMax:
                 break
 
-        return insolation, temperature
+        return insolation, temperature, self.generateAvgProductionDayPerKw(date)
+
+    def generateAvgProductionDayPerKw(self, date):
+        "Generates average daily production for a given month by applying some relative errors."
+        avg_production_per_kw = self.getAvProductionDayPerKw(date.month)
+        avg_production_per_kw *= (1 + self.data_uncertainty)
+        avg_production_per_kw *= (1 + self.long_term_irradiation_uncertainty)
+        avg_production_per_kw *= (1 + self.interannual_variability[date.year]) # changes on yearly basis
+        avg_production_per_kw *= (1 + self.dust_snow_uncertainty[date.year, date.month]) # changes on monthly basis
+        return avg_production_per_kw
+
+    def generateInterannualVariability(self):
+        """Generates interannual variabilities in advance for all years of period."""
+        years = {d.year for d in self.period}
+        return {y: gauss(0, self.interannual_variability_std) for y in years}
+
+    def generateDustSnowUncertanty(self):
+        """Generates dust and snow for all months of period."""
+        months_years = {(d.year, d.month) for d in self.period}
+        return {d: gauss(0, self.dust_snow_uncertainty_std) for d in months_years}
 
     def getRandomFactor(self):
         """return random factor with normal distribution"""
