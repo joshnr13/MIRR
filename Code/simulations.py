@@ -40,6 +40,7 @@ class Simulation():
         self.em = self.i.getEnergyModule()
         self.r = self.i.getReportModule()
         self.o = self.i.getOutputModule()
+        self.enm = self.i.getEnviromentModule()
 
         self.main_configs = self.config.getConfigsValues()  #module config values
         self.ecm_configs = self.ecm.getConfigsValues()  #module config values
@@ -47,6 +48,7 @@ class Simulation():
         self.sm_configs = self.sm.getConfigsValues() #module config values
         self.em_configs = self.em.getConfigsValues() #module config values
         self.rm_configs = RiskModuleConfigReader(self.country).getConfigsValues() #module config values
+        self.enm_configs = self.enm.getConfigsValues()  # module config values
 
     def convertResults(self):
         """Processing results before inserting to DB"""
@@ -65,6 +67,7 @@ class Simulation():
         line["tm_configs"] = self.tm_configs #module config values
         line["sm_configs"] = self.sm_configs #module config values
         line["em_configs"] = self.em_configs #module config values
+        line["enm_configs"] = self.enm_configs #module config values
 
         #####################################
 

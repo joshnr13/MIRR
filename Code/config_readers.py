@@ -307,3 +307,16 @@ class RiskModuleConfigReader():
 
     def getConfigsValues(self):
         return self.configs
+
+
+class EnviromentModuleConfigReader():
+    """Module for reading Risk configs from file"""
+
+    def __init__(self, country, _filename='enm_config.ini'):
+        _config = parse_yaml(_filename, country, silent())
+
+        self.pvequipment_disposal = get_config_value(_config, 'DISPOSAL.pvequipment_disposal', float)
+        self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
+
+    def getConfigsValues(self):
+        return self.configs

@@ -1,3 +1,4 @@
+from enm import EnvironmentalModule
 from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
@@ -5,7 +6,7 @@ from ecm import EconomicModule
 from report import Report
 from config_readers import MainConfig
 from report_output import ReportOutput
-from annex import cached_property
+
 
 class Mirr():
     """Main class for combining all modules together
@@ -19,7 +20,10 @@ class Mirr():
         self.energy_module = EnergyModule(main_config, country)
         self.technology_module = TechnologyModule(main_config, self.energy_module, country)
         self.subsidy_module = SubsidyModule(main_config, country)
-        self.economic_module = EconomicModule(main_config, self.technology_module, self.subsidy_module, country)
+        self.enviroment_module = EnvironmentalModule(main_config, country, self.technology_module.total_nominal_power)
+
+        self.economic_module = EconomicModule(main_config, self.technology_module,
+                                              self.subsidy_module, self.enviroment_module, country)
         self.r = Report(main_config, self.economic_module, iteration_no, simulation_no)
 
     def getMainConfig(self):
@@ -53,6 +57,9 @@ class Mirr():
         """
         self.r.calcReportValues()
         return ReportOutput(self.r)
+
+    def getEnviromentModule(self):
+        return self.enviroment_module
 
 
 

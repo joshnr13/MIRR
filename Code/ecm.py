@@ -119,17 +119,19 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     """Module for holding all economic values calculation"""
 
-    def __init__(self, config_module, technology_module, subsidy_module, country):
+    def __init__(self, config_module, technology_module, subsidy_module, enviroment_module, country):
         """
         @config_module - link to main config module
         @technology_module - link to technology module
         @subsidy_module - link to subsidy module
+        @enviroment_module - link to enviroment module
         """
         BaseClassConfig.__init__(self, config_module)  #loading Main config
         EconomicModuleConfigReader.__init__(self, country, self.start_date_project)  #loading Economic Config
         self.db = Database()  #connection to DB
         self.technology_module = technology_module
         self.subsidy_module = subsidy_module
+        self.enviroment_module = enviroment_module
         self.country = country
         self.investments_monthly = OrderedDefaultdict(int)
         self.calcBaseValues()
@@ -383,7 +385,11 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def _getOperationalCosts(self, date):
         """Operational costs at given date (1day)"""
         if self.isProductionElectricityStarted(date):
-            return self.getInsuranceCost(date) + self._getAdministrativeCosts(date)  #sum of INSURANCE COSTS and AMDINISTR COSTS at given date
+            costs = self.getInsuranceCost(date) + self._getAdministrativeCosts(date)  #sum of INSURANCE COSTS and AMDINISTR COSTS at given date
+            if date == self.end_date_project:
+                # at the last month of operation add costs for equimpent disposal
+                costs += self.enviroment_module.getEquipmentDisposalCosts()
+            return costs
         return 0
 
     def _getAdministrativeCosts(self, date):
