@@ -382,8 +382,8 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def _getOperationalCosts(self, date):
         """Operational costs at given date (1day)"""
         if self.isProductionElectricityStarted(date):
-            return self.insuranceCosts + self._getAdministrativeCosts(date)  #sum of INSURANCE COSTS and AMDINISTR COSTS at given date
-        return  0
+            return self.getInsuranceCost(date) + self._getAdministrativeCosts(date)  #sum of INSURANCE COSTS and AMDINISTR COSTS at given date
+        return 0
 
     def _getAdministrativeCosts(self, date):
         """return administrative costs at given date (1day)"""
@@ -391,19 +391,17 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         #we increase initial administrativeCosts each year on administrativeCostsGrowth_rate
         return self.administrativeCosts * ((1 + self.administrativeCostsGrowth_rate) ** yearNumber) / getDaysNoInMonth(date)
 
-    @cached_property
-    def insuranceCosts(self):
-        """return insurance costs at give date (1day)
-        because it is fixed value, we calculate it only one time"""
-        return self.insuranceFeeEquipment * self.investments / 365  #deviding by 365 days in year
+    def getInsuranceCost(self, date):
+        """return insurance costs at give date (1day) because it is fixed value, we calculate it only one time
+        Isurance can be only after starting production electricity and before end of insurance"""
+        if self.isProductionElectricityStarted(date) and date <= self.insuranceLastDayEquipment:
+            return self.insuranceFeeEquipment * self.investments / 365  #deviding by 365 days in year
+        else:
+            return 0
 
     def getCosts(self, date_start, date_end):
         """sum of costs for all days in RANGE period"""
         return self.getDevelopmentCosts(date_start, date_end) + self.getOperationalCosts(date_start, date_end)
-
-    def getInsuranceCosts(self, date_start, date_end):
-        """sum of Insurance Costs for all days in RANGE period"""
-        return self.insuranceCosts * (date_end - date_start).days
 
     def getDevelopmentCosts(self, date_start, date_end):
         """sum of Development Costs for all days in RANGE period"""
