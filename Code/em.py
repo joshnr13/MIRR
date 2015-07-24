@@ -43,10 +43,10 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 
     def getAvgProductionDayPerKw(self, date):
         avg_production_per_kw = self.getAvProductionDayPerKw(date.month)
-        avg_production_per_kw += self.data_uncertanty
-        avg_production_per_kw += self.long_term_irradiation_uncertanty
-        avg_production_per_kw += self.getInterannualVariability(date.year) # changes on yearly basis
-        avg_production_per_kw += self.getDustSnowUncertainty(date.year, date.month) # changes on monthly basis
+        avg_production_per_kw *= (1 + self.data_uncertainty)
+        avg_production_per_kw *= (1 + self.long_term_irradiation_uncertainty)
+        avg_production_per_kw *= (1 + self.getInterannualVariability(date.year)) # changes on yearly basis
+        avg_production_per_kw *= (1 + self.getDustSnowUncertainty(date.year, date.month)) # changes on monthly basis
         return avg_production_per_kw
 
     @cached_property
@@ -59,13 +59,13 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
         return self.interannual_variability[year]
 
     @cached_property
-    def dust_snow_uncertanty(self):
+    def dust_snow_uncertainty(self):
         """Generates dust and snow for all project months."""
         months_years = {(d.year, d.month) for d in self.all_project_dates}
         return {d: gauss(0, self.dust_snow_uncertainty_std) for d in months_years}
 
     def getDustSnowUncertainty(self, year, month):
-        return self.dust_snow_uncertanty[year, month]
+        return self.dust_snow_uncertainty[year, month]
 
 class WeatherSimulation(EnergyModuleConfigReader):
     """module for simulation of weather"""
