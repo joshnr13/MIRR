@@ -245,6 +245,9 @@ class EconomicModuleConfigReader():
         self.k = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.k', float)
         self.sigma = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.sigma', float)
 
+        self.jump_size_average = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.jump_size_average', float)
+        self.jump_size_std = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.jump_size_std', float)
+
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
     def getConfigsValues(self):

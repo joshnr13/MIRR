@@ -12,7 +12,7 @@ from em import EnergyModule
 from sm import SubsidyModule
 from annex import getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property, \
     setupPrintProgress, isFirstDayMonth, lastDayPrevMonth, nubmerDaysInMonth, OrderedDefaultdict, \
-    lastDayNextMonth, PMT
+    lastDayNextMonth, PMT, isLastDayYear
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
 from collections import OrderedDict
@@ -71,8 +71,9 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         return simulation_result
 
     def calcJ(self):
-        """Calcultation of J (normaly distibuted Jump size) as random with mean=loc and std=scale"""
-        return  np.random.normal(loc=10,scale=5)  #loc means - mean, scale -std
+        """Calcultation of J (normaly distibuted Jump size) as random with mean=loc and std=scale
+        loc means - mean, scale -std """
+        return np.random.normal(loc=self.jump_size_average, scale=self.jump_size_std)
 
     def calcPriceDeltaNoJump(self, prev_price, iteration_no, y):
         """Calculates delta price (dp) based on @prev_price without a price jump"""
