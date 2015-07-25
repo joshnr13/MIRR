@@ -19,7 +19,7 @@ from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRSc
 from report_output import ReportOutput
 from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD, REPORT_DEFAULT_NUMBER_ITERATIONS
 from rm import analyseSimulationResults, plotSaveStochasticValuesSimulation, plotGeneratedWeather, plotGeneratedElectricity, \
-    getWeatherDataFromDb, saveWeatheData, exportElectricityPrices
+    getWeatherDataFromDb, saveWeatherData, exportElectricityPrices
 
 commands = OrderedDict()  #Commands sequence for menu, all commands is method of Interfave class
 commands['1'] = 'runSimulation'
@@ -179,7 +179,7 @@ class Interface():
         if simulation_no is None:
             simulation_no = self.getInputWeatherElectricitySimulationNo(what)
         weather_data = getWeatherDataFromDb(simulation_no, country)
-        saveWeatheData(weather_data, what, simulation_no, country)
+        saveWeatherData(weather_data, what, simulation_no, country)
         plotGeneratedWeather(weather_data, what, simulation_no, country)
 
     def exportGeneratedElectricityPrices(self, country=None):

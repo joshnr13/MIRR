@@ -197,7 +197,7 @@ def getElectricityDataFromDb(simulation_no, country):
     return Database().getElectricityPrices(simulation_no, country)  # loading data from db
 
 
-def saveWeatheData(weather_data, what, simulation_no, country):
+def saveWeatherData(weather_data, what, simulation_no, country):
     cur_date = get_cur_date()
     report_name = "{cur_date}_{country}_weather_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
