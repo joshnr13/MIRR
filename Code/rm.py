@@ -113,9 +113,8 @@ def printIRRStats(irr_values_lst):
 def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
     """Saves IRR values to excel file
     @irr_values_lst - list  with 2 complicated dicts inside"""
-    cur_date = get_cur_date()
 
-    report_name = "{cur_date}_{country}_irr_values_s{simulation_no}.csv".format(**locals())
+    report_name = "{country}_irr_values_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
     output_filename = uniquifyFilename(report_full_name)  #real filename of report
 
