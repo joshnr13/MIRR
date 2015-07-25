@@ -6,7 +6,7 @@
 import sys
 import traceback
 from collections import OrderedDict
-from random import randint
+from random import randint, choice
 
 from annex import getInputDate, getInputInt, memoize, getInputComment, \
     print_separator
@@ -166,7 +166,7 @@ class Interface():
         country = self.getInputCountry(country)
 
         what = "Electricity prices"
-        simulation_no = simulation_no or self.getInputElectricitySimulationNoOrAll(what) or range(1, 101)
+        simulation_no = simulation_no or self.getInputWeatherElectricitySimulationNoOrAll(what) or range(1, 101)
         if not isinstance(simulation_no, int):
             print "Plotting all %s can take some time (about 30-60 seconds) ..." % what
         plotGeneratedElectricity(what, simulation_no, country)
@@ -176,11 +176,20 @@ class Interface():
         country = self.getInputCountry(country)
 
         what = "Weather data"
-        if simulation_no is None:
-            simulation_no = self.getInputWeatherElectricitySimulationNo(what)
-        weather_data = getWeatherDataFromDb(simulation_no, country)
-        saveWeatherData(weather_data, what, simulation_no, country)
-        plotGeneratedWeather(weather_data, what, simulation_no, country)
+        simulation_no = simulation_no or self.getInputWeatherElectricitySimulationNoOrAll(what) or range(1, 101)
+        if isinstance(simulation_no, int):
+            weather_data = getWeatherDataFromDb(simulation_no, country)
+            save_data = weather_data
+            chosen_simulation = simulation_no
+        else: # list of ints
+            print "Plotting all %s can take some time (about 30-60 seconds) ..." % what
+            weather_data = [getWeatherDataFromDb(s, country) for s in simulation_no]
+            chosen_simulation = choice(simulation_no)
+            save_data = weather_data[chosen_simulation]
+
+        print "Saving weather data of simulation", chosen_simulation
+        saveWeatherData(save_data, what, chosen_simulation, country)
+        plotGeneratedWeather(weather_data, what, simulation_no, country, chosen_simulation)
 
     def exportGeneratedElectricityPrices(self, country=None):
         """Export to xls generated Electricity Prices for defined Country"""
@@ -223,14 +232,8 @@ class Interface():
         iteration_no = self.getInputIteration(text, simulation_no)
         return (simulation_no, iteration_no)
 
-    def getInputWeatherElectricitySimulationNo(self, what='????'):
-        """User Input for weather or electricity simulation no"""
-        random_no = randint(1, 100)
-        result = getInputInt("Please input which %s simulation Number to plot (or press Enter to plot random - %s): " % (what, random_no), random_no)
-        return result
-
-    def getInputElectricitySimulationNoOrAll(self, what='????'):
-        """User Input for electricity simulation or return None"""
+    def getInputWeatherElectricitySimulationNoOrAll(self, what='????'):
+        """User Input for simulation or return None"""
         return getInputInt("Please input which %s simulation Number to plot (or press Enter to plot ALL ): " % what, default=None)
 
     def getInputCountry(self, country=None):

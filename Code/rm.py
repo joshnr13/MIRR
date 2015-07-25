@@ -184,9 +184,9 @@ def plotSaveStochasticValuesSimulation(simulation_no, yearly=True):
     plotHistogramsChart(results, simulation_no, yearly, country=country)  #plotting histogram based on DB data
     saveStochasticValuesSimulation(results, simulation_no, country=country)  #saving results to XLS file
 
-def plotGeneratedWeather(weather_data, what, simulation_no, country):
+def plotGeneratedWeather(weather_data, what, simulation_no, country, chosen_simulation):
     """plots graph of generated Weather Insolation and temperature from user defined simulation_no"""
-    plotWeatherChart(weather_data, what, simulation_no, country)  #plotting chart based on DB data
+    plotWeatherChart(weather_data, what, simulation_no, country, chosen_simulation)  #plotting chart based on DB data
 
 
 def getWeatherDataFromDb(simulation_no, country):
@@ -212,7 +212,7 @@ def saveWeatherData(weather_data, what, simulation_no, country):
 
     blank_row = [""]
     simulation_info = ["Simulation number"] + [simulation_no]
-    header = ['Date', 'Insolation', 'Temperature']
+    header = ['Date', 'Insolation', 'Temperature', 'Average production ker kW']
 
     with open(output_filename, 'ab') as f:  # writing all rows to CSV
         w = csv.writer(f, delimiter=';')

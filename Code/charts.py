@@ -311,7 +311,7 @@ def plotStepChart(simulation_no, iteration_no, start_date, end_date, resolution,
     pylab.show()
 
 
-def plotWeatherChart(data_dic, what, simulation_no, country):
+def plotWeatherChart(data_dic, what, simulation_no, country, chosen_simulation=None):
     """Plot Weather Insolation and Temperature
     XY chart for @what , which will be title,
     based on @data_dic,
@@ -321,8 +321,15 @@ def plotWeatherChart(data_dic, what, simulation_no, country):
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
     plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
 
-    x_values = data_dic.keys()
-    y_values = data_dic.values() #combined values [1469.0687372877435, -1.1144659386320814], ...
+    if isinstance(simulation_no, int):
+        data_dic = [data_dic]
+        chosen_simulation = 0
+        chosen_simulation_no = simulation_no
+    else:
+        chosen_simulation_no = chosen_simulation
+
+    x_values = data_dic[chosen_simulation].keys()
+    y_values = data_dic[chosen_simulation].values() #combined values [1469.06645, -1.11432, 1.55653], ...
     y_values_insolation = []
     y_values_temp = []
     for combined_value in y_values:
@@ -330,7 +337,19 @@ def plotWeatherChart(data_dic, what, simulation_no, country):
         y_values_insolation.append(ins)
         y_values_temp.append(temp)
 
-    #plt.gcf().autofmt_xdate()
+    ax = plt.subplot(111)
+    if isinstance(simulation_no, int):
+        plt.title('%r - %s simulation %s' % (country, what, chosen_simulation_no))
+    else:
+        plt.title('%r - Multiple (%s) -  %s simulations' % (country, len(data_dic), what))
+
+    for data in data_dic:
+        y_values_prod_per_kw = [data[day][2] for day in data]
+        ax.plot(x_values, y_values_prod_per_kw)
+
+    ax.set_ylabel('Production per kW')
+    ax.set_xlabel("Dates")
+    plt.show()
 
     ax1 = plt.subplot(111)
     ax1.plot(x_values, y_values_insolation, 'b-')
@@ -340,7 +359,7 @@ def plotWeatherChart(data_dic, what, simulation_no, country):
     ax2.plot(x_values, y_values_temp, 'r--')
     ax2.set_ylabel('Temperature')
 
-    plt.title('%r - %s simulation %s' % (country, what, simulation_no))
+    plt.title('%r - %s simulation %s' % (country, what, chosen_simulation_no))
     plt.xlabel("Dates")
     plt.show()
 
