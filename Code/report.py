@@ -72,6 +72,9 @@ class Report(BaseClassConfig):
         self.electricity_production = self.startProjectOrderedDict(name="",value="")  #sum of monthy  electricity production
         self.electricity_production_y = self.startProjectOrderedDefaultdict(name="",value="")  #sum of yearly  electricity production
 
+        self.electricity_production_per_kW = self.startProjectOrderedDict(name="",value="")  #sum of monthly average electricity production per kW
+        self.electricity_production_per_kW_y = self.startProjectOrderedDefaultdict(name="",value="")  #sum of yearly average electricity production per kW
+
         self.electricity_prices = self.startProjectOrderedDict(name="",value="")  #yearly electricity prices from start project
         self.electricity_prices_y = self.startProjectOrderedDefaultdict(name="",value="")  #monthly electricity prices from start project
 
@@ -177,6 +180,7 @@ class Report(BaseClassConfig):
 
         self.electricity_production[M] = self.electricity_monthly[M]
         self.sun_insolation[M] = self.solar_insolations_monthly[M]
+        self.electricity_production_per_kW[M] = self.electricity_production_per_kW_monthly[M]
         self.electricity_prices[M] = self.electricity_prices_monthly[M]
 
         self.depreciation[M] = self.economic_module.calcDepreciationMonthly(end_day)
@@ -268,6 +272,7 @@ class Report(BaseClassConfig):
 
             self.electricity_production_y[Y] += self.electricity_production[M]
             self.sun_insolation_y[Y] += self.sun_insolation[M]
+            self.electricity_production_per_kW_y[Y] += self.electricity_production_per_kW[M]
 
             ############### NOT USED
             self.inventory_y[Y] += self.inventory[M]
@@ -522,6 +527,11 @@ class Report(BaseClassConfig):
     def solar_insolations_monthly(self):
         """return DICT with volume of for insolations MONTHLY -- FOR ALL PROJECT PERIOD"""
         return self.calcReportMonthlyValues3(self.energy_module.getInsolationsLifetime())  #based on daily Insollations
+
+    @cached_property
+    def electricity_production_per_kW_monthly(self):
+        """Return dict with average electricity production per kW MONTHLY -- FOR ALL PROJECT PERIOD."""
+        return self.calcReportMonthlyValues3(self.energy_module.getAvgProductionDayPerKWLifetime())
 
     def calcLtLoans(self, end_day):
         """Monthly calculation of  Long-Term Loans"""

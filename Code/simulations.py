@@ -179,6 +179,9 @@ class Simulation():
         line["electricity_production"] = obj.electricity_production.values()
         line["electricity_production_y"] = obj.electricity_production_y.values()
 
+        line["electricity_production_per_kW"] = obj.electricity_production_per_kW.values()
+        line["electricity_production_per_kW_y"] = obj.electricity_production_per_kW_y.values()
+
         line["electricity_prices"] = obj.electricity_prices.values()
         line["electricity_prices_y"] = obj.electricity_prices_y.values()
 

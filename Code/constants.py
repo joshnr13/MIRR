@@ -95,7 +95,9 @@ ELPROD = OrderedDict()  #BLOCK in EXCEL with data about electricity production
 ELPROD["Dates"] = ""
 ELPROD["Solar insolation"] = "sun_insolation"
 ELPROD["Production of electricity"] = "electricity_production"
+ELPROD["Production per kW"] = "electricity_production_per_kW"
 ELPROD["Electricity prices"] = "electricity_prices"
+
 
 SOURCE = OrderedDict()  #DATA FOR SECOND SHEET EXCEL
 SOURCE["Main config"] = 'main_configs'
