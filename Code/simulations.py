@@ -6,8 +6,8 @@ from annex import convertValue, setupPrintProgress
 from collections import defaultdict
 from config_readers import RiskModuleConfigReader, start_iteration
 from database import Database
-from rm import caclIrrsStatisctics
-from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3
+from rm import calcSimulationStatistics
+from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3, TEP_REPORT_FIELD, TEP_REPORT_FIELD2
 
 
 
@@ -22,6 +22,10 @@ class Simulation():
         self.irrs0 = []  #for keeping irr values for each iteration
         self.irrs1 = []
         self.irrs2 = []
+
+        # other simulation values for each iteration
+        self.total_energy_produced = []
+        self.system_not_working = []
 
     def getSimulationNo(self):
         """return  current simulation no"""
@@ -198,6 +202,7 @@ class Simulation():
         self.initSimulationRecord(iterations_number)  #Prepare atributes for saving simulation record
         self.runIterations(iterations_number)  #run all iterations with saving results
         self.addIrrStatsToSimulation()  #add IRR stats to simulation record for future speed access
+        self.addTotalEnergyProducedStatsToSimulation() #add TEP stats to simulation record for future speed access
         self.db.insertSimulation(self.simulation_record)  #insert simulation record
 
     def runIterations(self, iterations_number):
@@ -229,7 +234,14 @@ class Simulation():
         """
         fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3]  #which field names will be used to calc stats
         riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
-        self.simulation_record['irr_stats'] = caclIrrsStatisctics(fields, [self.irrs0, self.irrs1, self.irrs2], riskFreeRate, benchmarkSharpeRatio )  #calculating and adding IRR stats to simulation record
+        self.simulation_record['irr_stats'] = calcSimulationStatistics(fields, [self.irrs0, self.irrs1, self.irrs2], riskFreeRate, benchmarkSharpeRatio )  #calculating and adding IRR stats to simulation record
+
+    def addTotalEnergyProducedStatsToSimulation(self):
+        """Adding total energy produced results to dict with simulation data."""
+        fields = [TEP_REPORT_FIELD, TEP_REPORT_FIELD2]
+        riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
+        self.simulation_record['total_energy_produced_stats'] = calcSimulationStatistics(
+            fields, [self.total_energy_produced, self.system_not_working], riskFreeRate, benchmarkSharpeRatio)
 
     def runOneIteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""
@@ -238,6 +250,7 @@ class Simulation():
         self.prepareIterationResults(iteration_no)  #main func to prepare results in one dict
         self.convertResults()  #post process results before saving to db
         self.addIterationIrrs()  #add irr values to additional lists for future analis
+        self.addIterationTEP()
 
     def prepareMirr(self, iteration_no, simulation_no):
         """prepare All modules for simulation"""
@@ -248,6 +261,11 @@ class Simulation():
         self.irrs0.append(getattr(self.r, IRR_REPORT_FIELD))
         self.irrs1.append(getattr(self.r, IRR_REPORT_FIELD2))
         self.irrs2.append(getattr(self.r, IRR_REPORT_FIELD3))
+
+    def addIterationTEP(self):
+        """Adds total energy produced and system not working values to attributes."""
+        self.total_energy_produced.append(getattr(self.r, TEP_REPORT_FIELD))
+        self.system_not_working.append(getattr(self.r, TEP_REPORT_FIELD2))
 
 def runAndSaveSimulation(country, iterations_no, comment):
     """

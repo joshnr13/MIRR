@@ -68,6 +68,9 @@ IRR_REPORT_FIELD2 = 'irr_owners_y'  #for statistics after simulation
 IRR_REPORT_FIELD3 = 'irr_project_before_tax_y'
 NPV_REPORT_FIELD = 'npv_project_y'
 
+TEP_REPORT_FIELD = "total_energy_produced"
+TEP_REPORT_FIELD2 = "system_not_working"
+
 REPORT_DEFAULT_NUMBER_ITERATIONS = 100
 
 CORRELLATION_FIELDS = OrderedDict() # IRR ONE SHOULD HAVE NAME =IRR and be FIRST ONE

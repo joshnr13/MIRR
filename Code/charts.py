@@ -92,6 +92,39 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
 
     pylab.show()
 
+def plotTotalEnergyProducedChart(electricity_total_values, simulation_no, yearly, country):
+    """Plots total electricity production in MWh and days of system not working."""
+
+    figures = OrderedDict()
+    for dic in electricity_total_values:
+        dig_values = dic['digit_values']
+
+        title1 = "%s - Sim. N%s. Histogram of %s - %s values" % (country, simulation_no, dic['field'], len(dig_values))
+        figures[title1] = dig_values
+
+        title2 = "%s - Sim N%s. Chart of %s - %s values" % (country, simulation_no, dic['field'], len(dig_values))
+        figures[title2] = dig_values
+
+    fig, axeslist = pylab.subplots(ncols=2, nrows=2)
+    for ind, title in zip(range(len(figures)), figures):
+        if title is not None:
+            values = figures[title]
+            if ind % 2 == 0:
+                if set(values) == set([0]): # all counts are the same
+                    axeslist.ravel()[ind].hist([0], bins=range(20))
+                else:
+                    weights = numpy.ones_like(values) / len(values)
+                    counts, bins, patches = axeslist.ravel()[ind].hist(values, bins=BINS, weights=weights)
+            else:
+                limx, limy = getLimitValues(range(len(values)), values)
+                axeslist.ravel()[ind].plot(values, 'o')
+                axeslist.ravel()[ind].set_xlim(limx)
+                axeslist.ravel()[ind].set_ylim(limy)
+
+            axeslist.ravel()[ind].set_title(title)
+
+    pylab.show()
+
 def plotHistogramsChart(dic_values, simulation_no, yearly, country=None):
     """
     figures : <title, figure> dictionary

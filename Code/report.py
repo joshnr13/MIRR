@@ -52,6 +52,7 @@ class Report(BaseClassConfig):
         self.calcIRR()  #after all calculation of IRR, WACC, NPV values based on FCF
         self.calcWACC()
         self.calcNPV()
+        self.calcTEP()
 
     def startProjectOrderedDict(self, name=PROJECT_START, value=""):
         """prepare OrderedDict"""
@@ -452,6 +453,11 @@ class Report(BaseClassConfig):
         self.fcf_owners_y[PROJECT_START] = "IRR = %s" % self.irr_owners_y #adding IRR value to FCF row
         self.fcf_project_y[PROJECT_START] = "IRR = %s" % self.irr_project_y #adding IRR value to FCF row
         self.fcf_project_before_tax_y[PROJECT_START] = "IRR = %s" % self.irr_project_before_tax_y  #adding IRR value to FCF row
+
+    def calcTEP(self):
+        """Calculates total energy production in the lifetime of the project and days of system not working."""
+        self.total_energy_produced = sum(self.economic_module.electricity_production.values()) / 1000 # [kWh] -> [MWh]
+        self.system_not_working = len([day for day, prod in self.economic_module.electricity_production.items() if day > self.economic_module.last_day_construction and prod < 1e-9]) # numer of days with no production
 
     def calcNPV(self):
         """Calculation of monthly and yearly NPV for owners and project"""

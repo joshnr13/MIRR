@@ -10,7 +10,7 @@ import scipy.stats as stat
 from constants import report_directory, CORRELLATION_FIELDS
 from annex import convert2excel, uniquifyFilename, getOnlyDigitsList, transponseCsv, addHeaderCsv
 from charts import plotIRRChart, plotHistogramsChart, plotElectricityChart, plotWeatherChart, \
-    plotElectricityHistogram
+    plotElectricityHistogram, plotTotalEnergyProducedChart
 
 
 def calcStatistics(values):
@@ -94,7 +94,7 @@ def JarqueBeraTest(values):
     jb_stat_value = calcJbStats(values)
     return jb_stat_value
 
-def printIRRStats(irr_values_lst):
+def printSimulationStats(irr_values_lst):
     """Prints statistics of irr values"""
     for dic in irr_values_lst:
         print "Statistics for %s" % dic.get('field', None)
@@ -332,7 +332,7 @@ def saveStochasticValuesSimulation(dic_values, simulation_no, country):
 
     print "Stochastic Report outputed to file %s" % (xls_output_filename)  #printing path to generated report
 
-def caclIrrsStatisctics(field_names, irr_values, riskFreeRate, benchmarkSharpeRatio):
+def calcSimulationStatistics(field_names, irr_values, riskFreeRate, benchmarkSharpeRatio):
     """
     inputs: @field_names - list of irr field names for @irr_values
     output: list of dicts with irr statistics for each irr_type
@@ -361,12 +361,22 @@ def analyseSimulationResults(simulation_no, yearly=False):
 
     """
     db = Database()
-    field = 'irr_stats'  #which field will be loaded from DB
-    irr_values_lst = db.getSimulationValuesFromDB(simulation_no, [field])[field][0]  #loading defined field values from DB
+    field1 = 'irr_stats'  #which field will be loaded from DB
+    field2 = 'total_energy_produced_stats'
     country = db.getSimulationCountry(simulation_no)
-    saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country)  #saving IRR values to XLS
+
+    # IRR values
+    irr_values_lst = db.getSimulationValuesFromDB(simulation_no, [field1])[field1][0]  #loading defined field values
+    # from DB
     plotIRRChart(irr_values_lst, simulation_no, yearly, country)  #plotting IRR charts
-    printIRRStats(irr_values_lst)  #outputing to screen IRR stats
+    printSimulationStats(irr_values_lst)  #outputing to screen IRR stats
+
+    # total energy produced values
+    total_energy_values_lst = db.getSimulationValuesFromDB(simulation_no, [field2])[field2][0]
+    plotTotalEnergyProducedChart(total_energy_values_lst, simulation_no, yearly, country)
+    printSimulationStats(total_energy_values_lst)
+
+    saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country)  # saving IRR values to XLS
 
 if __name__ == '__main__':
     X = [0.1, 0.2, 0.3]
