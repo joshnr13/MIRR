@@ -110,22 +110,29 @@ def printSimulationStats(irr_values_lst):
         print "\tJB test values %s" % dic.get('JBTest', None)
         print "\tJB value %s" % dic.get('JBTest_value', None)
 
-def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
-    """Saves IRR values to excel file
-    @irr_values_lst - list  with 2 complicated dicts inside"""
+def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearly, country):
+    """Saves IRR and TEP values to excel file
+    @irr_values_lst - list  with 3 complicated dicts inside"""
 
-    report_name = "{country}_irr_values_s{simulation_no}.csv".format(**locals())
+    report_name = "{country}_irr_tep_values_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
     output_filename = uniquifyFilename(report_full_name)  #real filename of report
 
     blank_row = [""]
+    # IRR fields
     field1 = irr_values_lst[0]['field']  #field1 and field2 is IRR project or owners
     field2 = irr_values_lst[1]['field']
-    field3 = irr_values_lst[2]['field']
+    field3 = irr_values_lst[2]['field']  #field3 is IRR project before tax
+    # TEP fields
+    field4 = tep_values_lst[0]['field']  #field4 is total energy produced
+    field5 = tep_values_lst[1]['field']  #field5 is system not working
 
     irr_values1 = [field1] + irr_values_lst[0][field1]  #prepare row with first value field name, others - values
     irr_values2 = [field2] + irr_values_lst[1][field2]  #prepare row with first value field name, others - values
     irr_values3 = [field3] + irr_values_lst[2][field3]
+
+    tep_values1 = [field4] + tep_values_lst[0][field4]
+    tep_values2 = [field5] + tep_values_lst[1][field5]
 
     iterations = ["Iteration number"] + list(range(1, len(irr_values1)))  #prepare row with first value Iterations number, others - iterations 1,2,3...
     simulation_info = ["Simulation number"] + [simulation_no]  #prepare row with field name and value
@@ -135,6 +142,8 @@ def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
     stat_info1 = [field1]
     stat_info2 = [field2]
     stat_info3 = [field3]
+    stat_info4 = [field4]
+    stat_info5 = [field5]
 
     jb_fileds = ['JB_TEST' ] + irr_values_lst[0]['JBTest'].keys() + ["JB_VALUE"]  #prepare row with first column JB_TEST and second - values
     jb_values1 = [field1] + irr_values_lst[0]['JBTest'].values() +  [irr_values_lst[0]['JBTest_value']]
@@ -145,6 +154,8 @@ def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
         stat_info1.append(irr_values_lst[0].get(key, ''))
         stat_info2.append(irr_values_lst[1].get(key, ''))
         stat_info3.append(irr_values_lst[2].get(key, ''))
+        stat_info4.append(tep_values_lst[0].get(key, ''))
+        stat_info5.append(tep_values_lst[1].get(key, ''))
 
     with open(output_filename, 'ab') as f:  #starting write to FILE
 
@@ -156,12 +167,16 @@ def saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country):
         w.writerow(irr_values1)
         w.writerow(irr_values2)
         w.writerow(irr_values3)
+        w.writerow(tep_values1)
+        w.writerow(tep_values2)
 
         w.writerow(blank_row)
         w.writerow(stat_fields)
         w.writerow(stat_info1)
         w.writerow(stat_info2)
         w.writerow(stat_info3)
+        w.writerow(stat_info4)
+        w.writerow(stat_info5)
 
         w.writerow(blank_row)
         w.writerow(jb_fileds)
@@ -376,7 +391,8 @@ def analyseSimulationResults(simulation_no, yearly=False):
     plotTotalEnergyProducedChart(total_energy_values_lst, simulation_no, yearly, country)
     printSimulationStats(total_energy_values_lst)
 
-    saveIRRValuesXls(irr_values_lst, simulation_no, yearly, country)  # saving IRR values to XLS
+    saveSimulationValuesXls(irr_values_lst, total_energy_values_lst, simulation_no, yearly, country)  # saving IRR
+    # and TEP values to XLS
 
 if __name__ == '__main__':
     X = [0.1, 0.2, 0.3]
