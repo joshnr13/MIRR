@@ -24,7 +24,7 @@ from rm import analyseSimulationResults, plotSaveStochasticValuesSimulation, plo
 commands = OrderedDict()  #Commands sequence for menu, all commands is method of Interfave class
 commands['1'] = 'runSimulation'
 commands['2'] = 'analyseSimulationResults'
-commands['3'] = 'mainReport'
+commands['3'] = 'exportOneIteration'
 commands['4'] = 'cashflowCharts'
 commands['5'] = 'printEquipment'
 commands['6'] = 'outputPrimaryEnergy'
@@ -35,7 +35,7 @@ commands['10'] = 'npvCorrelations'
 commands['11'] = 'distributionOfInputVariables'
 commands['12'] = 'simulationsLog'
 commands['13'] = 'deleteSimulation'
-commands['14'] = 'generateWeatherData'  #daily insolation and Temperature
+commands['14'] = 'generateWeatherData'  #daily average production, insolation and Temperature
 commands['15'] = 'generateElectricityMarketPrice'  #daily electricty market prices
 commands['16'] = 'outputGeneratedElectricityPrices'  #Graph of daily electricty market prices
 commands['17'] = 'outputGeneratedWeatherData'  #Graph of daily aily insolation and temperature
@@ -73,7 +73,7 @@ class Interface():
             simulation_no = self.getInputSimulation("plotting IRR distribution ")
         analyseSimulationResults(simulation_no, yearly=True)
 
-    def mainReport(self):
+    def exportOneIteration(self):
         """Save main report for user defind simulation and iteration number"""
         params = self.getSimulationIterationNums("for getting ISBS excel report ")
         ReportOutput(None).prepareReportISBSCFIRR(params, yearly=False)  #preparing monthly report
