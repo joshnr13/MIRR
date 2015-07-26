@@ -20,16 +20,16 @@ def calcStatistics(values):
     result = OrderedDict()
     if len(values) > 1:
         values_upd = values[:]
-        values_upd[0] += 0.00001  #adding very small value for first element in list for proper calculation of stats in case all values are the same
+        values_upd[0] += 1e-5  #adding very small value for first element in list for proper calculation of stats in case all values are the same
 
-        result['std'] = std(values_upd)  #standart deviation
-        result['skew'] = skew(values_upd)  #Skew
-        result['kurtosis'] = kurtosis(values_upd)
-        result['mean'] = mean(values_upd)
+        result['std'] = std(values_upd)  # standart deviation -- biased estimator
+        result['skew'] = skew(values_upd)  # skewness -- biased estimator
+        result['kurtosis'] = kurtosis(values_upd) # Fisher (-3) definition -- biased estimator
+        result['mean'] = mean(values_upd) # mean -- ubiased estimator
         result['min'] = min(values_upd)
         result['max'] = max(values_upd)
         result['median'] = median(values_upd)
-        result['variance'] = var(values_upd)
+        result['variance'] = var(values_upd) # variance -- biased estimator
     else:  #in case we have only one value, so we cant normally calculate stats, espessialy skew and kutorsis
         result['std'] = std(values)
         result['skew'] = float('nan')
@@ -47,52 +47,39 @@ def calculateRequiredRateOfReturn(irr_values, riskFreeRate, benchmarkSharpeRatio
     return riskFreeRate + benchmarkSharpeRatio * irr_stdev  #formula
 
 
-def jbCritValue(p):
-    """Calculate critical value fo x2 distribution for checking JB
-    df=2%
-    """
-    df = 2  #two percent, CONSTANT
-    return stat.chi2.ppf(p, df)
+def jbCritValue(significance):
+    """Return assimptotically aproximative critical value ofr JB statistics.
+       JB ~ chi^2(2) (approximately, as n -> inf)"""
+    return stat.chi2.ppf(1 - significance, 2)
 
-def calcJbStats(values):
-    """
-    we will use it to test the distribution of IRR from a smulation
-    return  JB stat value
-    """
+def calcJBStat(values):
+    """Return value of JB statistics to test the distribution of IRR from a
+       simulation for normality. 
+       Null hypothesis: @values are distibuted normally.
+       Alternative hypothesis: @values are not distributed normally.
+       JB = n / 6 + (S^2 + K^2 / 4)
+       P(JB < crit_val) < significance, if null hypothesis is true."""
     n = len(values)
-    stats = calcStatistics(values)  #calculation of Statistics for values
-    K = stats['kurtosis']  #but we need only 2 of stats: skew and kutorsis
+    stats = calcStatistics(values)  # calculation of Statistics for values
+    K = stats['kurtosis']  # but we need only 2 of stats: skew and kutorsis
     S = stats['skew']
-    JB = n/6.0 * (S*S + (K-3)*(K-3)/4.0)  #formula from book
+    JB = n / 6.0 * (S*S + K*K / 4.0)  #formula from book
     return JB
 
-def calcJbProbability(jb_stat_value, levels=(95, 99, 99.9)):
-    """
-    inputs:
-       jb_stat_value, - calculated JB value
-       levels= list of levels for probability calculation [0-100.0]
+def JarqueBeraTest(values=(), significance_levels=(0.05, 0.01, 0.001), JB_stat_value=None):
+    """Performs Jarque-Bera test of @values at @significance_levels
+    returns dict {significance level : value of the test (true or false)}"""
+    if JB_stat_value is None:
+        JB_stat_value = calcJBStat(values)
 
-    return:
-       dict  with
-       key=percent level, for ex  0.95, 0.99, 0.999
-       value=  True or False with of probability that the distribution is normal
-    """
-     #calculation probability distribution is normal for all levels levels=(95, 99, 99.9)
-
-    percent_levels = [l / 100.0 for l in levels]  #floats [0.0-0.99] representation of percents
-    result = OrderedDict()  #init result container
-    for level in percent_levels:
-        str_level = str(round(level, 3)).replace('.', ',')  #string representation of percent level, we replace dot to comma because of excel
-        if jb_stat_value >= jbCritValue(level):  #if stat value < cricitcal, means distribution is normal
+    result = OrderedDict()  # init result container
+    for significance in significance_levels:
+        str_level = "{0:,.3f}".format(1 - significance) # format with comma for excel
+        if JB_stat_value >= jbCritValue(significance):  # if stat value >= cricitcal we reject the hypothesis: there is very low probability of this happening if null hypothesis were true
             result[str_level] = False
         else:
             result[str_level] = True
-    return  result
-
-def JarqueBeraTest(values):
-    """calculates JarqueBeraTest"""
-    jb_stat_value = calcJbStats(values)
-    return jb_stat_value
+    return result
 
 def printSimulationStats(irr_values_lst):
     """Prints statistics of irr values"""
@@ -366,8 +353,8 @@ def calcSimulationStatistics(field_names, irr_values, riskFreeRate, benchmarkSha
         result['field'] = field_name  #what irr values was used (name of filed)
         result[field_name] = irr  #not filtered irr values
         result['digit_values'] = digit_irr  #filtered irr values (only digit values)
-        result['JBTest_value'] = JarqueBeraTest(digit_irr)  #JB test result
-        result['JBTest'] = calcJbProbability(result['JBTest_value'])  #JB test result
+        result['JBTest_value'] = calcJBStat(digit_irr)  # JB statistics value
+        result['JBTest'] = JarqueBeraTest(JB_stat_value=result['JBTest_value'])  # JB test result for different significance levels
         result['required_rate_of_return'] = calculateRequiredRateOfReturn(digit_irr, riskFreeRate, benchmarkSharpeRatio)  #rrr
         result.update(calcStatistics(digit_irr))  #adding all statistics (stdevm min, max etc)
 
@@ -387,7 +374,7 @@ def analyseSimulationResults(simulation_no, yearly=False):
     country = db.getSimulationCountry(simulation_no)
 
     # IRR values
-    irr_values_lst = db.getSimulationValuesFromDB(simulation_no, [field1])[field1][0]  #loading defined field values
+    irr_values_lst = db.getSimulationValuesFromDB(simulation_no, [field1])[field1][0]  #loading defined field value
     # from DB
     plotIRRChart(irr_values_lst, simulation_no, yearly, country)  #plotting IRR charts
     printSimulationStats(irr_values_lst)  #outputing to screen IRR stats
@@ -401,7 +388,10 @@ def analyseSimulationResults(simulation_no, yearly=False):
     # and TEP values to XLS
 
 if __name__ == '__main__':
-    X = [0.1, 0.2, 0.3]
     import numpy
-    X_norm = numpy.random.normal(5, size=100)
-    print JarqueBeraTest(X_norm)
+    print JarqueBeraTest(numpy.random.normal(5, size=1000)) # must be normal
+    print JarqueBeraTest(numpy.random.normal(5, size=100)) # should be normal
+    print JarqueBeraTest(numpy.random.normal(5, size=10)) # probably normal
+    print JarqueBeraTest(range(10)) # could be normal
+    print JarqueBeraTest(range(100)) # maybe not normal
+    print JarqueBeraTest(range(1000)) # certanly not normal
