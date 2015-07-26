@@ -29,9 +29,9 @@ class Database():
 
     def addIndexes(self):
         """add indexed to database"""
-        #self.iterations.ensure_index('simulation', background=True )
-        self.iterations.ensure_index([("country", pymongo.ASCENDING), ("simulation", pymongo.ASCENDING), ("iteration", pymongo.ASCENDING)], background=True)  #add simulation and iteration fields to index
-        self.simulations.ensure_index("simulation", background=True)
+        self.iterations.create_index("iteration"),
+        self.iterations.create_index("simulation"),
+        self.simulations.ensure_index("simulation")
 
     def deleteSimulation(self, simulation_no ):
         """Deletes selected simulation with @simulation_no"""
