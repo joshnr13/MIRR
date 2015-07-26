@@ -119,7 +119,11 @@ def plotTotalEnergyProducedChart(electricity_total_values, simulation_no, yearly
                 limx, limy = getLimitValues(range(len(values)), values)
                 axeslist.ravel()[ind].plot(values, 'o')
                 axeslist.ravel()[ind].set_xlim(limx)
-                axeslist.ravel()[ind].set_ylim(limy)
+                ymin, ymax = limy
+                if ymin == ymax: # get rid of user warning of the same limits
+                    ymax += numpy.finfo(type(ymax)).eps
+                    ymin -= numpy.finfo(type(ymax)).eps
+                axeslist.ravel()[ind].set_ylim((ymin, ymax))
 
             axeslist.ravel()[ind].set_title(title)
 
