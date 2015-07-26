@@ -70,6 +70,7 @@ NPV_REPORT_FIELD = 'npv_project_y'
 
 TEP_REPORT_FIELD = "total_energy_produced"
 TEP_REPORT_FIELD2 = "system_not_working"
+TEP_REPORT_FIELD3 = "electricity_production_2ndyear"
 
 REPORT_DEFAULT_NUMBER_ITERATIONS = 100
 

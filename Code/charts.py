@@ -105,7 +105,7 @@ def plotTotalEnergyProducedChart(electricity_total_values, simulation_no, yearly
         title2 = "%s - Sim N%s. Chart of %s - %s values" % (country, simulation_no, dic['field'], len(dig_values))
         figures[title2] = dig_values
 
-    fig, axeslist = pylab.subplots(ncols=2, nrows=2)
+    fig, axeslist = pylab.subplots(ncols=2, nrows=3)
     for ind, title in zip(range(len(figures)), figures):
         if title is not None:
             values = figures[title]

@@ -126,6 +126,7 @@ def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearl
     # TEP fields
     field4 = tep_values_lst[0]['field']  #field4 is total energy produced
     field5 = tep_values_lst[1]['field']  #field5 is system not working
+    field6 = tep_values_lst[2]['field']  #field6 is electricity production in second year
 
     irr_values1 = [field1] + irr_values_lst[0][field1]  #prepare row with first value field name, others - values
     irr_values2 = [field2] + irr_values_lst[1][field2]  #prepare row with first value field name, others - values
@@ -133,6 +134,7 @@ def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearl
 
     tep_values1 = [field4] + tep_values_lst[0][field4]
     tep_values2 = [field5] + tep_values_lst[1][field5]
+    tep_values3 = [field6] + tep_values_lst[2][field6]
 
     iterations = ["Iteration number"] + list(range(1, len(irr_values1)))  #prepare row with first value Iterations number, others - iterations 1,2,3...
     simulation_info = ["Simulation number"] + [simulation_no]  #prepare row with field name and value
@@ -144,6 +146,7 @@ def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearl
     stat_info3 = [field3]
     stat_info4 = [field4]
     stat_info5 = [field5]
+    stat_info6 = [field6]
 
     jb_fileds = ['JB_TEST' ] + irr_values_lst[0]['JBTest'].keys() + ["JB_VALUE"]  #prepare row with first column JB_TEST and second - values
     jb_values1 = [field1] + irr_values_lst[0]['JBTest'].values() +  [irr_values_lst[0]['JBTest_value']]
@@ -156,6 +159,7 @@ def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearl
         stat_info3.append(irr_values_lst[2].get(key, ''))
         stat_info4.append(tep_values_lst[0].get(key, ''))
         stat_info5.append(tep_values_lst[1].get(key, ''))
+        stat_info6.append(tep_values_lst[2].get(key, ''))
 
     with open(output_filename, 'ab') as f:  #starting write to FILE
 
@@ -169,6 +173,7 @@ def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearl
         w.writerow(irr_values3)
         w.writerow(tep_values1)
         w.writerow(tep_values2)
+        w.writerow(tep_values3)
 
         w.writerow(blank_row)
         w.writerow(stat_fields)
@@ -177,6 +182,7 @@ def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearl
         w.writerow(stat_info3)
         w.writerow(stat_info4)
         w.writerow(stat_info5)
+        w.writerow(stat_info6)
 
         w.writerow(blank_row)
         w.writerow(jb_fileds)

@@ -7,7 +7,7 @@ from collections import defaultdict
 from config_readers import RiskModuleConfigReader, start_iteration
 from database import Database
 from rm import calcSimulationStatistics
-from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3, TEP_REPORT_FIELD, TEP_REPORT_FIELD2
+from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3, TEP_REPORT_FIELD, TEP_REPORT_FIELD2, TEP_REPORT_FIELD3
 
 
 
@@ -26,6 +26,7 @@ class Simulation():
         # other simulation values for each iteration
         self.total_energy_produced = []
         self.system_not_working = []
+        self.electricity_production_2ndyear = []
 
     def getSimulationNo(self):
         """return  current simulation no"""
@@ -238,10 +239,11 @@ class Simulation():
 
     def addTotalEnergyProducedStatsToSimulation(self):
         """Adding total energy produced results to dict with simulation data."""
-        fields = [TEP_REPORT_FIELD, TEP_REPORT_FIELD2]
+        fields = [TEP_REPORT_FIELD, TEP_REPORT_FIELD2, TEP_REPORT_FIELD3]
         riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
         self.simulation_record['total_energy_produced_stats'] = calcSimulationStatistics(
-            fields, [self.total_energy_produced, self.system_not_working], riskFreeRate, benchmarkSharpeRatio)
+            fields, [self.total_energy_produced, self.system_not_working, self.electricity_production_2ndyear],
+            riskFreeRate, benchmarkSharpeRatio)
 
     def runOneIteration(self, iteration_no, total_iteration_number):
         """runs 1 iteration, prepares new data and saves it to db"""
@@ -266,6 +268,7 @@ class Simulation():
         """Adds total energy produced and system not working values to attributes."""
         self.total_energy_produced.append(getattr(self.r, TEP_REPORT_FIELD))
         self.system_not_working.append(getattr(self.r, TEP_REPORT_FIELD2))
+        self.electricity_production_2ndyear.append(getattr(self.r, TEP_REPORT_FIELD3))
 
 def runAndSaveSimulation(country, iterations_no, comment):
     """

@@ -456,8 +456,11 @@ class Report(BaseClassConfig):
 
     def calcTEP(self):
         """Calculates total energy production in the lifetime of the project and days of system not working."""
-        self.total_energy_produced = sum(self.economic_module.electricity_production.values()) / 1000 # [kWh] -> [MWh]
-        self.system_not_working = len([day for day, prod in self.economic_module.electricity_production.items() if day > self.economic_module.last_day_construction and prod < 1e-9]) # numer of days with no production
+        ep = self.economic_module.electricity_production
+        last_day = self.economic_module.last_day_construction
+        self.total_energy_produced = sum(ep.values()) / 1000 # [kWh] -> [MWh]
+        self.system_not_working = len([date for date, prod in ep.items() if date > last_day and prod < 1e-9]) # numer of days with no production
+        self.electricity_production_2ndyear = sum(prod for date, prod in ep.items() if date.year == last_day.year +  1) / 1000.0 # [kWh] -> [MWh]
 
     def calcNPV(self):
         """Calculation of monthly and yearly NPV for owners and project"""
