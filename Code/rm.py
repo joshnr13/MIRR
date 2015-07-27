@@ -74,7 +74,7 @@ def JarqueBeraTest(values=(), significance_levels=(0.05, 0.01, 0.001), JB_stat_v
 
     result = OrderedDict()  # init result container
     for significance in significance_levels:
-        str_level = "{0:,.3f}".format(1 - significance) # format with comma for excel
+        str_level = "{0:.3f}".format(1 - significance).replace(".", ",") # format with comma for excel
         if JB_stat_value >= jbCritValue(significance):  # if stat value >= cricitcal we reject the hypothesis: there is very low probability of this happening if null hypothesis were true
             result[str_level] = False
         else:
