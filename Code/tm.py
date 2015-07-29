@@ -6,8 +6,9 @@ from em import EnergyModule
 from config_readers import MainConfig, TechnologyModuleConfigReader
 from base_class import BaseClassConfig
 from annex import daysBetween, getResolutionStartEnd, cached_property, get_list_dates
-from tm_equipment import PlantEquipment
+from tm_equipment import PlantEquipment, MaintenanceSchedule
 from collections import OrderedDict
+
 
 class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def __init__(self, config_module, energy_module, country):
@@ -37,13 +38,21 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def buildPlant(self):
         """creates plant object"""
-        self.plant = PlantEquipment(self.network_available_probability, self.country)  #new class Plant
+        maintenance_calculator = MaintenanceSchedule(start_production=self.first_day_production,
+                                                 end_production=self.end_date_project,
+                                                 mtbf_size=self.inverter_mtbf_size,
+                                                 mtbf_shape=self.inverter_mtbf_shape,
+                                                 mttr_size=self.inverter_mttr_size,
+                                                 mttr_shape=self.inverter_mttr_shape)
+        self.plant = PlantEquipment(self.network_available_probability, self.country,
+                                    maintenance_calculator=maintenance_calculator,
+                                    energy_module=self.energy_module)  #new class Plant
 
     def addSolarModulesAndInverter(self):
         """Adds solar module and inverter in each group"""
         for i in range(self.groups_number):
             eq_group = self.plant.addSolarGroup()
-            eq_group.addInverter(self.inverter_price, self.inverter_reliability, self.inverter_power_efficiency)
+            eq_group.addInverter(self.inverter_price, self.inverter_power_efficiency)
             for j in range(self.modules_in_group):
                 self.randomizeSolarModuleParameters(self.country)
                 eq_group.addSolarModule(self.module_price, self.module_reliability, self.module_power_efficiency, self.module_power, self.degradation_yearly)
@@ -104,9 +113,6 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def generateElectricityProductionLifeTime(self):
         """returns dict with electricity_production for every date of project lifetime"""
-        electricity_production = OrderedDict(
-            (day, self.plant.getElectricityProductionPlant1Day(
-                self.energy_module.getAvgProductionDayPerKW(day), daysBetween(self.start_date_project, day))
-                    if day > self.last_day_construction else 0) for day in self.all_project_dates)
-
-        return electricity_production
+        return OrderedDict(
+            (day, self.plant.getElectricityProductionPlant1Day(day) if day >= self.first_day_production else 0)
+            for day in self.all_project_dates)

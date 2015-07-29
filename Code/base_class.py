@@ -39,6 +39,10 @@ class BaseClassConfig():
         return self._config_module.getLastDayConstruction()
 
     @property
+    def first_day_production(self):
+        return self._config_module.getFirstDayProduction()
+
+    @property
     def resolution(self):
         return self._config_module.getResolution()
 

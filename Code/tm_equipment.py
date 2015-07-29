@@ -3,9 +3,9 @@
 
 import random
 import numpy
-from annex import lastDayMonth, memoized
+from annex import lastDayMonth, memoized, daysBetween, OrderedDefaultdict
 from collections import defaultdict
-from datetime import date
+from datetime import date, timedelta
 
 
 class Equipment():
@@ -121,8 +121,13 @@ class EquipmentConnectionGrid(Equipment):
 class EquipmentInverter(Equipment):
     """Class for holding special info about Inverters"""
     def __init__(self, *args, **kwargs):
+        self.maintenance_schedule = kwargs.pop('maintenance_schedule')
         Equipment.__init__(self, *args, **kwargs)
         self.name = "Inverter Equipment"
+
+    def isWorking(self, day):
+        """Return bool is inverter working or not (under maintenance) on current date @day"""
+        return self.maintenance_schedule[day]
 
 
 class EquipmentTransformer(Equipment):
@@ -136,7 +141,7 @@ class EquipmentTransformer(Equipment):
 
 class EquipmentGroup():
     """Class for holding info about equipment group"""
-    def __init__(self, group_type):
+    def __init__(self, group_type, maintenance_calculator):
         self.group_type = group_type
         self.group_equipment = defaultdict(list)  #list for holding content of group equipment
         self.inverters = 0
@@ -146,6 +151,8 @@ class EquipmentGroup():
 
         self.transformer_object = None
         self.connectiongrid_object = None
+        self.maintenance_calculator = maintenance_calculator  # for calculating maintenance schedule
+        self.first_day_production = self.maintenance_calculator.start_production
 
     def getGroupType(self):
         return  self.group_type
@@ -162,8 +169,15 @@ class EquipmentGroup():
         self.solar_modules += 1  #increase number of solar modules in group
         self.addEquipment(eq, type='solar_module') #adds new created equipment to group with defined type
 
-    def addInverter(self, price, reliability, power_efficiency):
-        eq = EquipmentInverter(reliability=reliability, price=price, power_efficiency=power_efficiency, power=None, degradation_yearly=None, state=0, system_crucial=False, group_cruical=True ) #create Equipment class instance
+    def addInverter(self, price, power_efficiency):
+        # generate maintenance for all period for current inverter
+        schedule = self.maintenance_calculator.generate_schedule()
+
+        # create Equipment class instance
+        eq = EquipmentInverter(reliability=100, price=price, power_efficiency=power_efficiency,
+                               power=None, degradation_yearly=None, state=0, system_crucial=False,
+                               group_cruical=True, maintenance_schedule=schedule)
+
         self.inverters += 1  #increase number of inverters in group
         self.addEquipment(eq, type='inverter') #adds new created equipment to group with defined type
 
@@ -196,6 +210,14 @@ class EquipmentGroup():
     def getInverterEquipment(self):
         """return  list of inverters  in current group"""
         return  self.group_equipment['inverter']
+
+    def getPercentInvertersWorking(self, day):
+        """return percent (0.0 - 1.0) of inverters not under maintenance at @day"""
+        result = []
+        for inverter in self.getInverterEquipment():
+            result.append(inverter.isWorking(day))
+        percent_working = sum(result) / float(len(result))
+        return percent_working
 
     def getConnectionGridEquipment(self):
         """return list of grid equipment  in current group"""
@@ -268,32 +290,38 @@ class EquipmentGroup():
         else:
             return 0
 
-    def getElectricityProductionGroupUsingInsolation(self, insolation, days_from_start):
+    def getElectricityProductionGroupUsingInsolation(self, insolation, day):
         """return  ElectricityProduction for group"""
+        days_from_start = daysBetween(self.first_day_production, day)
         group_production = sum([eq.getElectricityProductionEquipmentUsingInsolation(insolation, days_from_start) for eq in self.getSolarEquipment()])  #calc sum of all group electricity production
-        inverter_efficiency = self.getInverterEffiency()
-        return  group_production * inverter_efficiency
+        percent_inverters_working = self.getPercentInvertersWorking(day)
+        return group_production * percent_inverters_working
 
-    def getElectricityProductionGroup(self, avg_production_day_per_kW, days_from_start):
+    def getElectricityProductionGroup(self, avg_production_day_per_kW, day):
         """return  ElectricityProduction for group"""
-        group_production = sum([eq.getElectricityProductionEquipment(avg_production_day_per_kW, days_from_start) for eq in self.getSolarEquipment()])  #calc sum of all group electricity production
-        inverter_efficiency = self.getInverterEffiency()
-        return  group_production * inverter_efficiency
+        days_from_start = daysBetween(self.first_day_production, day)
+        group_production = sum([eq.getElectricityProductionEquipment(avg_production_day_per_kW, days_from_start)
+                                for eq in self.getSolarEquipment()])  #calc sum of all group electricity production
+        percent_inverters_working = self.getPercentInvertersWorking(day)
+        return group_production * percent_inverters_working
 
 ################################ PLANT #######################
 
 
 class PlantEquipment():
     """Class for whole plant equipment"""
-    def __init__(self, network_available_probability, country):
+    def __init__(self, network_available_probability, country, maintenance_calculator, energy_module):
         self.groups = defaultdict(list)  #for holding list of groups in plant
         self.network_available_probability = network_available_probability  #probability of AC system network
         self.AC_group = None
         self.country = country
+        self.energy_module = energy_module
+        self.maintenance_calculator = maintenance_calculator  # for calculating maintenance schedule
+        self.first_day_production = self.maintenance_calculator.start_production
 
     def addGroup(self, group_type):
         """adds new group and returns link to it"""
-        group = EquipmentGroup(group_type)
+        group = EquipmentGroup(group_type, maintenance_calculator=self.maintenance_calculator)
         self.groups[group_type].append(group)
         return group
 
@@ -360,21 +388,23 @@ class PlantEquipment():
                 return True  #return  True if we have connection grid in AC group
         return False
 
-    def getElectricityProductionPlant1DayUsingInsolation(self, insolation, days_from_start):
+    def getElectricityProductionPlant1DayUsingInsolation(self, insolation, day):
         """return  ElectiricityProduction for whole Plant"""
         if self.isGridAvailable():  #if we have connection grid in plant
-            groups_production = sum(g.getElectricityProductionGroupUsingInsolation(insolation, days_from_start) for g in self.getPlantSolarGroups())  #calc sum of el.production for all solar groups
+            groups_production = sum(g.getElectricityProductionGroupUsingInsolation(insolation, day) for g in self.getPlantSolarGroups())  #calc sum of el.production for all solar groups
             transformer_efficiency = self.getTransformerEffiency()
             return  groups_production * transformer_efficiency
         else:
             return 0
 
-    def getElectricityProductionPlant1Day(self, avg_production_day_per_kW, days_from_start):
+    def getElectricityProductionPlant1Day(self, day):
         """return  ElectiricityProduction for whole Plant"""
         if self.isGridAvailable():  #if we have connection grid in plant
-            groups_production = sum(g.getElectricityProductionGroup(avg_production_day_per_kW, days_from_start) for g in self.getPlantSolarGroups())  #calc sum of el.production for all solar groups
+            avg_production_day_per_kW = self.energy_module.getAvgProductionDayPerKW(day)
+            groups_production = sum(g.getElectricityProductionGroup(avg_production_day_per_kW, day)
+                                    for g in self.getPlantSolarGroups())  #calc sum of el.production for all solar groups
             transformer_efficiency = self.getTransformerEffiency()
-            return  groups_production * transformer_efficiency
+            return groups_production * transformer_efficiency
         else:
             return 0
 
@@ -393,7 +423,7 @@ class PlantEquipment():
             av_insolations.append(em_config.getAvMonthInsolationMonth(i))  #add to list av.month insollation for 1 day
             days_in_month.append(lastDayMonth(date(2000,  i, 1)).day)  #  add to list number of days in cur month
 
-        one_day_production = numpy.array([self.getElectricityProductionPlant1DayUsingInsolation(insolation, 0) for insolation in av_insolations])  #calc one day production for this 12 days
+        one_day_production = numpy.array([self.getElectricityProductionPlant1DayUsingInsolation(insolation, self.first_day_production) for insolation in av_insolations])  #calc one day production for this 12 days
         whole_year_production = numpy.sum(numpy.array(days_in_month) * one_day_production)  #multiply number of days in month * one day production and summarise them all
 
         return round(whole_year_production, 0)  #return rounded value
@@ -403,7 +433,78 @@ class PlantEquipment():
         return  "Installed Power %s kW . Expected yearly energy production %s kWh" % (self.getPlantPower(), self.expectedYearProduction())
 
 
+class MaintenanceSchedule(object):
+    def __init__(self, start_production, end_production, mtbf_size, mtbf_shape, mttr_size, mttr_shape):
+        self.start_production = start_production
+        self.end_production = end_production
+        self.mtbf_size = mtbf_size
+        self.mtbf_shape = mtbf_shape
+        self.mttr_size = mttr_size
+        self.mttr_shape = mttr_shape
+
+    def generate_mtbf_days(self):
+        """return MTBF - mean time between failures, days"""
+        return self.get_value(self.mtbf_size, self.mtbf_shape)
+
+    def generate_mttr_days(self):
+        """return MTTR - mean time to repair, days"""
+        return self.get_value(self.mttr_size, self.mttr_shape)
+
+    def generate_next_failure_date(self, start_date):
+        """genereate and return date when we will have next falure"""
+        mtbf_days = self.generate_mtbf_days()
+        next_failure_date = start_date + timedelta(days=mtbf_days + 1)
+        return next_failure_date
+
+    def generate_next_date_failure_repaired(self, next_failure_date):
+        """genereate and return date when @next_failure_date will be repaired"""
+        mttr_days = self.generate_mttr_days()
+        next_failure_repaired_date = next_failure_date + timedelta(days=mttr_days + 1)
+        return next_failure_repaired_date
+
+    def get_value(self, average, shape):
+        """return weibull distribution value, using supplied params rounded to WHOLE DAYS"""
+        return int(average * numpy.random.weibull(a=shape)) // 24  # round to whole days
+
+    def generate_schedule(self):
+        """return dict with key=date and value = 1(WORKING), 0 (UNDER MAINTENANCE)"""
+        day = self.start_production
+
+        # generate initial (first) mtbf and mttr
+        next_failure = self.generate_next_failure_date(day)
+        next_failure_repaired = self.generate_next_date_failure_repaired(next_failure)
+        working = True
+
+        schedule = OrderedDefaultdict(lambda: True)  # default value - working (True)
+        while day <= self.end_production:
+            if day == next_failure:
+                working = False
+            elif day == next_failure_repaired:
+                working = True
+
+                # re-generate mtbf and mttr after failure repaired
+                next_failure = self.generate_next_failure_date(day)
+                next_failure_repaired = self.generate_next_date_failure_repaired(next_failure)
+
+            schedule[day] = working  # fill schedule dict values
+            day += timedelta(days=1)
+
+        return schedule
+
+
 if __name__ == '__main__':
-    p = PlantEquipment(1, 'NoCountry')
-    print p.expectedYearProduction()
+    from em import EnergyModule
+    from config_readers import MainConfig
+    country = 'SLOVENIA'
+    mainconfig = MainConfig(country)
+    energy_module = EnergyModule(mainconfig, country)
+    maintenance_schedule = MaintenanceSchedule(start_production=date(2014, 1, 1),
+                                             end_production=date(2016, 1, 1),
+                                             mtbf_size=2000, mtbf_shape=1.05,
+                                             mttr_size=120, mttr_shape=1.74)
+
+    p = PlantEquipment(1, country, maintenance_schedule, energy_module)
+    values = maintenance_schedule.generate_schedule()
+    for k, v in values.items():
+        print k, v
 

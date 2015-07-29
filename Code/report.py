@@ -695,13 +695,16 @@ class Report(BaseClassConfig):
 
 
 if __name__ == '__main__':
-    mainconfig = MainConfig('ITALY')
-    energy_module = EnergyModule(mainconfig)
-    technology_module = TechnologyModule(mainconfig, energy_module)
-    subsidy_module = SubsidyModule(mainconfig)
-    economic_module = EconomicModule(mainconfig, technology_module, subsidy_module)
+    from enm import EnvironmentalModule
+    country = 'SLOVENIA'
+    mainconfig = MainConfig(country)
+    em = EnergyModule(mainconfig, country)
+    technology_module = TechnologyModule(mainconfig, em, country)
+    subsidy_module = SubsidyModule(mainconfig, country)
+    enviroment_module = EnvironmentalModule(mainconfig, country, total_nominal_power=1)
+    ecm = EconomicModule(mainconfig, technology_module, subsidy_module, enviroment_module, country)
 
-    r = Report(mainconfig, economic_module)
+    r = Report(mainconfig, ecm)
     import time
     s = time.time()
     for i in range(1):
