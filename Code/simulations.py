@@ -190,6 +190,9 @@ class Simulation():
         line["electricity_prices"] = obj.electricity_prices.values()
         line["electricity_prices_y"] = obj.electricity_prices_y.values()
 
+        line["non_working_days"] = obj.non_working_days.values()
+        line["non_working_days_y"] = obj.non_working_days_y.values()
+
         line["pv_owners"] = obj.pv_owners.values()
         line["pv_project"] = obj.pv_project.values()
 

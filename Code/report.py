@@ -79,6 +79,9 @@ class Report(BaseClassConfig):
         self.electricity_prices = self.startProjectOrderedDict(name="",value="")  #yearly electricity prices from start project
         self.electricity_prices_y = self.startProjectOrderedDefaultdict(name="",value="")  #monthly electricity prices from start project
 
+        self.non_working_days = self.startProjectOrderedDict(name="",value="")  # non_working days monthly
+        self.non_working_days_y = self.startProjectOrderedDefaultdict(name="",value="")  # non_working days yearly
+
         ################### IS ########################################
         self.revenue = self.startProjectOrderedDict(name=PROJECT_START,value="")  #all revenue
         self.revenue_electricity = self.startProjectOrderedDict(name=PROJECT_START,value="")  #revenue -part electricity
@@ -183,6 +186,7 @@ class Report(BaseClassConfig):
         self.sun_insolation[M] = self.solar_insolations_monthly[M]
         self.electricity_production_per_kW[M] = self.electricity_production_per_kW_monthly[M]
         self.electricity_prices[M] = self.electricity_prices_monthly[M]
+        self.non_working_days[M] = self.non_working_days_monthly[M]
 
         self.depreciation[M] = self.economic_module.calcDepreciationMonthly(end_day)
         self.interest_paid[M] = self.economic_module.calculateDebtInterests(end_day)
@@ -274,6 +278,7 @@ class Report(BaseClassConfig):
             self.electricity_production_y[Y] += self.electricity_production[M]
             self.sun_insolation_y[Y] += self.sun_insolation[M]
             self.electricity_production_per_kW_y[Y] += self.electricity_production_per_kW[M]
+            self.non_working_days_y[Y] += self.non_working_days[M]
 
             ############### NOT USED
             self.inventory_y[Y] += self.inventory[M]
@@ -541,6 +546,18 @@ class Report(BaseClassConfig):
     def electricity_production_per_kW_monthly(self):
         """Return dict with average electricity production per kW MONTHLY -- FOR ALL PROJECT PERIOD."""
         return self.calcReportMonthlyValues3(self.energy_module.getAvgProductionDayPerKWLifetime())
+
+    @cached_property
+    def non_working_days_monthly(self):
+        ep = self.economic_module.electricity_production
+        last_day = self.economic_module.last_day_construction
+        non_working_days_project = OrderedDict()
+        for date, prod in ep.items():
+            if date > last_day and prod < 1e-9:
+                non_working_days_project[date] = 1
+            else:
+                non_working_days_project[date] = 0
+        return self.calcReportMonthlyValues3(non_working_days_project)
 
     def calcLtLoans(self, end_day):
         """Monthly calculation of  Long-Term Loans"""

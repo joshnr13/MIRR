@@ -101,6 +101,7 @@ ELPROD["Solar insolation"] = "sun_insolation"
 ELPROD["Production of electricity"] = "electricity_production"
 ELPROD["Production per kW"] = "electricity_production_per_kW"
 ELPROD["Electricity prices"] = "electricity_prices"
+ELPROD["Number of non working days"] = "non_working_days"
 
 
 SOURCE = OrderedDict()  #DATA FOR SECOND SHEET EXCEL
