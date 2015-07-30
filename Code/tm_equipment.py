@@ -462,8 +462,8 @@ class MaintenanceSchedule(object):
 
     def get_value(self, average):
         """return weibull distribution value, using supplied params rounded to WHOLE DAYS"""
-        lambd = 1.0 / average
-        return int(random.expovariate(lambd))  # round to whole days
+        lambd = 1.0 / average      #calculate lambda as inversion of mean time between events
+        return int(random.expovariate(lambd))  # rget value from an exponential distribution
 
     def generate_schedule(self):
         """return dict with key=date and value = 1(WORKING), 0 (UNDER MAINTENANCE)"""
@@ -489,21 +489,3 @@ class MaintenanceSchedule(object):
             day += timedelta(days=1)
 
         return schedule
-
-
-if __name__ == '__main__':
-    from em import EnergyModule
-    from config_readers import MainConfig
-    country = 'SLOVENIA'
-    mainconfig = MainConfig(country)
-    energy_module = EnergyModule(mainconfig, country)
-    maintenance_schedule = MaintenanceSchedule(start_production=date(2014, 1, 1),
-                                             end_production=date(2016, 1, 1),
-                                             mtbf=2000, mtbf_shape=1.05,
-                                             mttr=120, mttr_shape=1.74)
-
-    p = PlantEquipment(1, country, maintenance_schedule, energy_module)
-    values = maintenance_schedule.generate_schedule()
-    for k, v in values.items():
-        print k, v
-
