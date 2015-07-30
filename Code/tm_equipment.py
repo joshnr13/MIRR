@@ -434,21 +434,19 @@ class PlantEquipment():
 
 
 class MaintenanceSchedule(object):
-    def __init__(self, start_production, end_production, mtbf_size, mtbf_shape, mttr_size, mttr_shape):
+    def __init__(self, start_production, end_production, mtbf, mttr):
         self.start_production = start_production
         self.end_production = end_production
-        self.mtbf_size = mtbf_size
-        self.mtbf_shape = mtbf_shape
-        self.mttr_size = mttr_size
-        self.mttr_shape = mttr_shape
-
+        self.mtbf = mtbf
+        self.mttr = mttr
+    
     def generate_mtbf_days(self):
         """return MTBF - mean time between failures, days"""
-        return self.get_value(self.mtbf_size, self.mtbf_shape)
+        return self.get_value(self.mtbf)
 
     def generate_mttr_days(self):
         """return MTTR - mean time to repair, days"""
-        return self.get_value(self.mttr_size, self.mttr_shape)
+        return self.get_value(self.mttr)
 
     def generate_next_failure_date(self, start_date):
         """genereate and return date when we will have next falure"""
@@ -462,9 +460,10 @@ class MaintenanceSchedule(object):
         next_failure_repaired_date = next_failure_date + timedelta(days=mttr_days + 1)
         return next_failure_repaired_date
 
-    def get_value(self, average, shape):
+    def get_value(self, average):
         """return weibull distribution value, using supplied params rounded to WHOLE DAYS"""
-        return int(average * numpy.random.weibull(a=shape))  # round to whole days
+        lambd = 1.0 / average
+        return int(random.expovariate(lambd))  # round to whole days
 
     def generate_schedule(self):
         """return dict with key=date and value = 1(WORKING), 0 (UNDER MAINTENANCE)"""
@@ -500,8 +499,8 @@ if __name__ == '__main__':
     energy_module = EnergyModule(mainconfig, country)
     maintenance_schedule = MaintenanceSchedule(start_production=date(2014, 1, 1),
                                              end_production=date(2016, 1, 1),
-                                             mtbf_size=2000, mtbf_shape=1.05,
-                                             mttr_size=120, mttr_shape=1.74)
+                                             mtbf=2000, mtbf_shape=1.05,
+                                             mttr=120, mttr_shape=1.74)
 
     p = PlantEquipment(1, country, maintenance_schedule, energy_module)
     values = maintenance_schedule.generate_schedule()

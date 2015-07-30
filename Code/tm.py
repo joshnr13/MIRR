@@ -40,10 +40,8 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         """creates plant object"""
         maintenance_calculator = MaintenanceSchedule(start_production=self.first_day_production,
                                                  end_production=self.end_date_project,
-                                                 mtbf_size=self.inverter_mtbf_size,
-                                                 mtbf_shape=self.inverter_mtbf_shape,
-                                                 mttr_size=self.inverter_mttr_size,
-                                                 mttr_shape=self.inverter_mttr_shape)
+                                                 mtbf=self.inverter_mtbf,
+                                                 mttr=self.inverter_mttr)
         self.plant = PlantEquipment(self.network_available_probability, self.country,
                                     maintenance_calculator=maintenance_calculator,
                                     energy_module=self.energy_module)  #new class Plant

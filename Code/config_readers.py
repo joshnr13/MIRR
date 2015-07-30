@@ -177,11 +177,9 @@ class TechnologyModuleConfigReader():
         self.module_reliability = get_config_value(_config, 'SOLAR_MODULE.module_reliability', 'float_percent')
         self.transformer_reliability = get_config_value(_config, 'TRANSFORMER.transformer_reliability', 'float_percent')
 
-        self.inverter_mtbf_size = get_config_value(_config, 'INVERTER.MTBF_size', int)
-        self.inverter_mtbf_shape = get_config_value(_config, 'INVERTER.MTBF_shape', float)
-        self.inverter_mttr_size = get_config_value(_config, 'INVERTER.MTTR_size', int)
-        self.inverter_mttr_shape = get_config_value(_config, 'INVERTER.MTTR_shape', float)
-
+        self.inverter_mtbf = get_config_value(_config, 'INVERTER.MTBF', int)
+        self.inverter_mttr = get_config_value(_config, 'INVERTER.MTTR', int)
+        
         ####################### EFFICIENCY ####################
         self.module_power_efficiency = get_config_value(_config, 'SOLAR_MODULE.module_power_efficiency', 'float_percent')
         self.inverter_power_efficiency = get_config_value(_config, 'INVERTER.inverter_power_efficiency', 'float_percent')
