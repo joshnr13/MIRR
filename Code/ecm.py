@@ -70,25 +70,24 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         simulation_result = {"simulation_no": simulation_no, "data": days_dict, "stats": stats}
         return simulation_result
 
-    def calcJ(self):
+    def calcJump(self):
         """Calcultation of J (normaly distibuted Jump size) as random with mean=loc and std=scale
         loc means - mean, scale -std """
         return np.random.normal(loc=self.jump_size_average, scale=self.jump_size_std)
 
-    def calcPriceDeltaNoJump(self, prev_price, iteration_no, y):
+    def calcPriceDeltaNoJump(self, prev_price, iteration_no, theta):
         """Calculates delta price (dp) based on @prev_price without a price jump"""
-        delta_Z = np.random.normal(loc=0, scale=1)  #random value distribution
+        delta_Z = np.random.normal(loc=0, scale=0.9)  #random value distribution
         
-        delta_price = self.k * (self.theta * (1 + y * iteration_no / 365) - prev_price) * self.dt + \
-                      self.sigma * delta_Z
+        delta_price = self.k * (theta - prev_price) + delta_Z
         return  delta_price
 
-    def calcPriceDeltaWithJump(self, prev_price, iteration_no, y):
+    def calcPriceDeltaWithJump(self, prev_price, iteration_no, theta):
         """Calculated delta price (dp) based on @prev_price with a price jump"""
         
-        J = self.calcJ() #calculate jump
+        J = self.calcJump() #calculate jump
         
-        delta_price = self.calcPriceDeltaNoJump(prev_price, iteration_no, y)  + J   #add jump to delta price
+        delta_price = self.calcPriceDeltaNoJump(prev_price, iteration_no, theta)  + J  #add jump to delta price
         return  delta_price
 
     def calcPriceWholePeriod(self, start_price):
@@ -96,14 +95,18 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         result = []
         date_next_jump = int(random.expovariate(self.Lambda)) #calculate the first date of price jump
         y = self.makeInterannualVariabilityY()
+        theta = self.theta
+        
         prev_price = start_price
         
         for i, date in enumerate(self.period):
             if i == date_next_jump:
-                price = prev_price + self.calcPriceDeltaWithJump(prev_price, i+1, y)
+                price = prev_price + self.calcPriceDeltaWithJump(prev_price, i+1, theta)
                 date_next_jump += int(random.expovariate(self.Lambda))+1 # ad one if interval is 0
+                theta = theta * (1 + y/365)   #increase reverting mean by an averge daily increment
             else:
-                price = prev_price + self.calcPriceDeltaNoJump(prev_price, i+1, y)
+                price = prev_price + self.calcPriceDeltaNoJump(prev_price, i+1, theta)
+                theta = theta * (1 + y/365)
 
             prev_price = price
             result.append(price)
