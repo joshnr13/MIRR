@@ -5,6 +5,11 @@ from collections import defaultdict
 from annex import addYearlyPrefix, convertDictDates
 from constants import CORRELLATION_FIELDS
 
+try:
+    connection = pymongo.MongoClient()
+except pymongo.errors.ConnectionFailure as exc:
+    raise ValueError("Please run MONGO SERVER: %s" % exc)
+
 
 class Database():
     def __init__(self):
@@ -19,13 +24,7 @@ class Database():
 
     def getConnection(self):
         """get connection to db"""
-        try:
-            connection = pymongo.Connection()  #try to connect
-        except pymongo.errors.ConnectionFailure as exc:
-            raise ValueError("Please run MONGO SERVER: %s" % exc)
-
-        db = connection['MirrDatabase']
-        return db
+        return connection['MirrDatabase']
 
     def addIndexes(self):
         """add indexed to database"""
