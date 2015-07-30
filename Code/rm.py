@@ -3,7 +3,7 @@ import csv
 import datetime
 from database import Database
 from numpy import std, mean, median, absolute, diff, var
-from scipy.stats import skew, kurtosis
+from scipy.stats import skew, kurtosis, normaltest
 from collections import OrderedDict
 from config_readers import RiskModuleConfigReader
 import scipy.stats as stat
@@ -81,21 +81,36 @@ def JarqueBeraTest(values=(), significance_levels=(0.05, 0.01, 0.001), JB_stat_v
             result[str_level] = True
     return result
 
+def normalityTest(values_orig, significance_levels=(0.05, 0.01, 0.001)):
+    values = values_orig[:]
+    values[0] += 1e-5
+    stat_val, p_val = normaltest(values)
+    result = OrderedDict()  # init result container
+    for significance in significance_levels:
+        str_level = "{0:.3f}".format(1 - significance).replace(".", ",") # format with comma for excel
+        if p_val < significance:
+            result[str_level] = False
+        else:
+            result[str_level] = True
+    print result
+    return result
+
 def printSimulationStats(irr_values_lst):
     """Prints statistics of irr values"""
     for dic in irr_values_lst:
-        print "Statistics for %s" % dic.get('field', None)
-        print "\tSt.deviation value %s" % dic.get('std', None)
-        print "\tVariance value %s" % dic.get('variance', None)
-        print "\tMin value %s" % dic.get('min', None)
-        print "\tMax value %s" % dic.get('max', None)
-        print "\tMedian value %s" % dic.get('median', None)
-        print "\tMean value %s" % dic.get('mean', None)
-        print "\tSkewness value %s" % dic.get('skew', None)
-        print "\tKurtosis value %s" % dic.get('kurtosis', None)
-        print "\tRequired rate of return value %s" % dic.get('required_rate_of_return', None)
-        print "\tJB test values %s" % dic.get('JBTest', None)
-        print "\tJB value %s" % dic.get('JBTest_value', None)
+        print "Statistics for %s" % dic.get('field')
+        print "\tSt.deviation value %s" % dic.get('std')
+        print "\tVariance value %s" % dic.get('variance')
+        print "\tMin value %s" % dic.get('min')
+        print "\tMax value %s" % dic.get('max')
+        print "\tMedian value %s" % dic.get('median')
+        print "\tMean value %s" % dic.get('mean')
+        print "\tSkewness value %s" % dic.get('skew')
+        print "\tKurtosis value %s" % dic.get('kurtosis')
+        print "\tRequired rate of return value %s" % dic.get('required_rate_of_return')
+        print "\tJB test values %s" % sorted(dic.get('JBTest').items())
+        print "\tJB value %s" % dic.get('JBTest_value')
+        print "\tNormaltest %s" % sorted(dic.get('normaltest_value').items())
 
 def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearly, country):
     """Saves IRR and TEP values to excel file
@@ -135,10 +150,29 @@ def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearl
     stat_info5 = [field5]
     stat_info6 = [field6]
 
-    jb_fileds = ['JB_TEST' ] + irr_values_lst[0]['JBTest'].keys() + ["JB_VALUE"]  #prepare row with first column JB_TEST and second - values
-    jb_values1 = [field1] + irr_values_lst[0]['JBTest'].values() +  [irr_values_lst[0]['JBTest_value']]
-    jb_values2 = [field2] + irr_values_lst[1]['JBTest'].values() +  [irr_values_lst[1]['JBTest_value']]
-    jb_values3 = [field3] + irr_values_lst[2]['JBTest'].values() +  [irr_values_lst[2]['JBTest_value']]
+    sorted_jb_keys = sorted(irr_values_lst[0]['JBTest'].keys())
+    jb_fileds = ['JB_TEST' ] + sorted_jb_keys + ["JB_VALUE"]  #prepare row with first column JB_TEST and second - values
+    jb_values1 = [field1]
+    jb_values2 = [field2]
+    jb_values3 = [field3]
+    for k in sorted_jb_keys:
+        jb_values1.append(irr_values_lst[0]['JBTest'][k])
+        jb_values2.append(irr_values_lst[1]['JBTest'][k])
+        jb_values3.append(irr_values_lst[2]['JBTest'][k])
+
+    jb_values1.append(irr_values_lst[0]['JBTest_value'])
+    jb_values2.append(irr_values_lst[1]['JBTest_value'])
+    jb_values3.append(irr_values_lst[2]['JBTest_value'])
+
+    sorted_normal_keys = sorted(irr_values_lst[0]['normaltest_value'].keys())
+    normal_fields = ['Normal test'] + sorted_normal_keys
+    normal_values1 = [field1]
+    normal_values2 = [field2]
+    normal_values3 = [field3]
+    for k in sorted_normal_keys:
+        normal_values1.append(irr_values_lst[0]['normaltest_value'][k])
+        normal_values2.append(irr_values_lst[1]['normaltest_value'][k])
+        normal_values3.append(irr_values_lst[2]['normaltest_value'][k])
 
     for key in stat_params:
         stat_info1.append(irr_values_lst[0].get(key, ''))
@@ -176,6 +210,12 @@ def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearl
         w.writerow(jb_values1)
         w.writerow(jb_values2)
         w.writerow(jb_values3)
+
+        w.writerow(blank_row)
+        w.writerow(normal_fields)
+        w.writerow(normal_values1)
+        w.writerow(normal_values2)
+        w.writerow(normal_values3)
 
 
     xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
@@ -355,6 +395,7 @@ def calcSimulationStatistics(field_names, irr_values, riskFreeRate, benchmarkSha
         result['digit_values'] = digit_irr  #filtered irr values (only digit values)
         result['JBTest_value'] = calcJBStat(digit_irr)  # JB statistics value
         result['JBTest'] = JarqueBeraTest(JB_stat_value=result['JBTest_value'])  # JB test result for different significance levels
+        result['normaltest_value'] = normalityTest(digit_irr)
         result['required_rate_of_return'] = calculateRequiredRateOfReturn(digit_irr, riskFreeRate, benchmarkSharpeRatio)  #rrr
         result.update(calcStatistics(digit_irr))  #adding all statistics (stdevm min, max etc)
 
@@ -391,7 +432,14 @@ if __name__ == '__main__':
     import numpy
     print JarqueBeraTest(numpy.random.normal(5, size=1000)) # must be normal
     print JarqueBeraTest(numpy.random.normal(5, size=100)) # should be normal
-    print JarqueBeraTest(numpy.random.normal(5, size=10)) # probably normal
-    print JarqueBeraTest(range(10)) # could be normal
+    print JarqueBeraTest(numpy.random.normal(5, size=20)) # probably normal
+    print JarqueBeraTest(range(20)) # could be normal
     print JarqueBeraTest(range(100)) # maybe not normal
     print JarqueBeraTest(range(1000)) # certanly not normal
+
+    print normalityTest(numpy.random.normal(5, size=1000)) # must be normal
+    print normalityTest(numpy.random.normal(5, size=100)) # should be normal
+    print normalityTest(numpy.random.normal(5, size=20)) # probably normal
+    print normalityTest(range(30)) # could be normal
+    print normalityTest(range(100)) # maybe not normal
+    print normalityTest(range(1000)) # certanly not normal
