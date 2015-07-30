@@ -464,7 +464,7 @@ class MaintenanceSchedule(object):
 
     def get_value(self, average, shape):
         """return weibull distribution value, using supplied params rounded to WHOLE DAYS"""
-        return int(average * numpy.random.weibull(a=shape)) // 24  # round to whole days
+        return int(average * numpy.random.weibull(a=shape))  # round to whole days
 
     def generate_schedule(self):
         """return dict with key=date and value = 1(WORKING), 0 (UNDER MAINTENANCE)"""
