@@ -54,7 +54,7 @@ def jbCritValue(significance):
 
 def calcJBStat(values):
     """Return value of JB statistics to test the distribution of IRR from a
-       simulation for normality. 
+       simulation for normality.
        Null hypothesis: @values are distibuted normally.
        Alternative hypothesis: @values are not distributed normally.
        JB = n / 6 + (S^2 + K^2 / 4)
@@ -92,7 +92,6 @@ def normalityTest(values_orig, significance_levels=(0.05, 0.01, 0.001)):
             result[str_level] = False
         else:
             result[str_level] = True
-    print result
     return result
 
 def printSimulationStats(irr_values_lst):
