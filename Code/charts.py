@@ -81,7 +81,7 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
                         y.append(0)
 
                 axeslist.ravel()[ind].plot(bins, y, 'r--', linewidth=2)
-                axeslist.ravel()[ind].set_xlim(mu-0.25, mu+0.25)
+                axeslist.ravel()[ind].set_xlim(mu-0.15, mu+0.15)
             else:
                 limx, limy = getLimitValues(range(len(values)), values)
                 axeslist.ravel()[ind].plot(values, 'o')
