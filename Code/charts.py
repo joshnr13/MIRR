@@ -70,7 +70,7 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
                 mu = numpy.mean(values)
                 sigma = numpy.std(values)
 
-                weights = numpy.ones_like(values) / len(values)
+                weights = numpy.ones_like(values) / float(len(values))
                 counts, bins, patches = axeslist.ravel()[ind].hist(values, bins=numpy.linspace(mu-0.25, mu+0.25, 51), weights=weights)
 
                 y = []
@@ -113,7 +113,7 @@ def plotTotalEnergyProducedChart(electricity_total_values, simulation_no, yearly
                 if set(values) == set([0]): # all counts are the same
                     axeslist.ravel()[ind].hist([0], bins=range(20))
                 else:
-                    weights = numpy.ones_like(values) / len(values)
+                    weights = numpy.ones_like(values) / float(len(values))
                     counts, bins, patches = axeslist.ravel()[ind].hist(values, bins=BINS, weights=weights)
             else:
                 limx, limy = getLimitValues(range(len(values)), values)
