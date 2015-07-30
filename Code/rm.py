@@ -109,118 +109,83 @@ def printSimulationStats(irr_values_lst):
         print "\tRequired rate of return value %s" % dic.get('required_rate_of_return')
         print "\tJB test values %s" % sorted(dic.get('JBTest').items())
         print "\tJB value %s" % dic.get('JBTest_value')
-        print "\tNormaltest %s" % sorted(dic.get('normaltest_value').items())
+        print "\tNormaltest %s" % sorted(dic.get('normaltest').items())
 
 def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearly, country):
     """Saves IRR and TEP values to excel file
     @irr_values_lst - list  with 3 complicated dicts inside"""
-
     report_name = "{country}_irr_tep_values_s{simulation_no}.csv".format(**locals())
     report_full_name = os.path.join(report_directory, report_name)
-    output_filename = uniquifyFilename(report_full_name)  #real filename of report
+    output_filename = uniquifyFilename(report_full_name)  # real filename of report
 
-    blank_row = [""]
-    # IRR fields
-    field1 = irr_values_lst[0]['field']  #field1 and field2 is IRR project or owners
-    field2 = irr_values_lst[1]['field']
-    field3 = irr_values_lst[2]['field']  #field3 is IRR project before tax
-    # TEP fields
-    field4 = tep_values_lst[0]['field']  #field4 is total energy produced
-    field5 = tep_values_lst[1]['field']  #field5 is system not working
-    field6 = tep_values_lst[2]['field']  #field6 is electricity production in second year
+    num_irr_fields, num_tep_fields = len(irr_values_lst), len(tep_values_lst)
 
-    irr_values1 = [field1] + irr_values_lst[0][field1]  #prepare row with first value field name, others - values
-    irr_values2 = [field2] + irr_values_lst[1][field2]  #prepare row with first value field name, others - values
-    irr_values3 = [field3] + irr_values_lst[2][field3]
+    irr_fields = [irr_values_lst[i]['field'] for i in range(num_irr_fields)]
+    tep_fields = [tep_values_lst[i]['field'] for i in range(num_tep_fields)]
 
-    tep_values1 = [field4] + tep_values_lst[0][field4]
-    tep_values2 = [field5] + tep_values_lst[1][field5]
-    tep_values3 = [field6] + tep_values_lst[2][field6]
+    irr_values = []  # rows with IRR values, the first column of each row is field name
+    tep_values = []  # rows with TEP values, the first column of each row is field name
+    for i in range(num_irr_fields):
+        irr_values.append([irr_fields[i]] + irr_values_lst[i][irr_fields[i]])
+    for i in range(num_tep_fields):
+        tep_values.append([tep_fields[i]] + tep_values_lst[i][tep_fields[i]])
 
-    iterations = ["Iteration number"] + list(range(1, len(irr_values1)))  #prepare row with first value Iterations number, others - iterations 1,2,3...
-    simulation_info = ["Simulation number"] + [simulation_no]  #prepare row with field name and value
-
-    stat_params = ['min', 'max', 'median', 'mean', 'variance', 'std','skew', 'kurtosis', 'required_rate_of_return']
+    stat_params = ['min', 'max', 'median', 'mean', 'variance', 'std', 'skew', 'kurtosis', 'required_rate_of_return']
     stat_fields = ['field'] + stat_params
-    stat_info1 = [field1]
-    stat_info2 = [field2]
-    stat_info3 = [field3]
-    stat_info4 = [field4]
-    stat_info5 = [field5]
-    stat_info6 = [field6]
+    stat_info_irr = []  # rows with IRR statistics
+    stat_info_tep = []  # rows with TEP statistics
+    for i in range(num_irr_fields):
+        stat_info_irr.append([irr_fields[i]] + [irr_values_lst[i].get(key, '') for key in stat_params])
+    for i in range(num_tep_fields):
+        stat_info_tep.append([tep_fields[i]] + [tep_values_lst[i].get(key, '') for key in stat_params])
 
     sorted_jb_keys = sorted(irr_values_lst[0]['JBTest'].keys())
-    jb_fileds = ['JB_TEST' ] + sorted_jb_keys + ["JB_VALUE"]  #prepare row with first column JB_TEST and second - values
-    jb_values1 = [field1]
-    jb_values2 = [field2]
-    jb_values3 = [field3]
-    for k in sorted_jb_keys:
-        jb_values1.append(irr_values_lst[0]['JBTest'][k])
-        jb_values2.append(irr_values_lst[1]['JBTest'][k])
-        jb_values3.append(irr_values_lst[2]['JBTest'][k])
-
-    jb_values1.append(irr_values_lst[0]['JBTest_value'])
-    jb_values2.append(irr_values_lst[1]['JBTest_value'])
-    jb_values3.append(irr_values_lst[2]['JBTest_value'])
-
-    sorted_normal_keys = sorted(irr_values_lst[0]['normaltest_value'].keys())
+    sorted_normal_keys = sorted(irr_values_lst[0]['normaltest'].keys())
+    jb_fields = ['JB_TEST'] + sorted_jb_keys + ["JB_VALUE"]  # prepare row with first column JB_TEST and second - values
     normal_fields = ['Normal test'] + sorted_normal_keys
-    normal_values1 = [field1]
-    normal_values2 = [field2]
-    normal_values3 = [field3]
-    for k in sorted_normal_keys:
-        normal_values1.append(irr_values_lst[0]['normaltest_value'][k])
-        normal_values2.append(irr_values_lst[1]['normaltest_value'][k])
-        normal_values3.append(irr_values_lst[2]['normaltest_value'][k])
+    jb_values = []  # rows with JB values for IRR
+    normal_values = []  # rows with normal test values for IRR
+    for i in range(num_irr_fields):
+        jb_values.append([irr_fields[i]] + [irr_values_lst[i]['JBTest'][k] for k in sorted_jb_keys] + [irr_values_lst[i]['JBTest_value']])
+        normal_values.append([irr_fields[i]] + [irr_values_lst[i]['normaltest'][k] for k in sorted_jb_keys])
 
-    for key in stat_params:
-        stat_info1.append(irr_values_lst[0].get(key, ''))
-        stat_info2.append(irr_values_lst[1].get(key, ''))
-        stat_info3.append(irr_values_lst[2].get(key, ''))
-        stat_info4.append(tep_values_lst[0].get(key, ''))
-        stat_info5.append(tep_values_lst[1].get(key, ''))
-        stat_info6.append(tep_values_lst[2].get(key, ''))
+    iterations = ["Iteration number"] + list(range(1, len(irr_values[0])))  # prepare row with first value Iterations number, others - iterations 1,2,3...
+    simulation_info = ["Simulation number"] + [simulation_no]  # prepare row with field name and value
 
-    with open(output_filename, 'ab') as f:  #starting write to FILE
-
+    blank_row = [""]
+    with open(output_filename, 'ab') as f:  # starting write to FILE
         w = csv.writer(f, delimiter=';')
-        w.writerow(simulation_info)  #writing simulation info to csv
-        w.writerow(blank_row)  #write blank row
+
+        w.writerow(simulation_info)  # writing simulation info to csv
+        w.writerow(blank_row)  # write blank row
 
         w.writerow(iterations)
-        w.writerow(irr_values1)
-        w.writerow(irr_values2)
-        w.writerow(irr_values3)
-        w.writerow(tep_values1)
-        w.writerow(tep_values2)
-        w.writerow(tep_values3)
+        for row in irr_values:
+            w.writerow(row)
+        for row in tep_values:
+            w.writerow(row)
 
         w.writerow(blank_row)
         w.writerow(stat_fields)
-        w.writerow(stat_info1)
-        w.writerow(stat_info2)
-        w.writerow(stat_info3)
-        w.writerow(stat_info4)
-        w.writerow(stat_info5)
-        w.writerow(stat_info6)
+        for row in stat_info_irr:
+            w.writerow(row)
+        for row in stat_info_tep:
+            w.writerow(row)
 
         w.writerow(blank_row)
-        w.writerow(jb_fileds)
-        w.writerow(jb_values1)
-        w.writerow(jb_values2)
-        w.writerow(jb_values3)
+        w.writerow(jb_fields)
+        for row in jb_values:
+            w.writerow(row)
 
         w.writerow(blank_row)
         w.writerow(normal_fields)
-        w.writerow(normal_values1)
-        w.writerow(normal_values2)
-        w.writerow(normal_values3)
-
+        for row in normal_values:
+            w.writerow(row)
 
     xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
-    xls_output_filename = uniquifyFilename(xls_output_filename)  #preparing XLS filename before converting from CSV
-    convert2excel(source=output_filename, output=xls_output_filename)  #coverting from CSV to XLS, using prepared report name
-    print "CSV Report outputed to file %s" % (xls_output_filename)  #printing to screen path to generated report
+    xls_output_filename = uniquifyFilename(xls_output_filename)  # preparing XLS filename before converting from CSV
+    convert2excel(source=output_filename, output=xls_output_filename)  # coverting from CSV to XLS, using prepared report name
+    print "CSV Report outputed to file %s" % xls_output_filename  # printing to screen path to generated report
 
 def plotSaveStochasticValuesSimulation(simulation_no, yearly=True):
     """plots simulation stochastic values and saves them in xls"""
@@ -394,7 +359,7 @@ def calcSimulationStatistics(field_names, irr_values, riskFreeRate, benchmarkSha
         result['digit_values'] = digit_irr  #filtered irr values (only digit values)
         result['JBTest_value'] = calcJBStat(digit_irr)  # JB statistics value
         result['JBTest'] = JarqueBeraTest(JB_stat_value=result['JBTest_value'])  # JB test result for different significance levels
-        result['normaltest_value'] = normalityTest(digit_irr)
+        result['normaltest'] = normalityTest(digit_irr)
         result['required_rate_of_return'] = calculateRequiredRateOfReturn(digit_irr, riskFreeRate, benchmarkSharpeRatio)  #rrr
         result.update(calcStatistics(digit_irr))  #adding all statistics (stdevm min, max etc)
 
