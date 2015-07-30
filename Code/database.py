@@ -21,8 +21,8 @@ class Database():
         """get connection to db"""
         try:
             connection = pymongo.Connection()  #try to connect
-        except pymongo.errors.ConnectionFailure:
-            raise ValueError("Please run MONGO SERVER")
+        except pymongo.errors.ConnectionFailure as exc:
+            raise ValueError("Please run MONGO SERVER: %s" % exc)
 
         db = connection['MirrDatabase']
         return db
