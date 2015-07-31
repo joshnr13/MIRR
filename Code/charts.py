@@ -70,7 +70,7 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
                 mu = numpy.mean(values)
                 sigma = numpy.std(values)
 
-                mu_offset = 0.25
+                mu_offset = 0.10
                 num_of_bins = 150
                 weights = numpy.ones_like(values) / float(len(values))
                 counts, bins, patches = axeslist.ravel()[ind].hist(values, bins=numpy.linspace(mu-mu_offset, mu+mu_offset, num_of_bins+1), weights=weights)
@@ -83,7 +83,7 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
                         y.append(0)
 
                 axeslist.ravel()[ind].plot(bins, y, 'r--', linewidth=2)
-                axeslist.ravel()[ind].set_xlim(mu-0.15, mu+0.15)
+                axeslist.ravel()[ind].set_xlim(mu-mu_offset, mu+mu_offset)
             else:
                 limx, limy = getLimitValues(range(len(values)), values)
                 axeslist.ravel()[ind].plot(values, 'o')
