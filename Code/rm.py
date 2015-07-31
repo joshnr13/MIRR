@@ -8,7 +8,7 @@ from collections import OrderedDict
 from config_readers import RiskModuleConfigReader
 import scipy.stats as stat
 from constants import report_directory, CORRELLATION_FIELDS
-from annex import convert2excel, uniquifyFilename, getOnlyDigitsList, transponseCsv, addHeaderCsv
+from annex import convert2excel, uniquifyFilename, getOnlyDigitsList, transponseCsv, addHeaderCsv, dot2comma
 from charts import plotIRRChart, plotHistogramsChart, plotElectricityChart, plotWeatherChart, \
     plotElectricityHistogram, plotTotalEnergyProducedChart
 
@@ -97,19 +97,19 @@ def normalityTest(values_orig, significance_levels=(0.05, 0.01, 0.001)):
 def printSimulationStats(irr_values_lst):
     """Prints statistics of irr values"""
     for dic in irr_values_lst:
-        print "Statistics for %s" % dic.get('field')
-        print "\tSt.deviation value %s" % dic.get('std')
-        print "\tVariance value %s" % dic.get('variance')
-        print "\tMin value %s" % dic.get('min')
-        print "\tMax value %s" % dic.get('max')
-        print "\tMedian value %s" % dic.get('median')
-        print "\tMean value %s" % dic.get('mean')
-        print "\tSkewness value %s" % dic.get('skew')
-        print "\tKurtosis value %s" % dic.get('kurtosis')
-        print "\tRequired rate of return value %s" % dic.get('required_rate_of_return')
-        print "\tJB test values %s" % sorted(dic.get('JBTest').items())
-        print "\tJB value %s" % dic.get('JBTest_value')
-        print "\tNormaltest %s" % sorted(dic.get('normaltest').items())
+        print "Statistics for %s:"                   % dot2comma(dic.get('field'))
+        print "\tSt.deviation value: %s"             % dot2comma(dic.get('std'))
+        print "\tVariance value: %s"                 % dot2comma(dic.get('variance'))
+        print "\tMin value: %s"                      % dot2comma(dic.get('min'))
+        print "\tMax value: %s"                      % dot2comma(dic.get('max'))
+        print "\tMedian value: %s"                   % dot2comma(dic.get('median'))
+        print "\tMean value: %s"                     % dot2comma(dic.get('mean'))
+        print "\tSkewness value: %s"                 % dot2comma(dic.get('skew'))
+        print "\tKurtosis value: %s"                 % dot2comma(dic.get('kurtosis'))
+        print "\tRequired rate of return value: %s"  % dot2comma(dic.get('required_rate_of_return'))
+        print "\tJB test: %s"                        % sorted(dic.get('JBTest').items())
+        print "\tJB value: %s"                       % dot2comma(dic.get('JBTest_value'))
+        print "\tNormal test: %s"                    % sorted(dic.get('normaltest').items())
 
 def saveSimulationValuesXls(irr_values_lst, tep_values_lst, simulation_no, yearly, country):
     """Saves IRR and TEP values to excel file

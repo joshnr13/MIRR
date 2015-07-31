@@ -12,6 +12,7 @@ import types
 import numpy as np; np.seterr(all='raise')
 import sys
 import time
+import re
 
 from functools import partial
 from calendar import monthrange
@@ -506,6 +507,9 @@ def addYearlyPrefix(field, yearly):
 
     return field
 
+def dot2comma(obj):
+    """Converts and float in string using a decimal dot to decimal comma."""
+    return re.sub(r"(\d+)\.(\d+)", r"\1,\2", str(obj))
 
 class PMT():
     def __init__(self, summa, yrate, yperiods, date):
@@ -730,4 +734,3 @@ if __name__ == '__main__':
     start_date = dt.date(2000, 1, 1)
     end_date = dt.date(2001, 12, 31)
     print getResolutionStartEnd(start_date, end_date, 10)
-
