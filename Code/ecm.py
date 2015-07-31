@@ -100,13 +100,12 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         prev_price = start_price
 
         for i, date in enumerate(self.period):
-            if date.weekday() in [5, 6]: continue # if the date is a saturday or a sunday, do nothing
-
-            if i == date_next_jump:
-                price = prev_price + self.calcPriceDeltaWithJump(prev_price, i+1, theta)
-                date_next_jump += int(random.expovariate(self.Lambda)) + 1 # add one if interval is 0
-            else:
-                price = prev_price + self.calcPriceDeltaNoJump(prev_price, i+1, theta)
+            if date.weekday() <5 :
+                if i == date_next_jump:
+                    price = prev_price + self.calcPriceDeltaWithJump(prev_price, i+1, theta)
+                    date_next_jump += int(random.expovariate(self.Lambda)) + 1 # add one if interval is 0
+                else:
+                    price = prev_price + self.calcPriceDeltaNoJump(prev_price, i+1, theta)
 
             theta = theta * (1 + y/365)
             prev_price = price
