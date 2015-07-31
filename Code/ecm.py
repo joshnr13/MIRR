@@ -100,11 +100,9 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         prev_price = start_price
 
         for i, date in enumerate(self.period):
-            if date.weekday() in [5, 6]: # if the date is a saturday or a sunday
-                price = prev_price       # the price doesn't change
-                if i == date_next_jump:  # if the date is also the date of next jump, we move the date of next jump
-                    date_next_jump += int(random.expovariate(self.Lambda)) + 1
-            elif i == date_next_jump:
+            if date.weekday() in [5, 6]: continue # if the date is a saturday or a sunday, do nothing
+
+            if i == date_next_jump:
                 price = prev_price + self.calcPriceDeltaWithJump(prev_price, i+1, theta)
                 date_next_jump += int(random.expovariate(self.Lambda)) + 1 # add one if interval is 0
             else:
@@ -115,10 +113,11 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
             result.append(price)
             if isLastDayYear(date):  # recalculate y each new year
                 y = self.makeInterannualVariabilityY()
+
         return result
 
     def makeInterannualVariabilityY(self):
-        """interannual variability of y"""
+        """Interannual variability of y"""
         return self.y * np.random.normal(self.y_annual_mean, self.y_annual_std)
 
 
