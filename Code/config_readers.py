@@ -124,7 +124,7 @@ class MainConfig():
         if TESTMODE:
             return 1
         else:
-            return random.randint(1, 100)
+            return random.randint(1, 500)
 
 
 class SubsidyModuleConfigReader():
