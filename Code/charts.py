@@ -70,13 +70,15 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
                 mu = numpy.mean(values)
                 sigma = numpy.std(values)
 
+                mu_offset = 0.25
+                num_of_bins = 150
                 weights = numpy.ones_like(values) / float(len(values))
-                counts, bins, patches = axeslist.ravel()[ind].hist(values, bins=numpy.linspace(mu-0.25, mu+0.25, 51), weights=weights)
+                counts, bins, patches = axeslist.ravel()[ind].hist(values, bins=numpy.linspace(mu-mu_offset, mu+mu_offset, num_of_bins+1), weights=weights)
 
                 y = []
                 for x in bins:
                     try:
-                        y.append(pylab.normpdf(x, mu, sigma) / 100)
+                        y.append(pylab.normpdf(x, mu, sigma) * 2 * mu_offset / num_of_bins)
                     except FloatingPointError: # underflow encountered
                         y.append(0)
 
