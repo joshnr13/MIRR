@@ -78,15 +78,15 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     def calcPriceDeltaNoJump(self, prev_price, iteration_no, theta):
         """Calculates delta price (dp) based on @prev_price without a price jump"""
         delta_Z = np.random.normal(loc=0, scale=0.9)  #random value distribution
-        
+
         delta_price = self.k * (theta - prev_price) + delta_Z
         return  delta_price
 
     def calcPriceDeltaWithJump(self, prev_price, iteration_no, theta):
         """Calculated delta price (dp) based on @prev_price with a price jump"""
-        
+
         J = self.calcJump() #calculate jump
-        
+
         delta_price = self.calcPriceDeltaNoJump(prev_price, iteration_no, theta)  + J  #add jump to delta price
         return  delta_price
 
@@ -96,18 +96,21 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         date_next_jump = int(random.expovariate(self.Lambda)) #calculate the first date of price jump
         y = self.makeInterannualVariabilityY()
         theta = self.theta
-        
+
         prev_price = start_price
-        
+
         for i, date in enumerate(self.period):
-            if i == date_next_jump:
+            if date.weekday() in [5, 6]: # if the date is a saturday or a sunday
+                price = prev_price       # the price doesn't change
+                if i == date_next_jump:  # if the date is also the date of next jump, we move the date of next jump
+                    date_next_jump += int(random.expovariate(self.Lambda)) + 1
+            elif i == date_next_jump:
                 price = prev_price + self.calcPriceDeltaWithJump(prev_price, i+1, theta)
-                date_next_jump += int(random.expovariate(self.Lambda))+1 # ad one if interval is 0
-                theta = theta * (1 + y/365)   #increase reverting mean by an averge daily increment
+                date_next_jump += int(random.expovariate(self.Lambda)) + 1 # add one if interval is 0
             else:
                 price = prev_price + self.calcPriceDeltaNoJump(prev_price, i+1, theta)
-                theta = theta * (1 + y/365)
 
+            theta = theta * (1 + y/365)
             prev_price = price
             result.append(price)
             if isLastDayYear(date):  # recalculate y each new year
