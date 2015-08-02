@@ -84,7 +84,12 @@ def JarqueBeraTest(values=(), significance_levels=(0.05, 0.01, 0.001), JB_stat_v
 def normalityTest(values_orig, significance_levels=(0.05, 0.01, 0.001)):
     values = values_orig[:]
     values[0] += 1e-5
-    stat_val, p_val = normaltest(values)
+
+    if len(values) < 3:
+        stat_val, p_val = -1, 100
+    else:
+        stat_val, p_val = normaltest(values)
+
     result = OrderedDict()  # init result container
     for significance in significance_levels:
         str_level = "{0:.3f}".format(1 - significance).replace(".", ",") # format with comma for excel
