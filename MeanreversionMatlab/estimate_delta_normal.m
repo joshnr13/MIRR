@@ -17,9 +17,28 @@ ld = log(ld);
 mu = mean(ld)
 sigma = std(ld)
 
+disp('------------------')
+
+disp('Log-cene: ')
+lc = log(S);
+mu = mean(lc)
+sigma = std(lc)
+
+disp('------------------')
+
+disp('Log-cene-razlike: ')
+ldeltas = lc(2:end) - lc(1:end-1);
+
+mu = mean(ldeltas)
+sigma = std(ldeltas)
+
 hist(deltas, 100)
 pause
 hist(ld, 100)
+pause
+hist(lc, 100)
+pause
+hist(ldeltas, 100)
 pause
 
 % vim: set ft=matlab:
