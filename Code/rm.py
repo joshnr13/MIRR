@@ -297,6 +297,19 @@ def exportElectricityPrices(country, simulation_no=None):
 def plotGeneratedElectricity(what, simulation_no, country):
     """plots graph of generated Electricity Prices from user defined simulation_no"""
     results = getElectricityDataFromDb(simulation_no, country)  #loading data from db
+    if isinstance(simulation_no, int):
+        all_stats = [i['stats'] for i in Database().getElecticityStats(country)]
+        st = all_stats[simulation_no]
+        print 'Statistics:'
+        print "\tSt.deviation value: %s" % dot2comma(st.get('std'))
+        print "\tVariance value: %s"     % dot2comma(st.get('variance'))
+        print "\tMin value: %s"          % dot2comma(st.get('min'))
+        print "\tMax value: %s"          % dot2comma(st.get('max'))
+        print "\tMedian value: %s"       % dot2comma(st.get('median'))
+        print "\tMean value: %s"         % dot2comma(st.get('mean'))
+        print "\tSkewness value: %s"     % dot2comma(st.get('skew'))
+        print "\tKurtosis value: %s"     % dot2comma(st.get('kurtosis'))
+
     plotElectricityChart(results, what=what, simulation_no=simulation_no, country=country)  #plotting chart based on DB data
     if isinstance(simulation_no, int):  # plotting diagrams only for single simulation
         prices = results.values()
