@@ -89,7 +89,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
         for i, date in enumerate(self.period):
             if date.weekday() < 5:
-                price_log = prev_price_log + self.calcPriceLogDeltaNoJump(prev_price_log, i+1, log(theta))
+                price_log = prev_price_log + self.calcPriceLogDeltaNoJump(prev_price_log, log(theta))
 
             theta = theta * (1 + y/365)
             prev_price_log = price_log
