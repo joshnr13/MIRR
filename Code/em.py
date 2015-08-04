@@ -68,6 +68,7 @@ class WeatherSimulation(EnergyModuleConfigReader):
         self.period = period
         self.simulations_no = simulations_no
         self.country = country
+        self.years = {d.year for d in self.period}
 
     def cleanPreviousData(self):
         """cleaning previous simulation data in database"""
@@ -90,7 +91,8 @@ class WeatherSimulation(EnergyModuleConfigReader):
         """
         days_dict = OrderedDict()
         self.interannual_variability = self.generateInterannualVariability()
-        self.dust_snow_uncertainty = self.generateDustSnowUncertanty()
+        self.dust_uncertainty = self.generateDustUncertanty()
+        self.snow_uncertainty = self.generateSnowUncertanty()
         for date in self.period:
             insolation, temperature, avg_production_day_per_kW = self.generateWeatherData(date)
             days_dict[date.strftime("%Y-%m-%d")] = (insolation, temperature, avg_production_day_per_kW)
@@ -134,18 +136,21 @@ class WeatherSimulation(EnergyModuleConfigReader):
         avg_production_per_kw *= (1 + self.data_uncertainty)
         avg_production_per_kw *= (1 + self.long_term_irradiation_uncertainty)
         avg_production_per_kw *= (1 + self.interannual_variability[date.year]) # changes on yearly basis
-        avg_production_per_kw *= (1 + self.dust_snow_uncertainty[date.year, date.month]) # changes on monthly basis
+        avg_production_per_kw *= (1 + self.dust_uncertainty[date.year])
+        avg_production_per_kw *= (1 + self.snow_uncertainty[date.year])
         return avg_production_per_kw
 
     def generateInterannualVariability(self):
         """Generates interannual variabilities in advance for all years of period."""
-        years = {d.year for d in self.period}
-        return {y: gauss(0, self.interannual_variability_std) for y in years}
+        return {y: gauss(0, self.interannual_variability_std) for y in self.years}
 
-    def generateDustSnowUncertanty(self):
-        """Generates dust and snow for all months of period."""
-        months_years = {(d.year, d.month) for d in self.period}
-        return {d: gauss(0, self.dust_snow_uncertainty_std) for d in months_years}
+    def generateDustUncertanty(self):
+        """Generates dust uncertainty for all years of period."""
+        return {d: gauss(0, self.dust_uncertainty_std) for d in self.years}
+
+    def generateSnowUncertanty(self):
+        """Generates snow uncertainty for all years of period."""
+        return {d: gauss(0, self.snow_uncertainty_std) for d in self.years}
 
     def getRandomFactor(self):
         """return random factor with normal distribution"""

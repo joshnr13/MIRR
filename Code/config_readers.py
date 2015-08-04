@@ -278,7 +278,8 @@ class EnergyModuleConfigReader():
         self.data_uncertainty = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.uncertainty_of_data', float)
         self.interannual_variability_std = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.interannual_variability_std', float)
         self.long_term_irradiation_uncertainty = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.uncertainty_of_long_term_irradiation', float)
-        self.dust_snow_uncertainty_std = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.dust_snow_uncertainty_std', float)
+        self.dust_uncertainty_std = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.dust_uncertainty_std', float)
+        self.snow_uncertainty_std = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.snow_uncertainty_std', float)
 
         self.inputs = self._parse_inputs(_config)
 
