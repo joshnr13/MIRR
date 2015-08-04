@@ -166,6 +166,7 @@ class TechnologyModuleConfigReader():
         self.module_power = get_config_value(_config, 'SOLAR_MODULE.module_power', float)
         self.module_nominal_power = get_config_value(_config, 'SOLAR_MODULE.module_nominal_power', float)
         self.modelling_error = get_config_value(_config, 'SOLAR_MODULE.modelling_error', float)
+        self.albedo_error = get_config_value(_config, 'SOLAR_MODULE.albedo_error', float)
 
         ######################## PRICE ###################
         self.module_price = get_config_value(_config, 'SOLAR_MODULE.module_price', float)
