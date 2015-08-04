@@ -179,7 +179,7 @@ class TechnologyModuleConfigReader():
 
         self.inverter_mtbf = get_config_value(_config, 'INVERTER.MTBF', int)
         self.inverter_mttr = get_config_value(_config, 'INVERTER.MTTR', int)
-        
+
         ####################### EFFICIENCY ####################
         self.module_power_efficiency = get_config_value(_config, 'SOLAR_MODULE.module_power_efficiency', 'float_percent')
         self.inverter_power_efficiency = get_config_value(_config, 'INVERTER.inverter_power_efficiency', 'float_percent')

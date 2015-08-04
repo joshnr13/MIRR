@@ -439,7 +439,7 @@ class MaintenanceSchedule(object):
         self.end_production = end_production
         self.mtbf = mtbf
         self.mttr = mttr
-    
+
     def generate_mtbf_days(self):
         """return MTBF - mean time between failures, days"""
         return self.get_value(self.mtbf)
