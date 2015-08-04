@@ -134,6 +134,7 @@ class WeatherSimulation(EnergyModuleConfigReader):
         "Generates average daily production for a given month by applying some relative errors."
         avg_production_per_kw = self.getAvProductionDayPerKw(date.month)
         avg_production_per_kw *= (1 + self.data_uncertainty)
+        avg_production_per_kw *= (1 + self.transposition_model_uncertainty)
         avg_production_per_kw *= (1 + self.long_term_irradiation_uncertainty)
         avg_production_per_kw *= (1 + self.interannual_variability[date.year]) # changes on yearly basis
         avg_production_per_kw *= (1 + self.dust_uncertainty[date.year])

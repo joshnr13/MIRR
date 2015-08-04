@@ -276,6 +276,7 @@ class EnergyModuleConfigReader():
         self.TMax = get_config_value(_config, 'WEATHER_SIMULATION.TMin', float)
 
         self.data_uncertainty = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.uncertainty_of_data', float)
+        self.transposition_model_uncertainty = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.transposition_model_uncertainty', float)
         self.interannual_variability_std = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.interannual_variability_std', float)
         self.long_term_irradiation_uncertainty = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.uncertainty_of_long_term_irradiation', float)
         self.dust_uncertainty_std = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.dust_uncertainty_std', float)
