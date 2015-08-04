@@ -48,6 +48,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def addSolarModulesAndInverter(self):
         """Adds solar module and inverter in each group"""
+        self.module_power_efficiency *= (1 + self.modelling_error) # correct module efficiency
         for i in range(self.groups_number):
             eq_group = self.plant.addSolarGroup()
             eq_group.addInverter(self.inverter_price, self.inverter_power_efficiency)
