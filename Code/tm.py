@@ -49,13 +49,12 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def addSolarModulesAndInverter(self):
         """Adds solar module and inverter in each group"""
         self.module_power_efficiency *= (1 + self.modelling_error) # correct module efficiency
-        self.module_power_efficiency *= (1 + self.albedo_error)
         for i in range(self.groups_number):
             eq_group = self.plant.addSolarGroup()
             eq_group.addInverter(self.inverter_price, self.inverter_power_efficiency)
             for j in range(self.modules_in_group):
                 self.randomizeSolarModuleParameters(self.country)
-                eq_group.addSolarModule(self.module_price, self.module_reliability, self.module_power_efficiency, self.module_power, self.degradation_yearly)
+                eq_group.addSolarModule(self.module_price, self.module_reliability, self.module_power_efficiency * (1 + self.albedo_error), self.module_power, self.degradation_yearly)
 
     def addACTransmission(self):
         """add transformer and connection grid to plant"""
