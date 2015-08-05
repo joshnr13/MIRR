@@ -40,6 +40,8 @@ class Equipment():
         self.start_date = start_date
         self.end_date = end_date
 
+        self.generateFailureIntervals()
+
     def __str__(self):
         return ("""
             Equipment:
@@ -58,7 +60,27 @@ class Equipment():
         return 0
 
     def isWorking(self, day):
-        return True
+        """Returns True is this equpment piece is working on the @day,
+        checks if it is not contained in any of the failure intervals."""
+        return not any(f <= day < r for f, r in self.failure_intervals)
+
+    def getFailureDate(self, day_of_repair):
+        """Returns next failure date from @day_of_repair."""
+        return day_of_repair + timedelta(days=int(random.expovariate(1.0 / self.mtbf)) + 1)
+
+    def getRepairDate(self, day_of_failure):
+        """Returns repair date from @day_of_failure."""
+        return day_of_failure + timedelta(days=int(random.expovariate(1.0 / self.mttr)) + 1)
+
+    def generateFailureIntervals(self):
+        """Generates list of [failure, repair) intervals till the end of project."""
+        failure_date = self.getFailureDate(self.start_date)
+        repair_date = self.getRepairDate(failure_date)
+        self.failure_intervals = [(failure_date, repair_date)]
+        while self.failure_intervals[-1][1] < self.end_date:
+            failure_date = self.getFailureDate(self.failure_intervals[-1][1])
+            repair_date = self.getRepairDate(failure_date)
+            self.failure_intervals.append((failure_date, repair_date))
 
 class EquipmentSolarModule(Equipment):
     """Class for holding special info about Solar Modules."""
