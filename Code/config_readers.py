@@ -158,34 +158,39 @@ class TechnologyModuleConfigReader():
         _config = parse_yaml(_filename, country, silent())  #loads config to memory
 
         ######################## BASE ###################
-        self.groups_number = get_config_value(_config, 'EQUIPMENT.groups_number', int)
-        self.modules_in_group = get_config_value(_config, 'EQUIPMENT.modules_in_group', int)
-        self.transformer_present = get_config_value(_config, 'EQUIPMENT.transformer_present', bool)
-        self.network_available_probability = get_config_value(_config, 'NETWORK.network_available_probability', 'float_percent')
-        self.degradation_yearly = get_config_value(_config, 'SOLAR_MODULE.PV_degradation_rate', 'float_percent')
-        self.module_power = get_config_value(_config, 'SOLAR_MODULE.module_power', float)
-        self.module_nominal_power = get_config_value(_config, 'SOLAR_MODULE.module_nominal_power', float)
+        self.groups_number = get_config_value(_config, 'SYSTEM.groups_number', int)
+        self.modules_in_group = get_config_value(_config, 'SYSTEM.modules_in_group', int)
+        self.transformer_present = get_config_value(_config, 'SYSTEM.transformer_present', bool)
         self.modelling_error = get_config_value(_config, 'SYSTEM.modelling_error', float)
         self.albedo_error = get_config_value(_config, 'SYSTEM.albedo_error', float)
 
+        self.grid_available_probability = get_config_value(_config, 'GRID.grid_available_probability', 'float_percent')
+        self.degradation_yearly = get_config_value(_config, 'SOLAR_MODULE.PV_degradation_rate', 'float_percent')
+        self.module_power = get_config_value(_config, 'SOLAR_MODULE.power', float)
+        self.module_nominal_power = get_config_value(_config, 'SOLAR_MODULE.nominal_power', float)
+
         ######################## PRICE ###################
-        self.module_price = get_config_value(_config, 'SOLAR_MODULE.module_price', float)
-        self.inverter_price = get_config_value(_config, 'INVERTER.inverter_price', float)
-        self.transformer_price = get_config_value(_config, 'TRANSFORMER.transformer_price', float)
+        self.module_price = get_config_value(_config, 'SOLAR_MODULE.price', float)
+        self.inverter_price = get_config_value(_config, 'INVERTER.price', float)
+        self.transformer_price = get_config_value(_config, 'TRANSFORMER.price', float)
+        self.grid_price = get_config_value(_config, 'GRID.price', float)
         self.documentation_price = get_config_value(_config, 'ADDITIONAL_PRICE.documentation_price', float)
-        self.connection_grid_cost = get_config_value(_config, 'ADDITIONAL_PRICE.connection_grid_cost', float)
 
-        ####################### RELIABILTY ####################
-        self.module_reliability = get_config_value(_config, 'SOLAR_MODULE.module_reliability', 'float_percent')
-        self.transformer_reliability = get_config_value(_config, 'TRANSFORMER.transformer_reliability', 'float_percent')
-
-        self.inverter_mtbf = get_config_value(_config, 'INVERTER.MTBF', int)
-        self.inverter_mttr = get_config_value(_config, 'INVERTER.MTTR', int)
+        ####################### MTBF and  MTTR #############
+        self.inverter_mtbf = get_config_value(_config, 'INVERTER.mean_time_between_failures', int)
+        self.inverter_mttr = get_config_value(_config, 'INVERTER.mean_time_to_repair', int)
+        self.transformer_mtbf = get_config_value(_config, 'TRANSFORMER.mean_time_between_failures', int)
+        self.transformer_mttr = get_config_value(_config, 'TRANSFORMER.mean_time_to_repair', int)
+        self.grid_mtbf = get_config_value(_config, 'GRID.mean_time_between_failures', int)
+        self.grid_mttr = get_config_value(_config, 'GRID.mean_time_to_repair', int)
+        self.module_mtbf = get_config_value(_config, 'SOLAR_MODULE.mean_time_between_failures', int)
+        self.module_mttr = get_config_value(_config, 'SOLAR_MODULE.mean_time_to_repair', int)
 
         ####################### EFFICIENCY ####################
-        self.module_power_efficiency = get_config_value(_config, 'SOLAR_MODULE.module_power_efficiency', 'float_percent')
-        self.inverter_power_efficiency = get_config_value(_config, 'INVERTER.inverter_power_efficiency', 'float_percent')
-        self.transformer_power_efficiency = get_config_value(_config, 'TRANSFORMER.transformer_power_efficiency', 'float_percent')
+        self.module_power_efficiency = get_config_value(_config, 'SOLAR_MODULE.power_efficiency', 'float_percent')
+        self.inverter_power_efficiency = get_config_value(_config, 'INVERTER.power_efficiency', 'float_percent')
+        self.transformer_power_efficiency = get_config_value(_config, 'TRANSFORMER.power_efficiency', 'float_percent')
+        self.grid_power_efficiency = get_config_value(_config, 'GRID.power_efficiency', 'float_percent')
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
@@ -195,8 +200,10 @@ class TechnologyModuleConfigReader():
     def randomizeSolarModuleParameters(self, country, _filename='tm_config.ini'):
         _config = parse_yaml(_filename, country, silent())  #loads config to memory
         self.degradation_yearly = get_config_value(_config, 'SOLAR_MODULE.PV_degradation_rate', 'float_percent')
-        self.module_power = get_config_value(_config, 'SOLAR_MODULE.module_power', float)
+        self.module_power = get_config_value(_config, 'SOLAR_MODULE.power', float)
         self.albedo_error = get_config_value(_config, 'SYSTEM.albedo_error', float)
+        self.module_mtbf = get_config_value(_config, 'SOLAR_MODULE.mean_time_between_failures', int)
+        self.module_mttr = get_config_value(_config, 'SOLAR_MODULE.mean_time_to_repair', int)
 
 
 class EconomicModuleConfigReader():
