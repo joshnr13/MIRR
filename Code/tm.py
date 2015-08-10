@@ -38,13 +38,12 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def buildPlant(self):
         """Creates plant object."""
-        self.plant = PlantEquipment(self.country,
-                                    self.start_date_project,
+        self.plant = PlantEquipment(self.start_date_project,
                                     self.end_date_project,
                                     energy_module=self.energy_module)  # new class Plant
 
     def addSolarModulesAndInverter(self):
-        """Adds solar module and inverter in each group"""
+        """Adds solar module and inverter in each group."""
         self.module_power_efficiency *= (1 + self.modelling_error) # correct module efficiency
         for i in range(self.groups_number):
             eq_group = self.plant.addSolarGroup()
@@ -86,10 +85,10 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         return str(self.plant)
 
     def generateElectricityProductionLifeTimeUsingInsolation(self):
-        """generates electricity production for whole project lifetime"""
+        """Generates electricity production for whole project lifetime."""
         last_day_construction = self.last_day_construction
         insolations = self.energy_module.insolations
-        #electricity_production - dict with ideal electricity_production for every date
+        # electricity_production - dict with ideal electricity_production for every date
         electricity_production = OrderedDict(
             (day, self.plant.getElectricityProductionPlant1DayUsingInsolation(insol, daysBetween(self.start_date_project, day))
                 if day > last_day_construction else 0) for day, insol in insolations.items())
@@ -97,7 +96,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         return electricity_production
 
     def generateElectricityProductionLifeTime(self):
-        """returns dict with electricity_production for every date of project lifetime"""
+        """Returns dict with electricity_production for every date of project lifetime."""
         return OrderedDict(
             (day, self.plant.getElectricityProduction1Day(day) if day >= self.first_day_production else 0)
             for day in self.all_project_dates)

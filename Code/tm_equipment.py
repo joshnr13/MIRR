@@ -14,7 +14,7 @@ class EQ:
     TRANSFORMER = 'transformer'
     GRID_CONNECTION = 'grid connection'
 
-class Equipment():
+class Equipment:
     """Is the principal class for all equipment.
     It holds things that all pieces of equipment must posses:
         * name
@@ -43,8 +43,7 @@ class Equipment():
         self.generateFailureIntervals()
 
     def __str__(self):
-        return ("""
-            Equipment:
+        return ("""\
                 Type: {eqtype}
                 Price: {price}
                 Effiency: {efficiency}
@@ -54,10 +53,6 @@ class Equipment():
     def getInvestmentCost(self):
         """Return investment cost (price) of equipment."""
         return self.price
-
-    def getElectricityProduction(self):
-        """Gets electiricity production for equipment."""
-        return 0
 
     def isWorking(self, day):
         """Returns True is this equpment piece is working on the @day,
@@ -107,21 +102,21 @@ class EquipmentSolarModule(Equipment):
             return avg_production_day_per_kW * self.power * self.efficiency * self.conservation_coefficient(day)
         return 0
 
-    def conservation_coefficient(self, day):  #conservation as the opposite of degradation
+    def conservation_coefficient(self, day):
         """Calculation of degradation coefficients for equipment depending years running.
            If degradation is so large that the production would be negative then it returns zero."""
         return max(0, 1 - daysBetween(self.start_date, day) * (self.degradation_yearly / 365.0))
 
     def __str__(self):
-        return ("""
-            Solar module:
-                Price: {price}
-                Effiency: {efficiency}
-                MTBF: {mtbf}
-                MTTR: {mttr}
-                Power: {power}
-                Nominal power: {nominal_power}
-                degradation_yearly: {degradation_yearly}""".format(**self.__dict__))
+        """Returns string representation of a solar module."""
+        return ("""\
+                    Price: {price}
+                    Effiency: {efficiency}
+                    MTBF: {mtbf}
+                    MTTR: {mttr}
+                    Power: {power}
+                    Nominal power: {nominal_power}
+                    degradation_yearly: {degradation_yearly}""".format(**self.__dict__))
 
 class EquipmentConnectionGrid(Equipment):
     """Class for holding special info about connection grid."""
@@ -140,11 +135,11 @@ class EquipmentTransformer(Equipment):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, EQ.TRANSFORMER, *args, **kwargs)
 
+######################## GROUPS ######################
 
-################################# GROUPS ######################
-
-class SolarGroup():
+class SolarGroup:
     """Class for holding info about solar module groups."""
+
     def __init__(self, start_date, end_date):
         self.solar_modules = [] # list of solar modules
         self.inverter = None
@@ -162,21 +157,14 @@ class SolarGroup():
         self.inverter = EquipmentInverter(efficiency, price, mtbf, mttr, self.start_date, self.end_date)
 
     def __str__(self):
-        """String representation of group."""
+        """String representation of a solar group."""
         s = """
-            #########################
-            SOLAR GROUP:
-            """
-        s += """\n
-            -------------------------
-            Solar modules:
-            """
-        for sm in self.solar_modules:
+            Solar modules: ({0})""".format(len(self.solar_modules))
+        for i, sm in enumerate(self.solar_modules):
+            s += "\n                Solar module {0}:\n".format(i+1)
             s += str(sm)
         s += """\n
-            -------------------------
-            Inverter:
-            """
+            Inverter:\n"""
         s += str(self.inverter)
         return s
 
@@ -186,7 +174,7 @@ class SolarGroup():
         return solar_modules_cost + self.inverter.getInvestmentCost()
 
     def isInverterWorking(self, day):
-        """Returns inverter effiency if we have an inverter else 0."""
+        """Returns True if inverter is working on @day else False."""
         if self.inverter is None: return False
         return self.inverter.isWorking(day)
 
@@ -194,14 +182,14 @@ class SolarGroup():
         """Returns total power of all solar modules in a group."""
         return sum(sm.power for sm in self.solar_modules)
 
-    def getElectricityProductionGroupUsingInsolation(self, insolation, day):
-        """return  ElectricityProduction for group"""
+    def getElectricityProductionUsingInsolation(self, insolation, day):
+        """Returns electricity production for a solar group using insolation."""
         if self.isInverterWorking(day):
             group_production = sum([
                 eq.getElectricityProductionUsingInsolation(insolation, day)
                     for eq in self.solar_modules])
             return group_production * self.inverter.efficiency
-        return group_production * percent_inverters_working
+        return 0
 
     def getElectricityProduction(self, avg_production_day_per_kW, day):
         """Returns electricity production for group - sum of equipment productions
@@ -234,19 +222,16 @@ class ACGroup():
         self.grid_connection = EquipmentConnectionGrid(efficiency, price, mtbf, mttr, self.start_date, self.end_date)  # create Equipment class instance
 
     def __str__(self):
-        s = """
-            #########################
-            SOLAR GROUP:
-            """
-        s += """\n
+        s = """\n
             -------------------------
-            Transformer:
+            AC GROUP:
+            -------------------------
             """
+        s += """
+            Transformer:\n"""
         s += str(self.transformer)
         s += """\n
-            -------------------------
-            Grid connection:
-            """
+            Grid connection:\n"""
         s += str(self.grid_connection)
         return s
 
@@ -264,14 +249,14 @@ class ACGroup():
         if self.grid_connection is None: return False
         return self.grid_connection.isWorking(day)
 
-################################ PLANT #######################
+######################### PLANT #######################
 
 class PlantEquipment():
-    """Class for whole plant equipment"""
-    def __init__(self, country, start_date, end_date, energy_module):
+    """Class for whole plant equipment."""
+
+    def __init__(self, start_date, end_date, energy_module):
         self.solar_groups = []  # list of all solar groups
         self.AC_group = None
-        self.country = country
         self.energy_module = energy_module
         self.start_date = start_date
         self.end_date = end_date
@@ -293,15 +278,16 @@ class PlantEquipment():
         return solar_groups_cost + self.AC_group.getInvestmentCost()
 
     def getElectricityProductionPlant1DayUsingInsolation(self, insolation, day):
-        """Returns electricity production for whole plant"""
+        """Returns electricity production for whole plant using insolation."""
         if self.AC_group.isTransformerWorking(day) and self.AC_group.isGridAvailable(day):
             avg_production_day_per_kW = self.energy_module.getAvgProductionDayPerKW(day)
-            groups_production = sum(
-                g.getElectricityProductionGroupUsingInsolation(insolation, day)
-                    for g in self.solar_groups)   # calc sum of el.production for all solar groups
+            groups_production = sum([
+                g.getElectricityProductionUsingInsolation(insolation, day)
+                    for g in self.solar_groups])   # calc sum of el.production for all solar groups
             transformer_eff = self.AC_group.transformer.efficiency
             grid_connection_eff = self.AC_group.grid_connection.efficiency
             return groups_production * transformer_eff * grid_connection_eff
+        return 0
 
     def getElectricityProduction1Day(self, day):
         """Returns electricity production for whole plant."""
@@ -313,40 +299,45 @@ class PlantEquipment():
             transformer_eff = self.AC_group.transformer.efficiency
             grid_connection_eff = self.AC_group.grid_connection.efficiency
             return groups_production * transformer_eff * grid_connection_eff
-
         return 0
 
     def getPlantPower(self):
-        """return  Total power of plant"""
-        return sum(gr.getPower() for gr in self.solar_groups)
+        """Returns total power of the plant."""
+        return sum([gr.getPower() for gr in self.solar_groups])
 
     def expectedYearProduction(self):
-        """calculates aprox expected yealy production of electricity"""
+        """Calculates aproximate expected yealy production of electricity using insolation."""
+
         from config_readers import EnergyModuleConfigReader
-        em_config = EnergyModuleConfigReader(self.country)  #load Inputs for Energy Module
+        em_config = EnergyModuleConfigReader(self.energy_module.country)  # load inputs for Energy Module
 
         av_insolations = []
         days_in_month = []
-        for i in range(1, 13):  #for each month number from 1 to 12
-            av_insolations.append(em_config.getAvMonthInsolationMonth(i))  #add to list av.month insollation for 1 day
-            days_in_month.append(lastDayMonth(date(2000,  i, 1)).day)  #  add to list number of days in cur month
+        for i in range(1, 13):  # for each month number from 1 to 12
+            av_insolations.append(em_config.getAvMonthInsolationMonth(i))  # add to list av.month insollation for 1 day
+            days_in_month.append(lastDayMonth(date(2000, i, 1)).day)  # add to list number of days in cur month
 
         one_day_production = numpy.array([self.getElectricityProductionPlant1DayUsingInsolation(insolation, self.start_date) for insolation in av_insolations])  #calc one day production for this 12 days
-        whole_year_production = numpy.sum(numpy.array(days_in_month) * one_day_production)  #multiply number of days in month * one day production and summarise them all
+        whole_year_production = numpy.sum(numpy.array(days_in_month) * one_day_production)  # multiply number of days in month * one day production and summarise them all
 
-        return round(whole_year_production, 0)  #return rounded value
+        return round(whole_year_production, 0)  # return rounded value
 
     def __str__(self):
-        """string representation of Plant object"""
+        """String representation of Plant object."""
         s = """
-            PLANT:
-                total investment cost: {0}
-                total power: {1}
-                expected year production: {2}
+        PLANT:
+            total investment cost: {0}
+            total power: {1}
+            expected year production: {2}
+            start production date: {start_date}
+            end production date: {end_date}
             """.format(self.getInvestmentCost(), self.getPlantPower(), self.expectedYearProduction(), **self.__dict__)
-        s += "\nSolar groups:\n"
-        for sg in self.solar_groups:
+        s += "\n            SOLAR GROUPS ({0}):\n".format(len(self.solar_groups))
+        for i, sg in enumerate(self.solar_groups):
+            s += """
+            -------------------------
+            SOLAR GROUP {0}:
+            -------------------------\n""".format(i+1)
             s += str(sg)
-
         s += str(self.AC_group)
         return s
