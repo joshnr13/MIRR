@@ -13,7 +13,7 @@ from em import EnergyModule
 from sm import SubsidyModule
 from annex import getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property, \
     setupPrintProgress, isFirstDayMonth, lastDayPrevMonth, nubmerDaysInMonth, OrderedDefaultdict, \
-    lastDayNextMonth, PMT, isLastDayYear
+    lastDayNextMonth, PMT, isLastDayYear, convertDictDates
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
 from collections import OrderedDict
@@ -27,12 +27,11 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         @period - list of dates from start to end
         @simulations_no - number of needed simulations
         """
+        EconomicModuleConfigReader.__init__(self, country, start_date_project=period[0])
         self.period = period
         self.N = len(period)  #number of days
         self.simulations_no = simulations_no
-        self.start_date_project = self.period[0]
         self.db = Database()
-        self.country = country
 
     def cleanPreviousData(self):
         print "Cleaning previous ElectricityPriceData for %r" % self.country
@@ -141,11 +140,12 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def electricity_prices(self):
         """This is cached attribute, it is calculated only one time per session
         reads random time sequence of electricity market prices from database"""
-        result = self.db.getElectricityPrices(self.electricity_prices_rnd_simulation,
-                                              country=self.country)
-        if not result:
-            raise ValueError("Please generate first Electricity prices before using it")
-        return  result
+        simulations_no = 1
+        period = self.all_project_dates
+        price_simulation = ElectricityMarketPriceSimulation(self.country, period, simulations_no)
+        data = price_simulation.generateOneSimulation(1)['data']  # generated electricity prices
+        result = convertDictDates(data)
+        return result
 
     def getElectricityProductionLifetime(self):
         """return  all values dict [date]=electricity production for that date"""

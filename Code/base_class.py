@@ -64,15 +64,3 @@ class BaseClassConfig():
         if TESTMODE:
             print "** Using weather data simulation : %s" % simulation_no
         return simulation_no
-
-    @property
-    def electricity_prices_rnd_simulation(self):
-        simulation_no = self._config_module.electricity_price_rnd_simulation
-        if TESTMODE:
-            print "** Using electricity price simulation : %s" % simulation_no
-        return simulation_no
-
-
-
-
-

@@ -115,18 +115,6 @@ class MainConfig():
             return random.randint(1, 100)
 
 
-    @cached_property
-    def electricity_price_rnd_simulation(self):
-        """return  random number which electricity simulation will be used
-        calculated only 1 time
-        if test mode return fixed 1st simulation
-        """
-        if TESTMODE:
-            return 1
-        else:
-            return random.randint(1, 500)
-
-
 class SubsidyModuleConfigReader():
     """Module for reading Subsidy configs from file"""
 
