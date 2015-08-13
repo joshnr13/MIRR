@@ -21,7 +21,7 @@ from sm import SubsidyModule
 from tm import TechnologyModule
 
 
-class Simulation():
+class Simulation:
     """Class for preparing, runinning and saving simulations to Database"""
 
     def __init__(self, country, comment=''):
@@ -47,8 +47,11 @@ class Simulation():
 
         cpu_count = multiprocessing.cpu_count()
         pool = multiprocessing.Pool(2 * cpu_count)
-        data = [(i+1, self.simulation_no, self.country, random.randint(0, 10000000)) for i in range(iterations_number)]
+        #progress_counter = multiprocessing.Value('i', 0)
+        data = [[i+1, self.simulation_no, self.country, random.randint(0, 10000000)] for i in range(iterations_number)]
         result = pool.map(runIteration, data)  # irr and tep data
+        pool.close()
+        pool.join()
         result = zip(*result)  # transpose
 
         # accumulation of values from all iterations
@@ -99,8 +102,7 @@ class Iteration:
         self.r = Report(self.config, self.ecm, iteration_no, self.simulation_no)
 
     def run(self):
-        """Runs 1 iteration and prepares new data."""
-        print "running iter:", self.iteration_no
+        """Runs one iteration and prepares new data."""
         self.r.calcReportValues()
         self.o = ReportOutput(self.r)
         self._prepareIterationResults()  # main func to prepare results in one dict
@@ -262,6 +264,8 @@ class Iteration:
 
 def runIteration(args):
     """Function to run a single iteration, used for paralel running."""
+    sys.stdout.write('\rCurrently running: {0} '.format(args[0]))
+    sys.stdout.flush()
     i = Iteration(*args)
     i.run()
     return i.saveAndReturn()

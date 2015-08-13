@@ -139,7 +139,7 @@ def parse(dic):
     return result
 
 
-def parse_yaml(name, country, silent=False):
+def parse_yaml(name, country, silent=True):
     config_dict = get_country_values(name, country, silent)
     parsed_config_dict = parse(config_dict)
     return parsed_config_dict
