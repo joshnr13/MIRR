@@ -46,13 +46,17 @@ class Simulation:
         """Run @iterations_number iterations in paralel."""
 
         cpu_count = multiprocessing.cpu_count()
-        pool = multiprocessing.Pool(2 * cpu_count)
-        #progress_counter = multiprocessing.Value('i', 0)
-        data = [[i+1, self.simulation_no, self.country, random.randint(0, 10000000)] for i in range(iterations_number)]
+        progress_counter = multiprocessing.Value('i', 0)
+        sys.stdout.write("\r{0}/{1} -- {2:.2f}% ".format(progress_counter.value, iterations_number, 100 * progress_counter.value / float(iterations_number)))
+        sys.stdout.flush()
+
+        pool = multiprocessing.Pool(2 * cpu_count, initializer=initIteration, initargs=(progress_counter,))
+        data = [[i+1, self.simulation_no, self.country, random.randint(0, 10000000), iterations_number] for i in range(iterations_number)]
         result = pool.map(runIteration, data)  # irr and tep data
         pool.close()
         pool.join()
         result = zip(*result)  # transpose
+        sys.stdout.write('\n')  # go to newline because of progress printer
 
         # accumulation of values from all iterations
         irrs_len = len(IRR_REPORT_FIELDS)
@@ -61,7 +65,7 @@ class Simulation:
 
     def initSimulationRecord(self, iterations_number):
         """Prepare atributes for saving simulation records"""
-        print "%s - runing simulation %s with %s number of iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
+        print "%s - running simulation %s with %s number of iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
         self.simulation_record = defaultdict(list)  #attribute for holding basic info about simulation
         self.simulation_record["simulation"] = self.simulation_no
         self.simulation_record["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -262,12 +266,22 @@ class Iteration:
         """Returns total energy produced, system not working and electricity prod 2nd year attributes."""
         return [getattr(self.r, field) for field in TEP_REPORT_FIELDS]
 
+progress_counter = None  # global thread progress counter
+def initIteration(args):
+    global progress_counter
+    progress_counter = args
+
 def runIteration(args):
     """Function to run a single iteration, used for paralel running."""
-    sys.stdout.write('\rCurrently running: {0} '.format(args[0]))
-    sys.stdout.flush()
+    global progress_counter
+    iterations_number = args.pop()
     i = Iteration(*args)
     i.run()
+
+    progress_counter.value += 1
+    sys.stdout.write("\r{0}/{1} -- {2:.2f}% ".format(progress_counter.value, iterations_number, 100 * progress_counter.value / float(iterations_number)))
+    sys.stdout.flush()
+
     return i.saveAndReturn()
 
 def runAndSaveSimulation(country, iterations_no, comment):
