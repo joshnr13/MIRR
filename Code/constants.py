@@ -63,14 +63,10 @@ NPV["Dates"] = ""
 NPV["NPV project"] = "pv_project"
 NPV["NPV owners"] = "pv_owners"
 
-IRR_REPORT_FIELD = 'irr_project_y'  #Name of IRR values
-IRR_REPORT_FIELD2 = 'irr_owners_y'  #for statistics after simulation
-IRR_REPORT_FIELD3 = 'irr_project_before_tax_y'
+IRR_REPORT_FIELDS = ['irr_project_y', 'irr_owners_y', 'irr_project_before_tax_y']  # Name of IRR values for statistics after simulation
 NPV_REPORT_FIELD = 'npv_project_y'
 
-TEP_REPORT_FIELD = "total_energy_produced"
-TEP_REPORT_FIELD2 = "system_not_working"
-TEP_REPORT_FIELD3 = "electricity_production_2ndyear"
+TEP_REPORT_FIELDS = ["total_energy_produced", "system_not_working", "electricity_production_2ndyear"]
 
 REPORT_DEFAULT_NUMBER_ITERATIONS = 100
 
@@ -92,7 +88,7 @@ CORRELLATION_FIELDS["interest_rate_short"] = "ecm_configs.debt_rate_short"
 CORRELLATION_FIELDS["average_degradation_rate"] = "average_degradation_rate"
 CORRELLATION_FIELDS["average_power_ratio"] = "average_power_ratio"
 
-CORRELLATION_IRR_FIELD = {"IRR": IRR_REPORT_FIELD}
+CORRELLATION_IRR_FIELD = {"IRR": IRR_REPORT_FIELDS[0]}
 CORRELLATION_NPV_FIELD = {"NPV": NPV_REPORT_FIELD}
 
 ELPROD = OrderedDict()  #BLOCK in EXCEL with data about electricity production

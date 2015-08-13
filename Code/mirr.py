@@ -58,9 +58,9 @@ class Interface():
         if iterations_no is None:
             iterations_no = self.getNumberIterations(default=REPORT_DEFAULT_NUMBER_ITERATIONS)  #ask user how many iterations
         if comment is None:
-            comment = getInputComment()  #get user comment
+            comment = getInputComment()  # get user comment
 
-        runAndSaveSimulation(country, iterations_no, comment)  #runing
+        runAndSaveSimulation(country, iterations_no, comment)  # run the simulation
 
     def analyseSimulationResults(self, simulation_no=None):
         """

@@ -1,22 +1,24 @@
-import sys
 import datetime
 import multiprocessing
+import numpy
+import random
+import sys
 
 from annex import convertValue, setupPrintProgress
 from collections import defaultdict
 from config_readers import RiskModuleConfigReader, MainConfig
+from constants import IRR_REPORT_FIELDS, TEP_REPORT_FIELDS
 from database import Database
 from rm import calcSimulationStatistics
-from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3, TEP_REPORT_FIELD, TEP_REPORT_FIELD2, TEP_REPORT_FIELD3
 
-from enm import EnvironmentalModule
-from tm import TechnologyModule
-from em import EnergyModule
-from sm import SubsidyModule
-from ecm import EconomicModule
-from report import Report
 from config_readers import MainConfig
+from ecm import EconomicModule
+from em import EnergyModule
+from enm import EnvironmentalModule
+from report import Report
 from report_output import ReportOutput
+from sm import SubsidyModule
+from tm import TechnologyModule
 
 
 class Simulation():
@@ -41,28 +43,18 @@ class Simulation():
         self.db.insertSimulation(self.simulation_record)   # insert simulation record
 
     def runIterations(self, iterations_number):
-        """Run @iterations_number iterations."""
+        """Run @iterations_number iterations in paralel."""
 
         cpu_count = multiprocessing.cpu_count()
-        pool = multiprocessing.Pool(cpu_count)
-        data = [(i+1, self.simulation_no, self.country) for i in range(iterations_number)]
+        pool = multiprocessing.Pool(2 * cpu_count)
+        data = [(i+1, self.simulation_no, self.country, random.randint(0, 10000000)) for i in range(iterations_number)]
         result = pool.map(runIteration, data)  # irr and tep data
-        result = zip(*result) # transpose
+        result = zip(*result)  # transpose
 
         # accumulation of values from all iterations
-        self.irrs0, self.irrs1, self.irrs2 = result[:3]
-        self.total_energy_produced, self.system_not_working, self.electricity_production_2ndyear = result[3:]
-
-        #iterations_for_cpu = [[] for i in range(cpu_count)]
-        #for i in range(iterations_number):
-            #iterations_for_cpu[i % cpu_count].append(i+1)
-
-        #thread_list = [multiprocessing.Process(target=runIterationsList, args=(lst, self)) for lst in iterations_for_cpu]
-
-        #for t in thread_list: t.start()
-        #for t in thread_list: t.join()
-        #print self.irrs1
-        #print self.total_energy_produced
+        irrs_len = len(IRR_REPORT_FIELDS)
+        self.irrs = result[:irrs_len]
+        self.teps = result[irrs_len:irrs_len+len(TEP_REPORT_FIELDS)]
 
     def initSimulationRecord(self, iterations_number):
         """Prepare atributes for saving simulation records"""
@@ -76,29 +68,23 @@ class Simulation():
 
     def addIrrStatsToSimulation(self):
         """Adding irr results to dict with simulation data"""
-        """    for each simulation batch calculate, display and save the standard deviation of IRR (both of owners and project - separately)
-        - skweness : http://en.wikipedia.org/wiki/Skewness
-        - kurtosis: http://en.wikipedia.org/wiki/Kurtosis
-        """
-        fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3]  #which field names will be used to calc stats
-
         riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
-        self.simulation_record['irr_stats'] = calcSimulationStatistics(fields, [self.irrs0, self.irrs1, self.irrs2], riskFreeRate, benchmarkSharpeRatio )  #calculating and adding IRR stats to simulation record
+        self.simulation_record['irr_stats'] = calcSimulationStatistics(IRR_REPORT_FIELDS, self.irrs, riskFreeRate, benchmarkSharpeRatio )  # calculating and adding IRR stats to simulation record
 
     def addTotalEnergyProducedStatsToSimulation(self):
         """Adding total energy produced results to dict with simulation data."""
-        fields = [TEP_REPORT_FIELD, TEP_REPORT_FIELD2, TEP_REPORT_FIELD3]
         riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
-        self.simulation_record['total_energy_produced_stats'] = calcSimulationStatistics(
-            fields, [self.total_energy_produced, self.system_not_working, self.electricity_production_2ndyear],
-            riskFreeRate, benchmarkSharpeRatio)
+        self.simulation_record['total_energy_produced_stats'] = calcSimulationStatistics(TEP_REPORT_FIELDS, self.teps, riskFreeRate, benchmarkSharpeRatio)
 
 
 class Iteration:
     """Class for running a single iteration."""
 
-    def __init__(self, iteration_no, simulation_no, country):
+    def __init__(self, iteration_no, simulation_no, country, seed):
         """Iteration number of this iteration and link to simulation module."""
+        random.seed(seed)
+        numpy.random.seed(seed)
+
         self.iteration_no = iteration_no
         self.simulation_no = simulation_no
         self.country = country
@@ -125,7 +111,7 @@ class Iteration:
         return self._getIrrValues() + self._getTepValues()
 
     def _prepareIterationResults(self):
-        """prepare each iteration (@iteration number) results before saving to database"""
+        """Prepare iteration results before saving to database."""
         obj = self.r
         line = dict()  #main dict for holding results of one iteration
 
@@ -267,31 +253,21 @@ class Iteration:
         self.line = convertValue(line)
 
     def _getIrrValues(self):
-        """Returns irr results fir specified attrributes."""
-        return (getattr(self.r, IRR_REPORT_FIELD),
-                getattr(self.r, IRR_REPORT_FIELD2),
-                getattr(self.r, IRR_REPORT_FIELD3))
+        """Returns irr results for specified attrributes."""
+        return [getattr(self.r, field) for field in IRR_REPORT_FIELDS]
 
     def _getTepValues(self):
         """Returns total energy produced, system not working and electricity prod 2nd year attributes."""
-        return (getattr(self.r, TEP_REPORT_FIELD),
-                getattr(self.r, TEP_REPORT_FIELD2),
-                getattr(self.r, TEP_REPORT_FIELD3))
+        return [getattr(self.r, field) for field in TEP_REPORT_FIELDS]
 
 def runIteration(args):
+    """Function to run a single iteration, used for paralel running."""
     i = Iteration(*args)
     i.run()
     return i.saveAndReturn()
 
 def runAndSaveSimulation(country, iterations_no, comment):
-    """
-    1) Runs multiple iterations @iterations_number with @comment
-    2) Shows charts
-    3) Save results
-    return  simulation_no
-    """
+    """Runs multiple iterations @iterations_number with @comment and saves results to db."""
     s = Simulation(country, comment=comment)
     s.runSimulation(iterations_no)
     return s.simulation_no
-
-
