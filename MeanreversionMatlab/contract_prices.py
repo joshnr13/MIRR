@@ -3,6 +3,7 @@ import csv
 import math
 import numpy as np
 from datetime import datetime, timedelta
+from collections import defaultdict
 
 def start_q_date(date):
     """Returns date of first day of quarter in which the @date is."""
@@ -41,10 +42,10 @@ def get_q_range(start_date, end_date):
 
 def contract_price(start_date, prices_dict):
     """Returns price of contract starting with @start_date."""
+    start_date += timedelta(days=90)
     end_date = start_date + timedelta(days=365)
     q_range = list(get_q_range(start_date, end_date))
     weights = [0.25] * len(q_range)
-
     if len(q_range) == 5: # some quarters are not fully covered
 
         start_part = (end_q_date(start_date) - start_date).days
@@ -58,20 +59,38 @@ def contract_price(start_date, prices_dict):
         if weights[0] == 0: weights.pop(0)
         if weights[-1] == 0: weights.pop()
 
-    prices = [prices_dict[q] for q in q_range]
+    try:
+        prices = [prices_dict[q] for q in q_range]
+    except KeyError as e:
+        ### podatki manjkajo za dneve 28, 29, 30, ker je +90 dni premalo, rabimo +92
+        if start_date.day >= 25:
+            m = start_date.month
+            while start_date.month == m:
+                start_date += timedelta(days=1)
+            return contract_price(start_date, prices_dict)
+        return float('nan')
 
     assert len(prices) == len(weights), "prices len: {0}, weights len: {1}".format(len(prices), len(weights))
     return np.average(prices, weights=weights)
 
-with open('quarters_futures.csv') as f, open('contract_prices.csv', 'w') as g:
+with open('Kvartali_EEX_settlement.csv') as f:
+    data = defaultdict(dict)
     r = csv.DictReader(f)
+    for line in r:
+        d = datetime.strptime(line['tradingdate'], "%d.%m.%Y")
+        obd = '20' + line['Leto'][-2:] + line['Kvartal']
+        data[d][obd] = float(line['value'])
+
+succ, fail = 0, 0
+with open('contract_prices.csv', 'w') as g:
     w = csv.writer(g)
     w.writerow(["date", "price"])
-    for line in r:
-        start_date = datetime.strptime(line["date"], "%d.%m.%Y")
-        prices_dict = {key: (float(value) if value else float("NaN")) for key, value in line.items() if key != "date"}
-        price = contract_price(start_date, prices_dict)
+    for start_date in sorted(data):
+        price = contract_price(start_date, data[start_date])
         if not math.isnan(price):
-            w.writerow([line["date"], price])
+            w.writerow([start_date.strftime("%d.%m.%Y"), "{0:.4f}".format(price)])
+            succ += 1
         else:
-            print "Warning: NaN price on", line["date"]
+            fail += 1
+            print "Warning: not enough data on", start_date
+print "succ:", succ, "fail:", fail

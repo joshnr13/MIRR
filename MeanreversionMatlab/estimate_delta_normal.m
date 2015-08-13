@@ -1,5 +1,5 @@
 %  S = csvread('benchmark_market_price_timeseries.csv');
-S = csvread('price_weekly.csv');
+S = csvread('contract_prices.csv', 1, 1);
 
 deltas = S(2:end) - S(1:end-1);
 
