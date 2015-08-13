@@ -10,33 +10,28 @@ from rm import calcSimulationStatistics
 from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3, TEP_REPORT_FIELD, TEP_REPORT_FIELD2, TEP_REPORT_FIELD3
 
 
-class Simulation():
+class Simulation:
     """Class for preparing, runinning and saving simulations to Database"""
+
     def __init__(self, country, comment=''):
-        """@comment - user inputed comment"""
+        """Initializes simulation class, preparing storage and db links.
+        @country: the country to run the simulation for.
+        @comment: user comment for this simulation."""
         self.db =  Database()  #connection to Db
         self.comment = comment  #user comment for current simulation
         self.country = country #country which data will be used in simulation
-        self.simulation_no = self.getNextSimulationNo()  #load last simulation no from db
-        self.irrs0 = []  #for keeping irr values for each iteration
+        self.simulation_no = self.db.getNextSimulationNo()  #load last simulation no from db
+
+        # accumulation values from all iterations
+        self.irrs0 = []  # for keeping irr values for each iteration
         self.irrs1 = []
         self.irrs2 = []
-
-        # other simulation values for each iteration
-        self.total_energy_produced = []
+        self.total_energy_produced = []  # energy related values
         self.system_not_working = []
         self.electricity_production_2ndyear = []
 
-    def getSimulationNo(self):
-        """return  current simulation no"""
-        return self.simulation_no
-
-    def getNextSimulationNo(self):
-        """return  next simulation no from db"""
-        return self.db.getNextSimulationNo()
-
     def prepareLinks(self):
-        """create short links to prepared modules"""
+        """Create short links to prepared modules."""
         self.config = self.i.getMainConfig()
         self.ecm = self.i.getEconomicModule()
         self.tm = self.i.getTechnologyModule()
@@ -54,9 +49,8 @@ class Simulation():
         self.rm_configs = RiskModuleConfigReader(self.country).getConfigsValues() #module config values
         self.enm_configs = self.enm.getConfigsValues()  # module config values
 
-
     def prepareIterationResults(self, iteration):
-        """prepare each iteration (@iteration number) results before saving to database"""
+        """Prepare each iteration (@iteration number) results before saving to database."""
         obj = self.r
         line = dict()  #main dict for holding results of one iteration
 
@@ -107,6 +101,7 @@ class Simulation():
         line["report_header"] = obj.control.keys()
 
         ###############################
+
         line["revenue_y"] = obj.revenue_y.values()
         line["revenue_electricity_y"] = obj.revenue_electricity_y.values()
         line["revenue_subsidy_y"] = obj.revenue_subsidy_y.values()
@@ -142,6 +137,7 @@ class Simulation():
         line["report_header_y"] = obj.control_y.keys()
 
         ##################################
+
         line["fcf_project"] = obj.fcf_project.values()  #FCF values
         line["fcf_project_before_tax"] = obj.fcf_project_before_tax.values()
         line["fcf_owners"] = obj.fcf_owners.values()
@@ -165,6 +161,7 @@ class Simulation():
         line["wacc_y"] = obj.wacc
 
         #########################################
+
         line["project_days"] = self.ecm.electricity_prices.keys()  #list of all project days
 
         line["equipment_description"] = self.tm.equipmentDescription()
@@ -198,7 +195,7 @@ class Simulation():
         self.line = convertValue(line)
 
     def runSimulation(self,  iterations_number):
-        """Run Simulation with multiple @iterations_number"""
+        """Run Simulation with multiple @iterations_number."""
         self.initSimulationRecord(iterations_number)  #Prepare atributes for saving simulation record
         self.runIterations(iterations_number)  #run all iterations with saving results
         self.addIrrStatsToSimulation()  #add IRR stats to simulation record for future speed access
@@ -206,7 +203,7 @@ class Simulation():
         self.db.insertSimulation(self.simulation_record)  #insert simulation record
 
     def runIterations(self, iterations_number):
-        """Run multiple @iterations_number"""
+        """Run multiple @iterations_number."""
         print_progress = setupPrintProgress(
             '%d%%', lambda x: (x + 1) * 100 / float(iterations_number))
         for i in range(iterations_number):
@@ -244,7 +241,7 @@ class Simulation():
             riskFreeRate, benchmarkSharpeRatio)
 
     def runOneIteration(self, iteration_no, total_iteration_number):
-        """runs 1 iteration, prepares new data and saves it to db"""
+        """Runs 1 iteration, prepares new data and saves it to db."""
         self.prepareMirr(iteration_no, self.simulation_no)  #prepare Mirr module, which has links for all other modules
         self.prepareLinks()  #make short links to other modules
         self.prepareIterationResults(iteration_no)  #main func to prepare results in one dict
@@ -252,7 +249,7 @@ class Simulation():
         self.addIterationTEP()
 
     def prepareMirr(self, iteration_no, simulation_no):
-        """prepare All modules for simulation"""
+        """Prepare all modules for simulation."""
         self.i = Mirr(self.country, iteration_no, simulation_no)
 
     def addIterationIrrs(self):
@@ -276,6 +273,4 @@ def runAndSaveSimulation(country, iterations_no, comment):
     """
     s = Simulation(country, comment=comment)
     s.runSimulation(iterations_no)
-    return s.getSimulationNo()
-
-
+    return s.simulation_no
