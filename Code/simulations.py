@@ -1,9 +1,10 @@
 import sys
 import datetime
+import multiprocessing
 
 from annex import convertValue, setupPrintProgress
 from collections import defaultdict
-from config_readers import RiskModuleConfigReader
+from config_readers import RiskModuleConfigReader, MainConfig
 from database import Database
 from rm import calcSimulationStatistics
 from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3, TEP_REPORT_FIELD, TEP_REPORT_FIELD2, TEP_REPORT_FIELD3
@@ -18,7 +19,7 @@ from config_readers import MainConfig
 from report_output import ReportOutput
 
 
-class Simulation:
+class Simulation():
     """Class for preparing, runinning and saving simulations to Database"""
 
     def __init__(self, country, comment=''):
@@ -29,50 +30,114 @@ class Simulation:
         self.comment = comment  #user comment for current simulation
         self.country = country #country which data will be used in simulation
         self.simulation_no = self.db.getNextSimulationNo()  #load last simulation no from db
+        self.rm_configs = RiskModuleConfigReader(self.country).getConfigsValues()
 
-        # accumulation values from all iterations
-        self.irrs0 = []  # for keeping irr values for each iteration
-        self.irrs1 = []
-        self.irrs2 = []
-        self.total_energy_produced = []  # energy related values
-        self.system_not_working = []
-        self.electricity_production_2ndyear = []
+    def runSimulation(self,  iterations_number):
+        """Run simulation with @iterations_number number of iterations."""
+        self.initSimulationRecord(iterations_number)  # prepare atributes for saving simulation record
+        self.runIterations(iterations_number)  # run all iterations with saving results
+        self.addIrrStatsToSimulation()  # add IRR stats to simulation record for future speed access
+        self.addTotalEnergyProducedStatsToSimulation()  # add TEP stats to simulation record for future speed access
+        self.db.insertSimulation(self.simulation_record)   # insert simulation record
 
-    def prepareAllModules(self, iteration_no):
-        """Create short links to prepared modules."""
+    def runIterations(self, iterations_number):
+        """Run @iterations_number iterations."""
+
+        cpu_count = multiprocessing.cpu_count()
+        pool = multiprocessing.Pool(cpu_count)
+        data = [(i+1, self.simulation_no, self.country) for i in range(iterations_number)]
+        result = pool.map(runIteration, data)  # irr and tep data
+        result = zip(*result) # transpose
+
+        # accumulation of values from all iterations
+        self.irrs0, self.irrs1, self.irrs2 = result[:3]
+        self.total_energy_produced, self.system_not_working, self.electricity_production_2ndyear = result[3:]
+
+        #iterations_for_cpu = [[] for i in range(cpu_count)]
+        #for i in range(iterations_number):
+            #iterations_for_cpu[i % cpu_count].append(i+1)
+
+        #thread_list = [multiprocessing.Process(target=runIterationsList, args=(lst, self)) for lst in iterations_for_cpu]
+
+        #for t in thread_list: t.start()
+        #for t in thread_list: t.join()
+        #print self.irrs1
+        #print self.total_energy_produced
+
+    def initSimulationRecord(self, iterations_number):
+        """Prepare atributes for saving simulation records"""
+        print "%s - runing simulation %s with %s number of iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
+        self.simulation_record = defaultdict(list)  #attribute for holding basic info about simulation
+        self.simulation_record["simulation"] = self.simulation_no
+        self.simulation_record["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.simulation_record["comment"] = self.comment
+        self.simulation_record["iterations_number"] = iterations_number  #number of iterations,
+        self.simulation_record["country"] = self.country  #number of iterations,
+
+    def addIrrStatsToSimulation(self):
+        """Adding irr results to dict with simulation data"""
+        """    for each simulation batch calculate, display and save the standard deviation of IRR (both of owners and project - separately)
+        - skweness : http://en.wikipedia.org/wiki/Skewness
+        - kurtosis: http://en.wikipedia.org/wiki/Kurtosis
+        """
+        fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3]  #which field names will be used to calc stats
+
+        riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
+        self.simulation_record['irr_stats'] = calcSimulationStatistics(fields, [self.irrs0, self.irrs1, self.irrs2], riskFreeRate, benchmarkSharpeRatio )  #calculating and adding IRR stats to simulation record
+
+    def addTotalEnergyProducedStatsToSimulation(self):
+        """Adding total energy produced results to dict with simulation data."""
+        fields = [TEP_REPORT_FIELD, TEP_REPORT_FIELD2, TEP_REPORT_FIELD3]
+        riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
+        self.simulation_record['total_energy_produced_stats'] = calcSimulationStatistics(
+            fields, [self.total_energy_produced, self.system_not_working, self.electricity_production_2ndyear],
+            riskFreeRate, benchmarkSharpeRatio)
+
+
+class Iteration:
+    """Class for running a single iteration."""
+
+    def __init__(self, iteration_no, simulation_no, country):
+        """Iteration number of this iteration and link to simulation module."""
+        self.iteration_no = iteration_no
+        self.simulation_no = simulation_no
+        self.country = country
+        self.db =  Database()  #connection to Db
+
         self.config = MainConfig(self.country)
-
         self.em = EnergyModule(self.config, self.country)
         self.sm = SubsidyModule(self.config, self.country)
         self.tm = TechnologyModule(self.config, self.em, self.country)
         self.enm = EnvironmentalModule(self.config, self.country, self.tm.total_nominal_power)
         self.ecm = EconomicModule(self.config, self.tm, self.sm, self.enm, self.country)
         self.r = Report(self.config, self.ecm, iteration_no, self.simulation_no)
+
+    def run(self):
+        """Runs 1 iteration and prepares new data."""
+        print "running iter:", self.iteration_no
         self.r.calcReportValues()
         self.o = ReportOutput(self.r)
+        self._prepareIterationResults()  # main func to prepare results in one dict
 
-        self.main_configs = self.config.getConfigsValues()  #module config values
-        self.ecm_configs = self.ecm.getConfigsValues()  #module config values
-        self.tm_configs = self.tm.getConfigsValues()  #module config values
-        self.sm_configs = self.sm.getConfigsValues() #module config values
-        self.em_configs = self.em.getConfigsValues() #module config values
-        self.rm_configs = RiskModuleConfigReader(self.country).getConfigsValues() #module config values
-        self.enm_configs = self.enm.getConfigsValues()  # module config values
+    def saveAndReturn(self):
+        """Saves the data to simulation fields and database."""
+        self.db.insertIteration(self.line)  # save iteration to db
+        return self._getIrrValues() + self._getTepValues()
 
-    def prepareIterationResults(self, iteration):
-        """Prepare each iteration (@iteration number) results before saving to database."""
+    def _prepareIterationResults(self):
+        """prepare each iteration (@iteration number) results before saving to database"""
         obj = self.r
         line = dict()  #main dict for holding results of one iteration
 
         line["simulation"] = self.simulation_no
-        line["iteration"] = iteration
+        line["iteration"] = self.iteration_no
 
-        line["main_configs"] = self.main_configs  #module config values
-        line["ecm_configs"] = self.ecm_configs #module config values
-        line["tm_configs"] = self.tm_configs #module config values
-        line["sm_configs"] = self.sm_configs #module config values
-        line["em_configs"] = self.em_configs #module config values
-        line["enm_configs"] = self.enm_configs #module config values
+        line["main_configs"] = self.config.getConfigsValues()
+        line["ecm_configs"] = self.ecm.getConfigsValues()
+        line["tm_configs"] = self.tm.getConfigsValues()
+        line["sm_configs"] = self.sm.getConfigsValues()
+        line["em_configs"] = self.em.getConfigsValues()
+        line["enm_configs"] = self.enm.getConfigsValues()
 
         #####################################
 
@@ -111,7 +176,6 @@ class Simulation:
         line["report_header"] = obj.control.keys()
 
         ###############################
-
         line["revenue_y"] = obj.revenue_y.values()
         line["revenue_electricity_y"] = obj.revenue_electricity_y.values()
         line["revenue_subsidy_y"] = obj.revenue_subsidy_y.values()
@@ -147,7 +211,6 @@ class Simulation:
         line["report_header_y"] = obj.control_y.keys()
 
         ##################################
-
         line["fcf_project"] = obj.fcf_project.values()  #FCF values
         line["fcf_project_before_tax"] = obj.fcf_project_before_tax.values()
         line["fcf_owners"] = obj.fcf_owners.values()
@@ -171,7 +234,6 @@ class Simulation:
         line["wacc_y"] = obj.wacc
 
         #########################################
-
         line["project_days"] = self.ecm.electricity_prices.keys()  #list of all project days
 
         line["equipment_description"] = self.tm.equipmentDescription()
@@ -204,70 +266,22 @@ class Simulation:
 
         self.line = convertValue(line)
 
-    def runSimulation(self,  iterations_number):
-        """Run Simulation with multiple @iterations_number."""
-        self.initSimulationRecord(iterations_number)  #Prepare atributes for saving simulation record
-        self.runIterations(iterations_number)  #run all iterations with saving results
-        self.addIrrStatsToSimulation()  #add IRR stats to simulation record for future speed access
-        self.addTotalEnergyProducedStatsToSimulation() #add TEP stats to simulation record for future speed access
-        self.db.insertSimulation(self.simulation_record)  #insert simulation record
+    def _getIrrValues(self):
+        """Returns irr results fir specified attrributes."""
+        return (getattr(self.r, IRR_REPORT_FIELD),
+                getattr(self.r, IRR_REPORT_FIELD2),
+                getattr(self.r, IRR_REPORT_FIELD3))
 
-    def runIterations(self, iterations_number):
-        """Run multiple @iterations_number."""
-        print_progress = setupPrintProgress(
-            '%d%%', lambda x: (x + 1) * 100 / float(iterations_number))
-        for i in range(iterations_number):
-            self.runOneIteration(i+1)  #main calculations
-            self.db.insertIteration(self.line)  #saving to db each iteration result
-            print_progress(i)  # printing percent to screen
-        print "\n"
+    def _getTepValues(self):
+        """Returns total energy produced, system not working and electricity prod 2nd year attributes."""
+        return (getattr(self.r, TEP_REPORT_FIELD),
+                getattr(self.r, TEP_REPORT_FIELD2),
+                getattr(self.r, TEP_REPORT_FIELD3))
 
-    def initSimulationRecord(self, iterations_number):
-        """Prepare atributes for saving simulation records"""
-        print "%s - runing simulation %s with %s number of iterations\n" % ( datetime.datetime.now().date(), self.simulation_no, iterations_number)
-        self.simulation_record = defaultdict(list)  #attribute for holding basic info about simulation
-        self.simulation_record["simulation"] = self.simulation_no
-        self.simulation_record["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
-        self.simulation_record["comment"] = self.comment
-        self.simulation_record["iterations_number"] = iterations_number  #number of iterations,
-        self.simulation_record["country"] = self.country  #number of iterations,
-
-    def addIrrStatsToSimulation(self):
-        """Adding irr results to dict with simulation data"""
-        """    for each simulation batch calculate, display and save the standard deviation of IRR (both of owners and project - separately)
-        - skweness : http://en.wikipedia.org/wiki/Skewness
-        - kurtosis: http://en.wikipedia.org/wiki/Kurtosis
-        """
-        fields = [IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3]  #which field names will be used to calc stats
-        riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
-        self.simulation_record['irr_stats'] = calcSimulationStatistics(fields, [self.irrs0, self.irrs1, self.irrs2], riskFreeRate, benchmarkSharpeRatio )  #calculating and adding IRR stats to simulation record
-
-    def addTotalEnergyProducedStatsToSimulation(self):
-        """Adding total energy produced results to dict with simulation data."""
-        fields = [TEP_REPORT_FIELD, TEP_REPORT_FIELD2, TEP_REPORT_FIELD3]
-        riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
-        self.simulation_record['total_energy_produced_stats'] = calcSimulationStatistics(
-            fields, [self.total_energy_produced, self.system_not_working, self.electricity_production_2ndyear],
-            riskFreeRate, benchmarkSharpeRatio)
-
-    def runOneIteration(self, iteration_no):
-        """Runs 1 iteration, prepares new data and saves it to db."""
-        self.prepareAllModules(iteration_no)
-        self.prepareIterationResults(iteration_no)  #main func to prepare results in one dict
-        self.addIterationIrrs()  #add irr values to additional lists for future analis
-        self.addIterationTEP()
-
-    def addIterationIrrs(self):
-        """Adds irr results to attrributes"""
-        self.irrs0.append(getattr(self.r, IRR_REPORT_FIELD))
-        self.irrs1.append(getattr(self.r, IRR_REPORT_FIELD2))
-        self.irrs2.append(getattr(self.r, IRR_REPORT_FIELD3))
-
-    def addIterationTEP(self):
-        """Adds total energy produced and system not working values to attributes."""
-        self.total_energy_produced.append(getattr(self.r, TEP_REPORT_FIELD))
-        self.system_not_working.append(getattr(self.r, TEP_REPORT_FIELD2))
-        self.electricity_production_2ndyear.append(getattr(self.r, TEP_REPORT_FIELD3))
+def runIteration(args):
+    i = Iteration(*args)
+    i.run()
+    return i.saveAndReturn()
 
 def runAndSaveSimulation(country, iterations_no, comment):
     """
@@ -279,3 +293,5 @@ def runAndSaveSimulation(country, iterations_no, comment):
     s = Simulation(country, comment=comment)
     s.runSimulation(iterations_no)
     return s.simulation_no
+
+

@@ -19,7 +19,7 @@ def calcStatistics(values):
     """
     result = OrderedDict()
     if len(values) > 1:
-        values_upd = values[:]
+        values_upd = list(values)
         values_upd[0] += 1e-5  #adding very small value for first element in list for proper calculation of stats in case all values are the same
 
         result['std'] = std(values_upd)  # standart deviation -- biased estimator
@@ -82,7 +82,7 @@ def JarqueBeraTest(values=(), significance_levels=(0.05, 0.01, 0.001), JB_stat_v
     return result
 
 def normalityTest(values_orig, significance_levels=(0.05, 0.01, 0.001)):
-    values = values_orig[:]
+    values = list(values_orig)
     values[0] += 1e-5
 
     if len(values) < 3:
