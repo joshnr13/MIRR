@@ -13,27 +13,13 @@ from config_yaml_reader import parse_yaml, get_config_value
 from constants import TESTMODE
 
 
-ITERATION_NO = 0
-
-
-def silent():
-    if ITERATION_NO in (0, 1):
-        return False
-    return True
-
-
-def start_iteration(iteration):
-    global ITERATION_NO
-    ITERATION_NO = iteration
-
-
 class MainConfig():
     """Module for reading configs from main config file"""
 
     def __init__(self, country, _filename='main_config.ini'):
         """Reads main config file"""
 
-        _config = parse_yaml(_filename, country, silent())
+        _config = parse_yaml(_filename, country)
 
         self.lifetime = get_config_value(_config, 'MAIN.lifetime', int)  #load values from section Main with value lifetime
         self.resolution = get_config_value(_config, 'MAIN.resolution', int)
@@ -120,7 +106,7 @@ class SubsidyModuleConfigReader():
 
     def __init__(self, country, last_day_construction, _filename='sm_config.ini'):
         """Reads module config file"""
-        _config = parse_yaml(_filename, country, silent()) #loads config to memory
+        _config = parse_yaml(_filename, country) #loads config to memory
 
         self.kWhFIT = get_config_value(_config, 'SUBSIDY.kWhFIT', float)
         self.subsidy_duration = get_config_value(_config, 'SUBSIDY.subsidy_duration', int)
@@ -143,7 +129,7 @@ class TechnologyModuleConfigReader():
 
     def __init__(self, country, _filename='tm_config.ini'):
 
-        _config = parse_yaml(_filename, country, silent())  #loads config to memory
+        _config = parse_yaml(_filename, country)  #loads config to memory
 
         ######################## BASE ###################
         self.groups_number = get_config_value(_config, 'SYSTEM.groups_number', int)
@@ -186,7 +172,7 @@ class TechnologyModuleConfigReader():
         return self.configs
 
     def randomizeSolarModuleParameters(self, country, _filename='tm_config.ini'):
-        _config = parse_yaml(_filename, country, silent())  #loads config to memory
+        _config = parse_yaml(_filename, country)  #loads config to memory
         self.degradation_yearly = get_config_value(_config, 'SOLAR_MODULE.PV_degradation_rate', 'float_percent')
         self.module_power = get_config_value(_config, 'SOLAR_MODULE.power', float)
         self.albedo_error = get_config_value(_config, 'SYSTEM.albedo_error', float)
@@ -202,7 +188,7 @@ class EconomicModuleConfigReader():
         @self.insuranceLastDayEquipment - last day when we need to pay for insurance
         """
 
-        _config = parse_yaml(_filename, country, silent())
+        _config = parse_yaml(_filename, country)
 
         self.tax_rate = get_config_value(_config, 'TAXES.tax_rate', 'float_percent')
         self.administrativeCosts = get_config_value(_config, 'COSTS.administrativeCosts')
@@ -260,9 +246,8 @@ class EconomicModuleConfigReader():
 class EnergyModuleConfigReader():
     """Module for reading Energy configs from file"""
 
-    def __init__(self, country, _filename='em_config.ini', silently=False):
-        silently = silently or silent()
-        _config = parse_yaml(_filename, country, silently)
+    def __init__(self, country, _filename='em_config.ini'):
+        _config = parse_yaml(_filename, country)
 
         #mean value for distribution of random factor for generating temperature
         self.mean = get_config_value(_config, 'NORMAL_DISTRIBUTION.mean', float)
@@ -313,7 +298,7 @@ class RiskModuleConfigReader():
     """Module for reading Risk configs from file"""
 
     def __init__(self, country, _filename='rm_config.ini'):
-        _config = parse_yaml(_filename, country, silent())
+        _config = parse_yaml(_filename, country)
 
         self.riskFreeRate = get_config_value(_config, 'RISK.riskFreeRate', float)
         self.benchmarkSharpeRatio = get_config_value(_config, 'RISK.benchmarkSharpeRatio', float)
@@ -329,7 +314,7 @@ class EnviromentModuleConfigReader():
     """Module for reading Risk configs from file"""
 
     def __init__(self, country, _filename='enm_config.ini'):
-        _config = parse_yaml(_filename, country, silent())
+        _config = parse_yaml(_filename, country)
 
         self.pvequipment_disposal = get_config_value(_config, 'DISPOSAL.pvequipment_disposal', float)
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict

@@ -4,11 +4,10 @@ import datetime
 from _mirr import Mirr
 from annex import convertValue, setupPrintProgress
 from collections import defaultdict
-from config_readers import RiskModuleConfigReader, start_iteration
+from config_readers import RiskModuleConfigReader
 from database import Database
 from rm import calcSimulationStatistics
 from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3, TEP_REPORT_FIELD, TEP_REPORT_FIELD2, TEP_REPORT_FIELD3
-
 
 
 class Simulation():
@@ -214,7 +213,6 @@ class Simulation():
         print_progress = setupPrintProgress(
             '%d%%', lambda x: (x + 1) * 100 / float(iterations_number))
         for i in range(iterations_number):
-            start_iteration(i+1)  # set global param with number of iteration
             self.runOneIteration(i+1, iterations_number)  #main calculations
             self.db.insertIteration(self.line)  #saving to db each iteration result
             print_progress(i)  # printing percent to screen
