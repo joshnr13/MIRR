@@ -54,9 +54,6 @@ class Simulation():
         self.rm_configs = RiskModuleConfigReader(self.country).getConfigsValues() #module config values
         self.enm_configs = self.enm.getConfigsValues()  # module config values
 
-    def convertResults(self):
-        """Processing results before inserting to DB"""
-        self.line = convertValue(self.prepared_line)
 
     def prepareIterationResults(self, iteration):
         """prepare each iteration (@iteration number) results before saving to database"""
@@ -198,7 +195,7 @@ class Simulation():
         line["pv_owners_y"] = obj.pv_owners_y.values()
         line["pv_project_y"] = obj.pv_project_y.values()
 
-        self.prepared_line = line
+        self.line = convertValue(line)
 
     def runSimulation(self,  iterations_number):
         """Run Simulation with multiple @iterations_number"""
@@ -251,7 +248,6 @@ class Simulation():
         self.prepareMirr(iteration_no, self.simulation_no)  #prepare Mirr module, which has links for all other modules
         self.prepareLinks()  #make short links to other modules
         self.prepareIterationResults(iteration_no)  #main func to prepare results in one dict
-        self.convertResults()  #post process results before saving to db
         self.addIterationIrrs()  #add irr values to additional lists for future analis
         self.addIterationTEP()
 
