@@ -14,7 +14,6 @@ from database import Database
 from ecm import ElectricityMarketPriceSimulation
 from em import WeatherSimulation
 from simulations import runAndSaveSimulation
-from _mirr import Mirr
 from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRScatterChart, plotStepChart
 from report_output import ReportOutput
 from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD, REPORT_DEFAULT_NUMBER_ITERATIONS
@@ -146,7 +145,7 @@ class Interface():
         country = self.getInputCountry(country)
 
         simulations_no = 100
-        period = self.getMirr(country).main_config.getAllDates()
+        period = self.getAllDates()
         simulations = WeatherSimulation(country, period, simulations_no)
         print_separator()
         simulations.simulate()
@@ -156,7 +155,7 @@ class Interface():
         country = self.getInputCountry(country)
 
         simulations_no = 500
-        period = self.getMirr(country).main_config.getAllDates()
+        period = self.getAllDates()
         simulations = ElectricityMarketPriceSimulation(country, period, simulations_no)
         print_separator()
         simulations.simulate()
@@ -196,6 +195,10 @@ class Interface():
         country = self.getInputCountry(country)
         exportElectricityPrices(country, simulation_no=None)
 
+    @memoize
+    def getAllDates(country):
+        return MainConfig(country).getAllDates()
+
     ####################################################################################################################
 
     def _run_correlations(self, field):
@@ -205,11 +208,6 @@ class Interface():
                                                print_result=True)
 
         plotCorrelationTornadoChart(field, simulation_no, country=country)
-
-    @memoize
-    def getMirr(self, country):
-        """return class instances that combines all modules together"""
-        return Mirr(country)
 
     def getNumberIterations(self, text="", default=""):
         """User input for number of iterations"""

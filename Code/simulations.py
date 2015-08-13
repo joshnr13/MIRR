@@ -1,13 +1,21 @@
 import sys
 import datetime
 
-from _mirr import Mirr
 from annex import convertValue, setupPrintProgress
 from collections import defaultdict
 from config_readers import RiskModuleConfigReader
 from database import Database
 from rm import calcSimulationStatistics
 from constants import IRR_REPORT_FIELD, IRR_REPORT_FIELD2, IRR_REPORT_FIELD3, TEP_REPORT_FIELD, TEP_REPORT_FIELD2, TEP_REPORT_FIELD3
+
+from enm import EnvironmentalModule
+from tm import TechnologyModule
+from em import EnergyModule
+from sm import SubsidyModule
+from ecm import EconomicModule
+from report import Report
+from config_readers import MainConfig
+from report_output import ReportOutput
 
 
 class Simulation:
@@ -30,16 +38,18 @@ class Simulation:
         self.system_not_working = []
         self.electricity_production_2ndyear = []
 
-    def prepareLinks(self):
+    def prepareAllModules(self, iteration_no):
         """Create short links to prepared modules."""
-        self.config = self.i.getMainConfig()
-        self.ecm = self.i.getEconomicModule()
-        self.tm = self.i.getTechnologyModule()
-        self.sm = self.i.getsubsidyModule()
-        self.em = self.i.getEnergyModule()
-        self.r = self.i.getReportModule()
-        self.o = self.i.getOutputModule()
-        self.enm = self.i.getEnviromentModule()
+        self.config = MainConfig(self.country)
+
+        self.em = EnergyModule(self.config, self.country)
+        self.sm = SubsidyModule(self.config, self.country)
+        self.tm = TechnologyModule(self.config, self.em, self.country)
+        self.enm = EnvironmentalModule(self.config, self.country, self.tm.total_nominal_power)
+        self.ecm = EconomicModule(self.config, self.tm, self.sm, self.enm, self.country)
+        self.r = Report(self.config, self.ecm, iteration_no, self.simulation_no)
+        self.r.calcReportValues()
+        self.o = ReportOutput(self.r)
 
         self.main_configs = self.config.getConfigsValues()  #module config values
         self.ecm_configs = self.ecm.getConfigsValues()  #module config values
@@ -207,7 +217,7 @@ class Simulation:
         print_progress = setupPrintProgress(
             '%d%%', lambda x: (x + 1) * 100 / float(iterations_number))
         for i in range(iterations_number):
-            self.runOneIteration(i+1, iterations_number)  #main calculations
+            self.runOneIteration(i+1)  #main calculations
             self.db.insertIteration(self.line)  #saving to db each iteration result
             print_progress(i)  # printing percent to screen
         print "\n"
@@ -240,17 +250,12 @@ class Simulation:
             fields, [self.total_energy_produced, self.system_not_working, self.electricity_production_2ndyear],
             riskFreeRate, benchmarkSharpeRatio)
 
-    def runOneIteration(self, iteration_no, total_iteration_number):
+    def runOneIteration(self, iteration_no):
         """Runs 1 iteration, prepares new data and saves it to db."""
-        self.prepareMirr(iteration_no, self.simulation_no)  #prepare Mirr module, which has links for all other modules
-        self.prepareLinks()  #make short links to other modules
+        self.prepareAllModules(iteration_no)
         self.prepareIterationResults(iteration_no)  #main func to prepare results in one dict
         self.addIterationIrrs()  #add irr values to additional lists for future analis
         self.addIterationTEP()
-
-    def prepareMirr(self, iteration_no, simulation_no):
-        """Prepare all modules for simulation."""
-        self.i = Mirr(self.country, iteration_no, simulation_no)
 
     def addIterationIrrs(self):
         """Adds irr results to attrributes"""
