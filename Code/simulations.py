@@ -34,7 +34,7 @@ class Simulation:
         self.simulation_no = self.db.getNextSimulationNo()  #load last simulation no from db
         self.rm_configs = RiskModuleConfigReader(self.country).getConfigsValues()
 
-    def runSimulation(self,  iterations_number):
+    def runSimulation(self, iterations_number):
         """Run simulation with @iterations_number number of iterations."""
         self.initSimulationRecord(iterations_number)  # prepare atributes for saving simulation record
         self.runIterations(iterations_number)  # run all iterations with saving results
@@ -268,6 +268,7 @@ class Iteration:
 
 progress_counter = None  # global thread progress counter
 def initIteration(args):
+    """Function to initialize shared variables used by pool of workers."""
     global progress_counter
     progress_counter = args
 
