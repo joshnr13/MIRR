@@ -16,15 +16,15 @@ sigma  =  std(resid) * sqrt( 2*lambda/(1-b^2) );
 
 end
 
-S = csvread('benchmark_market_price_timeseries.csv');
+S = log(csvread('contract_prices_last_year.csv', 1, 1))
 [mu, sigma, lambda] = estimate(S, 1)
 
 plot(S)
 pause
 
 % OUTPUT:
-%  mu =  74.250
-%  sigma =  1.0163
-%  lambda =  0.0030704
+% mu =  3.4397
+% sigma =  0.0055596
+% lambda =  0.0083759
 
 % vim: set ft=matlab:
