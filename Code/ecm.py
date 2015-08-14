@@ -5,7 +5,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import numpy as np
 import random
-from math import exp, log
+from math import exp, log, log1p
 
 from rm import calcStatistics
 from tm import TechnologyModule
@@ -73,24 +73,23 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     def calcPriceLogDeltaNoJump(self, prev_price_log, theta_log):
         """Calculates delta price (dp) based on @prev_price without a price jump"""
         #delta_Z = np.random.normal(loc=0, scale=0.9)  #random value distribution
-        delta_Z = np.random.normal(loc=5.1725e-04, scale=0.023594)
+        delta_Z = np.random.normal(loc=self.theta_log, scale=self.sigma_log)
 
-        delta_price_log = self.k * (theta_log - prev_price_log) + delta_Z
+        delta_price_log = self.lambd * (theta_log - prev_price_log) + delta_Z
         return  delta_price_log
 
     def calcPriceWholePeriod(self, start_price):
         """Calculate price for whole period from start date to end - return  list with prices for all project days"""
         result = []
         y = self.makeInterannualVariabilityY()
-        theta = self.theta
-
+        theta_log = self.theta_log
         prev_price_log = log(start_price)
 
         for i, date in enumerate(self.period):
             if date.weekday() < 5:
-                price_log = prev_price_log + self.calcPriceLogDeltaNoJump(prev_price_log, log(theta))
+                price_log = prev_price_log + self.calcPriceLogDeltaNoJump(prev_price_log, theta_log)
 
-            theta = theta * (1 + y/365)
+            theta_log += log1p(y/365)
             prev_price_log = price_log
             result.append(exp(price_log))
             if isLastDayYear(date):  # recalculate y each new year

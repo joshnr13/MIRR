@@ -230,9 +230,10 @@ class EconomicModuleConfigReader():
             _config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.interannual_variability_of_y_mean', float)
         self.y_annual_std = get_config_value(
             _config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.interannual_variability_of_y_std', float)
-        self.theta = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.theta', float)
-        self.k = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.k', float)
-        self.sigma = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.sigma', float)
+        self.theta_log = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.theta_log', float)
+        self.sigma_log = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.sigma_log', float)
+        self.lambda_log = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.lambda_log', float)
+        self.lambd = exp(self.lambda_log)
 
         self.jump_size_average = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.jump_size_average', float)
         self.jump_size_std = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.jump_size_std', float)
