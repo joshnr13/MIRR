@@ -16,7 +16,7 @@ sigma  =  std(resid) * sqrt( 2*lambda/(1-b^2) );
 
 end
 
-S = log(csvread('contract_prices_last_year.csv', 1, 1))
+S = log(csvread('contract_prices_last_year.csv', 1, 1));
 [mu, sigma, lambda] = estimate(S, 1)
 
 plot(S)
