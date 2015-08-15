@@ -15,7 +15,7 @@ plt.show()
 from scipy.stats import exponweib
 
 fig, ax = plt.subplots(1, 1)
-a, c = 0.001, 1.75
+a, c = 1, 1.35
 mean, var, skew, kurt = exponweib.stats(a, c, moments='mvsk')
 x = np.linspace(exponweib.ppf(0.01, a, c),
                 exponweib.ppf(0.99, a, c), 100)
