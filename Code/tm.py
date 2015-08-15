@@ -53,7 +53,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
                 eq_group.addSolarModule(self.module_power_efficiency * (1 + self.albedo_error), self.module_price, self.module_mttf, self.module_mttr, self.module_power, self.module_nominal_power, self.degradation_yearly)
 
     def addACTransmission(self):
-        """add transformer and connection grid to plant"""
+        """Add transformer and connection grid to plant."""
         actransmission_group = self.plant.addACGroup()  # adds new group for that kind of equipment
         actransmission_group.addConnectionGrid(self.grid_power_efficiency, self.grid_price, self.grid_mttf, self.grid_mttr)
         if self.transformer_present:
