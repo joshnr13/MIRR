@@ -291,7 +291,7 @@ def exportElectricityPrices(country, simulation_no=None):
     # xls_output_filename = uniquifyFilename(xls_output_filename)  # generating filename for XLS
     # convert2excel(source=output_filename, output=xls_output_filename)  # converting CSV to XLS
 
-    print "Electricity data report outputed to file %s." % output_filename
+    print "Weather data Report outputed to file %s" % output_filename
 
 
 def plotGeneratedElectricity(what, simulation_no, country):

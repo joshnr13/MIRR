@@ -13,7 +13,6 @@ from annex import getInputDate, getInputInt, memoize, getInputComment, \
 from database import Database
 from ecm import ElectricityMarketPriceSimulation
 from em import WeatherSimulation
-from config_readers import MainConfig
 from simulations import runAndSaveSimulation
 from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRScatterChart, plotStepChart
 from report_output import ReportOutput
