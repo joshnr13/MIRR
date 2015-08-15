@@ -17,47 +17,26 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         self.country = country
         self.energy_module = energy_module
         self.assembleSystem()  #creates Plant
-        self.calcTotalPower()  #calculates Total Power
         self.calcTotalNominalPower()  #calculates Total Nominal Power
         self.getInvestmentCost()  #calc investment costs of all plant + documentation
 
-    def calcTotalPower(self):
-        """Calculates total power for whole plant"""
-        self.total_power = self.groups_number * self.modules_in_group * self.module_power
-
     def calcTotalNominalPower(self):
         """Calculates total power for whole plant"""
-        self.total_nominal_power = self.groups_number * self.modules_in_group * self.module_nominal_power
-
+        self.total_nominal_power = self.wind_turbines_number * self.turbine_nominal_power
 
     def assembleSystem(self):
-        """generates objects for each solarmodule in plant"""
-        self.buildPlant()  #create plant
-        self.addSolarModulesAndInverter()  #add solar modules and inverters to plant
-        self.addACTransmission()  #add transformer and connection grid to plant
-
-    def buildPlant(self):
-        """Creates plant object."""
+        """Creates the entire equipment hierarchy:
+        creates plant, adds wind turbines and grid connection."""
         self.plant = PlantEquipment(self.start_date_project,
                                     self.end_date_project,
                                     energy_module=self.energy_module)  # new class Plant
 
-    def addSolarModulesAndInverter(self):
-        """Adds solar module and inverter in each group."""
-        self.module_power_efficiency *= (1 + self.modelling_error) # correct module efficiency
-        for i in range(self.groups_number):
-            eq_group = self.plant.addSolarGroup()
-            eq_group.addInverter(self.inverter_power_efficiency, self.inverter_price, self.inverter_mtbf, self.inverter_mttr)
-            for j in range(self.modules_in_group):
-                self.randomizeSolarModuleParameters(self.country)
-                eq_group.addSolarModule(self.module_power_efficiency * (1 + self.albedo_error), self.module_price, self.module_mtbf, self.module_mttr, self.module_power, self.module_nominal_power, self.degradation_yearly)
+        self.turbine_power_efficiency *= (1 + self.modelling_error) # correct module efficiency
+        for i in range(self.wind_turbines_number):
+            self.randomizeTurbineParameters(self.country)
+            self.plant.addWindTurbine(self.turbine_power_efficiency * (1 + self.albedo_error), self.turbine_price, self.turbine_mtbf, self.turbine_mttr, self.turbine_power, self.turbine_nominal_power, self.degradation_yearly)
 
-    def addACTransmission(self):
-        """add transformer and connection grid to plant"""
-        actransmission_group = self.plant.addACGroup()  # adds new group for that kind of equipment
-        actransmission_group.addConnectionGrid(self.grid_power_efficiency, self.grid_price, self.grid_mtbf, self.grid_mttr)
-        if self.transformer_present:
-            actransmission_group.addTransformer(self.transformer_power_efficiency, self.transformer_price, self.transformer_mtbf, self.transformer_mttr)  # add transformer
+        self.plant.addConnectionGrid(self.grid_power_efficiency, self.grid_price, self.grid_mtbf, self.grid_mttr)
 
     def getInvestmentCost(self):
         """Returns investment costs of all plant."""
@@ -66,34 +45,21 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
     def getAverageDegradationRate(self):
         """Return average yearly degradation rate over all modules."""
         degradation_rates = []
-        for g in self.plant.solar_groups:
-            for sm in g.solar_modules:
-                degradation_rates.append(sm.degradation_yearly)
+        for wt in self.plant.wind_turbines:
+            degradation_rates.append(wt.degradation_yearly)
         return numpy.average(degradation_rates)
 
     def getAveragePowerRatio(self):
         """Calculates the average ratio between module_power and module_nominal_power."""
-        module_powers = []
-        for g in self.plant.solar_groups:
-            for sm in g.solar_modules:
-                module_powers.append(sm.power)
-        avg_module_power = numpy.average(module_powers)
-        return avg_module_power / self.module_nominal_power
+        turbine_powers = []
+        for wt in self.plant.wind_turbines:
+            turbine_powers.append(wt.power)
+        avg_turbine_power = numpy.average(turbine_powers)
+        return avg_turbine_power / self.turbine_nominal_power
 
     def equipmentDescription(self):
         """Returns string with description of equipment."""
         return str(self.plant)
-
-    def generateElectricityProductionLifeTimeUsingInsolation(self):
-        """Generates electricity production for whole project lifetime."""
-        last_day_construction = self.last_day_construction
-        insolations = self.energy_module.insolations
-        # electricity_production - dict with ideal electricity_production for every date
-        electricity_production = OrderedDict(
-            (day, self.plant.getElectricityProductionPlant1DayUsingInsolation(insol, daysBetween(self.start_date_project, day))
-                if day > last_day_construction else 0) for day, insol in insolations.items())
-
-        return electricity_production
 
     def generateElectricityProductionLifeTime(self):
         """Returns dict with electricity_production for every date of project lifetime."""

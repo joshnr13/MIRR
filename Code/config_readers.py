@@ -5,6 +5,7 @@ import os
 import random
 import datetime
 import ConfigParser
+from math import exp
 
 import numpy
 
@@ -132,38 +133,28 @@ class TechnologyModuleConfigReader():
         _config = parse_yaml(_filename, country)  #loads config to memory
 
         ######################## BASE ###################
-        self.groups_number = get_config_value(_config, 'SYSTEM.groups_number', int)
-        self.modules_in_group = get_config_value(_config, 'SYSTEM.modules_in_group', int)
-        self.transformer_present = get_config_value(_config, 'SYSTEM.transformer_present', bool)
+        self.wind_turbines_number = get_config_value(_config, 'SYSTEM.wind_turbines_number', int)
         self.modelling_error = get_config_value(_config, 'SYSTEM.modelling_error', float)
         self.albedo_error = get_config_value(_config, 'SYSTEM.albedo_error', float)
 
         self.grid_available_probability = get_config_value(_config, 'GRID.grid_available_probability', 'float_percent')
-        self.degradation_yearly = get_config_value(_config, 'SOLAR_MODULE.PV_degradation_rate', 'float_percent')
-        self.module_power = get_config_value(_config, 'SOLAR_MODULE.power', float)
-        self.module_nominal_power = get_config_value(_config, 'SOLAR_MODULE.nominal_power', float)
+        self.degradation_yearly = get_config_value(_config, 'WIND_TURBINE.PV_degradation_rate', 'float_percent')
+        self.turbine_power = get_config_value(_config, 'WIND_TURBINE.power', float)
+        self.turbine_nominal_power = get_config_value(_config, 'WIND_TURBINE.nominal_power', float)
 
         ######################## PRICE ###################
-        self.module_price = get_config_value(_config, 'SOLAR_MODULE.price', float)
-        self.inverter_price = get_config_value(_config, 'INVERTER.price', float)
-        self.transformer_price = get_config_value(_config, 'TRANSFORMER.price', float)
+        self.turbine_price = get_config_value(_config, 'WIND_TURBINE.price', float)
         self.grid_price = get_config_value(_config, 'GRID.price', float)
         self.documentation_price = get_config_value(_config, 'ADDITIONAL_PRICE.documentation_price', float)
 
         ####################### MTBF and  MTTR #############
-        self.inverter_mtbf = get_config_value(_config, 'INVERTER.mean_time_between_failures', int)
-        self.inverter_mttr = get_config_value(_config, 'INVERTER.mean_time_to_repair', int)
-        self.transformer_mtbf = get_config_value(_config, 'TRANSFORMER.mean_time_between_failures', int)
-        self.transformer_mttr = get_config_value(_config, 'TRANSFORMER.mean_time_to_repair', int)
         self.grid_mtbf = get_config_value(_config, 'GRID.mean_time_between_failures', int)
         self.grid_mttr = get_config_value(_config, 'GRID.mean_time_to_repair', int)
-        self.module_mtbf = get_config_value(_config, 'SOLAR_MODULE.mean_time_between_failures', int)
-        self.module_mttr = get_config_value(_config, 'SOLAR_MODULE.mean_time_to_repair', int)
+        self.turbine_mtbf = get_config_value(_config, 'WIND_TURBINE.mean_time_between_failures', int)
+        self.turbine_mttr = get_config_value(_config, 'WIND_TURBINE.mean_time_to_repair', int)
 
         ####################### EFFICIENCY ####################
-        self.module_power_efficiency = get_config_value(_config, 'SOLAR_MODULE.power_efficiency', 'float_percent')
-        self.inverter_power_efficiency = get_config_value(_config, 'INVERTER.power_efficiency', 'float_percent')
-        self.transformer_power_efficiency = get_config_value(_config, 'TRANSFORMER.power_efficiency', 'float_percent')
+        self.turbine_power_efficiency = get_config_value(_config, 'WIND_TURBINE.power_efficiency', 'float_percent')
         self.grid_power_efficiency = get_config_value(_config, 'GRID.power_efficiency', 'float_percent')
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
@@ -171,13 +162,13 @@ class TechnologyModuleConfigReader():
     def getConfigsValues(self):
         return self.configs
 
-    def randomizeSolarModuleParameters(self, country, _filename='tm_config.ini'):
+    def randomizeTurbineParameters(self, country, _filename='tm_config.ini'):
         _config = parse_yaml(_filename, country)  #loads config to memory
-        self.degradation_yearly = get_config_value(_config, 'SOLAR_MODULE.PV_degradation_rate', 'float_percent')
-        self.module_power = get_config_value(_config, 'SOLAR_MODULE.power', float)
+        self.degradation_yearly = get_config_value(_config, 'WIND_TURBINE.PV_degradation_rate', 'float_percent')
+        self.turbine_power = get_config_value(_config, 'WIND_TURBINE.power', float)
         self.albedo_error = get_config_value(_config, 'SYSTEM.albedo_error', float)
-        self.module_mtbf = get_config_value(_config, 'SOLAR_MODULE.mean_time_between_failures', int)
-        self.module_mttr = get_config_value(_config, 'SOLAR_MODULE.mean_time_to_repair', int)
+        self.turbine_mtbf = get_config_value(_config, 'WIND_TURBINE.mean_time_between_failures', int)
+        self.turbine_mttr = get_config_value(_config, 'WIND_TURBINE.mean_time_to_repair', int)
 
 
 class EconomicModuleConfigReader():
