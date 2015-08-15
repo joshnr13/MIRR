@@ -63,7 +63,7 @@ class WeatherSimulation(EnergyModuleConfigReader):
         @period - list dates for simulation
         @simulations_no - number of simulation (to save it to db)
         """
-        EnergyModuleConfigReader.__init__(self, country, silently=True)  #module configs
+        EnergyModuleConfigReader.__init__(self, country)  #module configs
         self.db = Database()  #  connection to db
         self.period = period
         self.simulations_no = simulations_no

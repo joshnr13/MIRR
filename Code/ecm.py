@@ -32,6 +32,8 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         self.N = len(period)  #number of days
         self.simulations_no = simulations_no
         self.db = Database()
+        self.country = country
+        self.start_date_project = period[0]
 
     def cleanPreviousData(self):
         print "Cleaning previous ElectricityPriceData for %r" % self.country
