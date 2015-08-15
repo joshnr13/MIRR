@@ -5,9 +5,9 @@ import os
 import random
 import datetime
 import ConfigParser
-
 import numpy
 
+from math import exp
 from annex import addXMonths, addXYears, getReportDates, getConfigs, floatRange, getListDates, cached_property
 from config_yaml_reader import parse_yaml, get_config_value
 from constants import TESTMODE
