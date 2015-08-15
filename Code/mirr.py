@@ -155,7 +155,7 @@ class Interface():
         """Generates multi simulations of Electricity Price for each day in project and saves it to database"""
         country = self.getInputCountry(country)
 
-        simulations_no = 500
+        simulations_no = 50
         period = self.getAllDates()
         simulations = ElectricityMarketPriceSimulation(country, period, simulations_no)
         print_separator()
