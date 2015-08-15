@@ -153,12 +153,16 @@ class TechnologyModuleConfigReader():
         ####################### MTBF and  MTTR #############
         self.inverter_mtbf = get_config_value(_config, 'INVERTER.mean_time_between_failures', int)
         self.inverter_mttr = get_config_value(_config, 'INVERTER.mean_time_to_repair', int)
+        self.inverter_mttf = self.inverter_mtbf - self.inverter_mttr
         self.transformer_mtbf = get_config_value(_config, 'TRANSFORMER.mean_time_between_failures', int)
         self.transformer_mttr = get_config_value(_config, 'TRANSFORMER.mean_time_to_repair', int)
+        self.transformer_mttf = self.transformer_mtbf - self.transformer_mttr
         self.grid_mtbf = get_config_value(_config, 'GRID.mean_time_between_failures', int)
         self.grid_mttr = get_config_value(_config, 'GRID.mean_time_to_repair', int)
+        self.grid_mttf = self.grid_mtbf - self.grid_mttr
         self.module_mtbf = get_config_value(_config, 'SOLAR_MODULE.mean_time_between_failures', int)
         self.module_mttr = get_config_value(_config, 'SOLAR_MODULE.mean_time_to_repair', int)
+        self.module_mttf = self.module_mtbf - self.module_mttr
 
         ####################### EFFICIENCY ####################
         self.module_power_efficiency = get_config_value(_config, 'SOLAR_MODULE.power_efficiency', 'float_percent')
@@ -178,6 +182,7 @@ class TechnologyModuleConfigReader():
         self.albedo_error = get_config_value(_config, 'SYSTEM.albedo_error', float)
         self.module_mtbf = get_config_value(_config, 'SOLAR_MODULE.mean_time_between_failures', int)
         self.module_mttr = get_config_value(_config, 'SOLAR_MODULE.mean_time_to_repair', int)
+        self.module_mttf = self.module_mtbf - self.module_mttr
 
 
 class EconomicModuleConfigReader():
