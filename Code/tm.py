@@ -34,9 +34,9 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         self.turbine_power_efficiency *= (1 + self.modelling_error) # correct module efficiency
         for i in range(self.wind_turbines_number):
             self.randomizeTurbineParameters(self.country)
-            self.plant.addWindTurbine(self.turbine_power_efficiency * (1 + self.albedo_error), self.turbine_price, self.turbine_mtbf, self.turbine_mttr, self.turbine_power, self.turbine_nominal_power, self.degradation_yearly)
+            self.plant.addWindTurbine(self.turbine_power_efficiency * (1 + self.albedo_error), self.turbine_price, self.turbine_mttf, self.turbine_mttr, self.turbine_power, self.turbine_nominal_power, self.degradation_yearly)
 
-        self.plant.addConnectionGrid(self.grid_power_efficiency, self.grid_price, self.grid_mtbf, self.grid_mttr)
+        self.plant.addConnectionGrid(self.grid_power_efficiency, self.grid_price, self.grid_mttf, self.grid_mttr)
 
     def getInvestmentCost(self):
         """Returns investment costs of all plant."""

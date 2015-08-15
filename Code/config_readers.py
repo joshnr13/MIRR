@@ -150,8 +150,10 @@ class TechnologyModuleConfigReader():
         ####################### MTBF and  MTTR #############
         self.grid_mtbf = get_config_value(_config, 'GRID.mean_time_between_failures', int)
         self.grid_mttr = get_config_value(_config, 'GRID.mean_time_to_repair', int)
+        self.grid_mttf = self.grid_mtbf - self.grid_mttr
         self.turbine_mtbf = get_config_value(_config, 'WIND_TURBINE.mean_time_between_failures', int)
         self.turbine_mttr = get_config_value(_config, 'WIND_TURBINE.mean_time_to_repair', int)
+        self.turbine_mttf = self.turbine_mtbf - self.turbine_mttr
 
         ####################### EFFICIENCY ####################
         self.turbine_power_efficiency = get_config_value(_config, 'WIND_TURBINE.power_efficiency', 'float_percent')
