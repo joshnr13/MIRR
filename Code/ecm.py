@@ -61,7 +61,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     def generateOneSimulation(self, simulation_no):
         """Main method for generating prices and preparing them to posting to database"""
         days_dict = OrderedDict()
-        prices = self.calcPriceWholePeriod(self.S0)
+        prices = self.calcPriceWholePeriodOld(self.S0)
         prices = [p/1000.0 for p in prices]  # because price in configs for MEGAWT
 
         for date, price in zip(self.period, prices):  #loop for date, electricity price
