@@ -99,30 +99,47 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
         return result
 
+    def calcJumpOld(self):
+        """Calcultation of J (normaly distibuted Jump size) as random with mean=loc and std=scale
+        loc means - mean, scale -std """
+        return np.random.normal(loc=self.jump_size_average, scale=self.jump_size_std)
 
-    def calcPriceLogDeltaNoJumpOld(self, prev_price_log, theta_log):
+    def calcPriceDeltaNoJumpOld(self, prev_price, iteration_no, theta):
         """Calculates delta price (dp) based on @prev_price without a price jump"""
         #delta_Z = np.random.normal(loc=0, scale=0.9)  #random value distribution
-        delta_Z = np.random.normal(loc=5.1725e-04, scale=0.023594)
+        delta_Z = random.choice([-1, 1]) * exp(np.random.normal(loc=-0.85, scale=1.1) )
 
-        delta_price_log = self.k * (theta_log - prev_price_log) + delta_Z
-        return  delta_price_log
+        delta_price = self.k * (theta - prev_price) + delta_Z
+        return  delta_price
+
+    def calcPriceDeltaWithJumpOld(self, prev_price, iteration_no, theta):
+        """Calculated delta price (dp) based on @prev_price with a price jump"""
+
+        J = self.calcJumpOld() #calculate jump
+
+        delta_price = self.calcPriceDeltaNoJumpOld(prev_price, iteration_no, theta)  + J  #add jump to delta price
+        return  delta_price
 
     def calcPriceWholePeriodOld(self, start_price):
         """Calculate price for whole period from start date to end - return  list with prices for all project days"""
         result = []
+        date_next_jump = int(random.expovariate(self.Lambda)) #calculate the first date of price jump
         y = self.makeInterannualVariabilityY()
         theta = self.theta
 
-        prev_price_log = log(start_price)
+        prev_price = start_price
 
         for i, date in enumerate(self.period):
             if date.weekday() < 5:
-                price_log = prev_price_log + self.calcPriceLogDeltaNoJumpOld(prev_price_log, log(theta))
+                if i == date_next_jump:
+                    price = prev_price + self.calcPriceDeltaWithJumpOld(prev_price, i+1, theta)
+                    date_next_jump += int(random.expovariate(self.Lambda)) + 1 # add one if interval is 0
+                else:
+                    price = prev_price + self.calcPriceDeltaNoJumpOld(prev_price, i+1, theta)
 
             theta = theta * (1 + y/365)
-            prev_price_log = price_log
-            result.append(exp(price_log))
+            prev_price = price
+            result.append(price)
             if isLastDayYear(date):  # recalculate y each new year
                 y = self.makeInterannualVariabilityY()
 
