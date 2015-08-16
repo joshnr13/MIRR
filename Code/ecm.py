@@ -107,7 +107,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     def calcPriceDeltaNoJumpOld(self, prev_price, iteration_no, theta):
         """Calculates delta price (dp) based on @prev_price without a price jump"""
         #delta_Z = np.random.normal(loc=0, scale=0.9)  #random value distribution
-        delta_Z = random.choice([-1, 1]) * exp(np.random.normal(loc=-0.85, scale=1.1) )
+        delta_Z = random.choice([-1, 1]) * exp(np.random.normal(loc=-1.31, scale=1.1) )
 
         delta_price = self.k * (theta - prev_price) + delta_Z
         return  delta_price
@@ -132,12 +132,14 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         for i, date in enumerate(self.period):
             if date.weekday() < 5:
                 if i == date_next_jump:
-                    price = prev_price + self.calcPriceDeltaWithJumpOld(prev_price, i+1, theta)
+                    price = prev_price + self.calcPriceDeltaNoJumpOld(prev_price, i+1, theta)
                     date_next_jump += int(random.expovariate(self.Lambda)) + 1 # add one if interval is 0
+                    theta = theta * (1 + y/260)
                 else:
                     price = prev_price + self.calcPriceDeltaNoJumpOld(prev_price, i+1, theta)
+                    theta = theta * (1 + y/260)
 
-            theta = theta * (1 + y/365)
+
             prev_price = price
             result.append(price)
             if isLastDayYear(date):  # recalculate y each new year
