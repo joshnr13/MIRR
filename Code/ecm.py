@@ -99,6 +99,35 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
         return result
 
+
+    def calcPriceLogDeltaNoJumpOld(self, prev_price_log, theta_log):
+        """Calculates delta price (dp) based on @prev_price without a price jump"""
+        #delta_Z = np.random.normal(loc=0, scale=0.9)  #random value distribution
+        delta_Z = np.random.normal(loc=5.1725e-04, scale=0.023594)
+
+        delta_price_log = self.k * (theta_log - prev_price_log) + delta_Z
+        return  delta_price_log
+
+    def calcPriceWholePeriodOld(self, start_price):
+        """Calculate price for whole period from start date to end - return  list with prices for all project days"""
+        result = []
+        y = self.makeInterannualVariabilityY()
+        theta = self.theta
+
+        prev_price_log = log(start_price)
+
+        for i, date in enumerate(self.period):
+            if date.weekday() < 5:
+                price_log = prev_price_log + self.calcPriceLogDeltaNoJumpOld(prev_price_log, log(theta))
+
+            theta = theta * (1 + y/365)
+            prev_price_log = price_log
+            result.append(exp(price_log))
+            if isLastDayYear(date):  # recalculate y each new year
+                y = self.makeInterannualVariabilityY()
+
+        return result
+
     def makeInterannualVariabilityY(self):
         """Interannual variability of y"""
         return self.y * np.random.normal(self.y_annual_mean, self.y_annual_std)
