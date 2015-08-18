@@ -75,13 +75,13 @@ class Simulation:
 
     def addIrrStatsToSimulation(self):
         """Adding irr results to dict with simulation data"""
-        riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
-        self.simulation_record['irr_stats'] = calcSimulationStatistics(IRR_REPORT_FIELDS, self.irrs, riskFreeRate, benchmarkSharpeRatio )  # calculating and adding IRR stats to simulation record
+        riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['spreadCDS'], self.rm_configs['benchmarkAdjustedSharpeRatio']
+        self.simulation_record['irr_stats'] = calcSimulationStatistics(IRR_REPORT_FIELDS, self.irrs, riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio)  # calculating and adding IRR stats to simulation record
 
     def addTotalEnergyProducedStatsToSimulation(self):
         """Adding total energy produced results to dict with simulation data."""
-        riskFreeRate, benchmarkSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['riskFreeRate']
-        self.simulation_record['total_energy_produced_stats'] = calcSimulationStatistics(TEP_REPORT_FIELDS, self.teps, riskFreeRate, benchmarkSharpeRatio)
+        riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio = self.rm_configs['riskFreeRate'], self.rm_configs['spreadCDS'], self.rm_configs['benchmarkAdjustedSharpeRatio']
+        self.simulation_record['total_energy_produced_stats'] = calcSimulationStatistics(TEP_REPORT_FIELDS, self.teps, riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio)
 
 
 class Iteration:

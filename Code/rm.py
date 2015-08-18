@@ -41,18 +41,19 @@ def calcStatistics(values):
         result['variance'] = var(values)
     return  result
 
-def calculateRequiredRateOfReturn(irr_values, riskFreeRate, benchmarkSharpeRatio ):
-    """return  riskFreeRate(const) + benchmarkSharpeRatio(const) x standard deviation of IRR @irr_values"""
-    irr_stdev = std(irr_values)  #calculating st.deviation of IRR values
-    return riskFreeRate + benchmarkSharpeRatio * irr_stdev  #formula
-
+def calculateRequiredRateOfReturn(stdev, skewness, excess_kurtosis, riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio):
+    """Return riskFreeRate (config) + spreadCDS (config) + std(irr_values) * benchmarkAdjustedSharpeRatio /
+    [1 + S*S/6 - (K-3)/24 * S * S], where S = skew(irr_values), K - 3 = excess_kurtosis(irr_values)"""
+    ss = skewness * skewness / 6
+    return riskFreeRate + spreadCDS + stdev * benchmarkAdjustedSharpeRatio / (
+        1 + ss * (1 - excess_kurtosis / 4))
 
 def jbCritValue(significance):
     """Return assimptotically aproximative critical value ofr JB statistics.
        JB ~ chi^2(2) (approximately, as n -> inf)"""
     return stat.chi2.ppf(1 - significance, 2)
 
-def calcJBStat(values):
+def calcJBStat(values, S=None, K=None):
     """Return value of JB statistics to test the distribution of IRR from a
        simulation for normality.
        Null hypothesis: @values are distibuted normally.
@@ -60,10 +61,11 @@ def calcJBStat(values):
        JB = n / 6 + (S^2 + K^2 / 4)
        P(JB < crit_val) < significance, if null hypothesis is true."""
     n = len(values)
-    stats = calcStatistics(values)  # calculation of Statistics for values
-    K = stats['kurtosis']  # but we need only 2 of stats: skew and kutorsis
-    S = stats['skew']
-    JB = n / 6.0 * (S*S + K*K / 4.0)  #formula from book
+    if S is None:
+        S = skew(values)
+    if K is None:
+        K = kurtosis(values)
+    JB = n / 6.0 * (S*S + K*K / 4.0)  # formula from book
     return JB
 
 def JarqueBeraTest(values=(), significance_levels=(0.05, 0.01, 0.001), JB_stat_value=None):
@@ -362,7 +364,7 @@ def saveStochasticValuesSimulation(dic_values, simulation_no, country):
 
     print "Stochastic Report outputed to file %s" % (xls_output_filename)  #printing path to generated report
 
-def calcSimulationStatistics(field_names, irr_values, riskFreeRate, benchmarkSharpeRatio):
+def calcSimulationStatistics(field_names, irr_values, riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio):
     """
     inputs: @field_names - list of irr field names for @irr_values
     output: list of dicts with irr statistics for each irr_type
@@ -371,19 +373,20 @@ def calcSimulationStatistics(field_names, irr_values, riskFreeRate, benchmarkSha
     for field_name, irr in zip(field_names, irr_values):
         digit_irr = getOnlyDigitsList(irr)  #filtering only digits values of IRR for proper calculation of statistics
 
-        result = {}  #init dict for saving stats
-        result['field'] = field_name  #what irr values was used (name of filed)
-        result[field_name] = irr  #not filtered irr values
-        result['digit_values'] = digit_irr  #filtered irr values (only digit values)
-        result['JBTest_value'] = calcJBStat(digit_irr)  # JB statistics value
+        result = {}  # init dict for saving stats
+        result['field'] = field_name  # what irr values was used (name of filed)
+        result[field_name] = irr  # not filtered irr values
+        result['digit_values'] = digit_irr  # filtered irr values (only digit values)
+        result.update(calcStatistics(digit_irr))  # adding all statistics (stdevm min, max etc)
+        result['JBTest_value'] = calcJBStat(digit_irr, S=result['skew'], K=result['kurtosis'])  # JB statistics value
         result['JBTest'] = JarqueBeraTest(JB_stat_value=result['JBTest_value'])  # JB test result for different significance levels
         result['normaltest'] = normalityTest(digit_irr)
-        result['required_rate_of_return'] = calculateRequiredRateOfReturn(digit_irr, riskFreeRate, benchmarkSharpeRatio)  #rrr
-        result.update(calcStatistics(digit_irr))  #adding all statistics (stdevm min, max etc)
+        result['required_rate_of_return'] = calculateRequiredRateOfReturn(
+            result['std'], result['skew'], result['kurtosis'], riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio)
 
         results.append(result)
 
-    return  results  #return list of dicts
+    return results  # return list of dicts
 
 def analyseSimulationResults(simulation_no, yearly=False):
     """
