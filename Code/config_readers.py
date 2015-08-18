@@ -239,7 +239,7 @@ class EconomicModuleConfigReader():
         self.sigma_log = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.sigma_log', float)
         self.lambda_log = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.lambda_log', float)
         self.lambd = exp(self.lambda_log)
-        
+
         # old
         self.theta = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.theta', float)
         self.k = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.k', float)
@@ -312,7 +312,7 @@ class RiskModuleConfigReader():
 
         self.riskFreeRate = get_config_value(_config, 'RISK.riskFreeRate', 'float_percent')
         self.benchmarkSharpeRatio = get_config_value(_config, 'RISK.benchmarkSharpeRatio', float)
-        self.benchmarkAdjustedSharpeRatio = get_config_value(_config, 'RISK.benchmarkAdjustedSharpeRatio', 'float_percent')
+        self.benchmarkAdjustedSharpeRatio = get_config_value(_config, 'RISK.benchmarkAdjustedSharpeRatio', float)
         self.spreadCDS = get_config_value(_config, 'RISK.spreadCDS', 'float_percent')
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
