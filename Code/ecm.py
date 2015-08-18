@@ -61,8 +61,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     def generateOneSimulation(self, simulation_no):
         """Main method for generating prices and preparing them to posting to database"""
         days_dict = OrderedDict()
-        prices = self.calcPriceWholePeriod(self.S0)
-        prices = [p/1000.0 for p in prices]  # because price in configs for MEGAWT
+        prices = self.calcPriceWholePeriod(self.S0) # save prices in MW
 
         for date, price in zip(self.period, prices):  #loop for date, electricity price
             date_str = date.strftime("%Y-%m-%d")
@@ -217,8 +216,8 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
         for cur_date in get_list_dates(date_start, date_end):  # loop for user defined date range
             electricity_production = self.getElectricityProduction(cur_date)  #get electricity production at current date
-            electricity_price = self.getPriceKwh(cur_date)  #electricity price at cur_date
-            day_revenue_electricity = electricity_production * electricity_price  #calc revenue = price * production
+            electricity_price = self.getPriceMWh(cur_date)  #electricity price at cur_date
+            day_revenue_electricity = electricity_production * electricity_price / 1000.0 # calc revenue = price [EUR / MWh] * production [kWh] / 1000
             revenue_electricity += day_revenue_electricity  #increment revenue for period  date_start - date_end
 
         return revenue_electricity, revenue_subsidy
@@ -398,8 +397,8 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
                     year=next_year, day=new_price_start_date.day - 1)
         return prices
 
-    def getPriceKwh(self, date):
-        """return kwh price for electricity at given day"""
+    def getPriceMWh(self, date):
+        """return MWh price for electricity at given day"""
         return self.actual_electricity_prices[date]
 
     def _getDevelopmentCosts(self, date):

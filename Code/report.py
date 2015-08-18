@@ -530,7 +530,7 @@ class Report(BaseClassConfig):
     @cached_property
     def electricity_prices_monthly(self):
         """return DICT with kwh price for price of electricity MONTHLY -- FOR ALL PROJECT PERIOD"""
-        return self.calcReportMonthlyValues1(self.economic_module.getPriceKwh)
+        return self.calcReportMonthlyValues1(self.economic_module.getPriceMWh)
 
     @cached_property
     def electricity_monthly(self):

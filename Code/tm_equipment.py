@@ -97,7 +97,7 @@ class EquipmentSolarModule(Equipment):
         return 0
 
     def getElectricityProduction(self, avg_production_day_per_kW, day):
-        """Gets electiricity production for SolarModule."""
+        """Gets electricity production for SolarModule in kW."""
         if self.isWorking(day):
             return avg_production_day_per_kW * self.power * self.efficiency * self.conservation_coefficient(day)
         return 0
