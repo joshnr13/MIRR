@@ -310,10 +310,10 @@ class RiskModuleConfigReader():
     def __init__(self, country, _filename='rm_config.ini'):
         _config = parse_yaml(_filename, country)
 
-        self.riskFreeRate = get_config_value(_config, 'RISK.riskFreeRate', float)
+        self.riskFreeRate = get_config_value(_config, 'RISK.riskFreeRate', 'float_percent')
         self.benchmarkSharpeRatio = get_config_value(_config, 'RISK.benchmarkSharpeRatio', float)
-        self.benchmarkAdjustedSharpeRatio = get_config_value(_config, 'RISK.benchmarkAdjustedSharpeRatio', float)
-        self.spreadCDS = get_config_value(_config, 'RISK.spreadCDS', float)
+        self.benchmarkAdjustedSharpeRatio = get_config_value(_config, 'RISK.benchmarkAdjustedSharpeRatio', 'float_percent')
+        self.spreadCDS = get_config_value(_config, 'RISK.spreadCDS', 'float_percent')
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
