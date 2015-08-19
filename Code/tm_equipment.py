@@ -114,9 +114,7 @@ class EquipmentSolarModule(Equipment):
                     Effiency: {efficiency}
                     MTTF: {mttf}
                     MTTR: {mttr}
-                    Power: {power}
-                    Nominal power: {nominal_power}
-                    degradation_yearly: {degradation_yearly}""".format(**self.__dict__))
+                    Nominal power: {nominal_power}""".format(**self.__dict__))
 
 class EquipmentConnectionGrid(Equipment):
     """Class for holding special info about connection grid."""
@@ -159,10 +157,11 @@ class SolarGroup:
     def __str__(self):
         """String representation of a solar group."""
         s = """
-            Solar modules: ({0})""".format(len(self.solar_modules))
+            Solar modules ({0}):""".format(len(self.solar_modules))
         for i, sm in enumerate(self.solar_modules):
             s += "\n                Solar module {0}:\n".format(i+1)
             s += str(sm)
+            break
         s += """\n
             Inverter:\n"""
         s += str(self.inverter)
