@@ -61,7 +61,38 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def getInvestmentCost(self):
         """Returns investment costs of all plant."""
-        return  self.plant.getInvestmentCost() + self.documentation_price
+        return self.plant.getInvestmentCost() + self.documentation_price
+
+    def getMaintenanceCosts(self):
+        repair_costs = OrderedDict([(day, 0) for day in self.all_project_dates])
+        # solar modules
+        for g in self.plant.solar_groups:
+            for sm in g.solar_modules:
+                for (fail, rep) in sm.failure_intervals:
+                    self.randomizeRepairCosts(self.country)
+                    try: repair_costs[rep] += self.module_maintenance_cost * self.module_price
+                    except KeyError: pass   # failure_date > end_project_date
+
+            if g.inverter:
+                for (fail, rep) in g.inverter.failure_intervals:
+                    self.randomizeRepairCosts(self.country)
+                    try: repair_costs[rep] += self.inverter_maintenance_cost * self.inverter_price
+                    except KeyError: pass
+
+        if self.plant.AC_group:
+            if self.plant.AC_group.transformer:
+                self.randomizeRepairCosts(self.country)
+                for (fail, rep) in self.plant.AC_group.transformer.failure_intervals:
+                    try: repair_costs[rep] += self.transformer_maintenance_cost * self.transformer_price
+                    except KeyError: pass
+
+            if self.plant.AC_group.grid_connection:
+                for (fail, rep) in self.plant.AC_group.grid_connection.failure_intervals:
+                    self.randomizeRepairCosts(self.country)
+                    try: repair_costs[rep] += self.grid_maintenance_cost * self.grid_price
+                    except KeyError: pass
+
+        return repair_costs
 
     def getAverageDegradationRate(self):
         """Return average yearly degradation rate over all modules."""
