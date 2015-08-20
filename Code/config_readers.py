@@ -108,7 +108,7 @@ class SubsidyModuleConfigReader():
         """Reads module config file"""
         _config = parse_yaml(_filename, country) #loads config to memory
 
-        self.kWhFIT = get_config_value(_config, 'SUBSIDY.kWhFIT', float)
+        self.MWhFIT = get_config_value(_config, 'SUBSIDY.MWhFIT', float)
         self.subsidy_duration = get_config_value(_config, 'SUBSIDY.subsidy_duration', int)
         _subsidy_delay = get_config_value(_config, 'SUBSIDY.subsidy_delay', float)  #reciving values from config
         self.subsidy_delay = _subsidy_delay if not TESTMODE else 0

@@ -371,7 +371,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
                 # period before subsidy - take price on the 1 day of production
                 prices[date] = electricity_price_first_day_constuction
             elif date >= subsidy_start and date <= subsidy_end:
-                prices[date] = self.subsidy_module.kWhFIT  # if we have FIT - take it
+                prices[date] = self.subsidy_module.MWhFIT  # if we have FIT - take it
             else:
                 # else take current contract price
                 for d, p in contract_prices:  # contract in reversed by date order

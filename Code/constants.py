@@ -74,7 +74,7 @@ REPORT_DEFAULT_NUMBER_ITERATIONS = 100
 CORRELLATION_FIELDS = OrderedDict() # IRR ONE SHOULD HAVE NAME =IRR and be FIRST ONE
 CORRELLATION_FIELDS["permit_procurement_duration"] = "main_configs.real_permit_procurement_duration"
 CORRELLATION_FIELDS["construction_duration"] = "main_configs.real_construction_duration"
-CORRELLATION_FIELDS["kWhFIT"] = "sm_configs.kWhFIT"
+CORRELLATION_FIELDS["MWhFIT"] = "sm_configs.MWhFIT"
 CORRELLATION_FIELDS["subsidy_delay"] = "sm_configs.subsidy_delay"
 CORRELLATION_FIELDS["subsidy_duration"] = "sm_configs.subsidy_duration"
 
