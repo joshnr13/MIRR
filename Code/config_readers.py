@@ -149,6 +149,10 @@ class TechnologyModuleConfigReader():
         self.transformer_price = get_config_value(_config, 'TRANSFORMER.price', float)
         self.grid_price = get_config_value(_config, 'GRID.price', float)
         self.documentation_price = get_config_value(_config, 'ADDITIONAL_PRICE.documentation_price', float)
+        self.module_maintenance_cost = get_config_value(_config, 'SOLAR_MODULE.maintenance_cost', 'float_percent')
+        self.inverter_maintenance_cost = get_config_value(_config, 'INVERTER.maintenance_cost', 'float_percent')
+        self.transformer_maintenance_cost = get_config_value(_config, 'TRANSFORMER.maintenance_cost', 'float_percent')
+        self.grid_maintenance_cost = get_config_value(_config, 'GRID.maintenance_cost', 'float_percent')
 
         ####################### MTBF and  MTTR #############
         self.inverter_mtbf = get_config_value(_config, 'INVERTER.mean_time_between_failures', int)
@@ -184,6 +188,12 @@ class TechnologyModuleConfigReader():
         self.module_mttr = get_config_value(_config, 'SOLAR_MODULE.mean_time_to_repair', int)
         self.module_mttf = self.module_mtbf - self.module_mttr
 
+    def randomizeRepairCosts(self, country, _filename='tm_config.ini'):
+        _config = parse_yaml(_filename, country)  #loads config to memory
+        self.module_maintenance_cost = get_config_value(_config, 'SOLAR_MODULE.maintenance_cost', float)
+        self.inverter_maintenance_cost = get_config_value(_config, 'INVERTER.maintenance_cost', float)
+        self.transformer_maintenance_cost = get_config_value(_config, 'TRANSFORMER.maintenance_cost', float)
+        self.grid_maintenance_cost = get_config_value(_config, 'GRID.maintenance_cost', float)
 
 class EconomicModuleConfigReader():
     """Module for reading Economic configs from file"""
@@ -239,7 +249,7 @@ class EconomicModuleConfigReader():
         self.sigma_log = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.sigma_log', float)
         self.lambda_log = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.lambda_log', float)
         self.lambd = exp(self.lambda_log)
-        
+
         # old
         self.theta = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.theta', float)
         self.k = get_config_value(_config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.k', float)
