@@ -324,6 +324,7 @@ class RiskModuleConfigReader():
         self.benchmarkSharpeRatio = get_config_value(_config, 'RISK.benchmarkSharpeRatio', float)
         self.benchmarkAdjustedSharpeRatio = get_config_value(_config, 'RISK.benchmarkAdjustedSharpeRatio', float)
         self.spreadCDS = get_config_value(_config, 'RISK.spreadCDS', 'float_percent')
+        self.illiquidityPremium = get_config_value(_config, 'RISK.illiquidityPremium', float)
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 

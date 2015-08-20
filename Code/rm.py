@@ -41,11 +41,11 @@ def calcStatistics(values):
         result['variance'] = var(values)
     return  result
 
-def calculateRequiredRateOfReturn(stdev, skewness, excess_kurtosis, riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio):
+def calculateRequiredRateOfReturn(stdev, skewness, excess_kurtosis, riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio, illiquidityPremium):
     """Return riskFreeRate (config) + spreadCDS (config) + std(irr_values) * benchmarkAdjustedSharpeRatio /
     [1 + S*S/6 - (K-3)/24 * S * S], where S = skew(irr_values), K - 3 = excess_kurtosis(irr_values)"""
     ss = skewness * skewness / 6
-    return riskFreeRate + spreadCDS + stdev * benchmarkAdjustedSharpeRatio / (
+    return riskFreeRate + spreadCDS + illiquidityPremium + stdev * benchmarkAdjustedSharpeRatio / (
         1 + ss * (1 - excess_kurtosis / 4))
 
 def jbCritValue(significance):
@@ -364,7 +364,7 @@ def saveStochasticValuesSimulation(dic_values, simulation_no, country):
 
     print "Stochastic Report outputed to file %s" % (xls_output_filename)  #printing path to generated report
 
-def calcSimulationStatistics(field_names, irr_values, riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio):
+def calcSimulationStatistics(field_names, irr_values, riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio, illiquidityPremium):
     """
     inputs: @field_names - list of irr field names for @irr_values
     output: list of dicts with irr statistics for each irr_type
@@ -382,7 +382,7 @@ def calcSimulationStatistics(field_names, irr_values, riskFreeRate, spreadCDS, b
         result['JBTest'] = JarqueBeraTest(JB_stat_value=result['JBTest_value'])  # JB test result for different significance levels
         result['normaltest'] = normalityTest(digit_irr)
         result['required_rate_of_return'] = calculateRequiredRateOfReturn(
-            result['std'], result['skew'], result['kurtosis'], riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio)
+            result['std'], result['skew'], result['kurtosis'], riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio, illiquidityPremium)
 
         results.append(result)
 
