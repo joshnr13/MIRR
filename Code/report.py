@@ -89,7 +89,7 @@ class Report(BaseClassConfig):
         self.cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  #costs
         self.operational_cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  # operational costs
         self.development_cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  #development costs
-        self.maintenance_costs = self.startProjectOrderedDict(name=PROJECT_START,value="")
+        self.repair_costs = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.ebitda = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.ebit = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.ebt = self.startProjectOrderedDict(name=PROJECT_START,value="")
@@ -127,7 +127,7 @@ class Report(BaseClassConfig):
         self.cost_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.operational_cost_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.development_cost_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
-        self.maintenance_costs_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
+        self.repair_costs_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.ebitda_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.ebit_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.ebt_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
@@ -195,7 +195,7 @@ class Report(BaseClassConfig):
 
         self.development_cost[M] = self.economic_module.getDevelopmentCosts(start_day, end_day)
         self.operational_cost[M] = self.economic_module.getOperationalCosts(start_day, end_day)
-        self.maintenance_costs[M] = self.economic_module.getMaintenanceCosts(start_day, end_day)
+        self.repair_costs[M] = self.economic_module.getRepairCosts(start_day, end_day)
         self.cost[M] = self.economic_module.getCosts(start_day, end_day)
 
         self.ebitda[M] = self.calcEbitda(end_day)
@@ -256,7 +256,7 @@ class Report(BaseClassConfig):
             self.cost_y[Y] += self.cost[M]
             self.development_cost_y[Y] += self.development_cost[M]
             self.operational_cost_y[Y] += self.operational_cost[M]
-            self.maintenance_costs_y[Y] += self.maintenance_costs[M]
+            self.repair_costs_y[Y] += self.repair_costs[M]
 
             self.ebitda_y[Y] += self.ebitda[M]
             self.ebit_y[Y] += self.ebit[M]

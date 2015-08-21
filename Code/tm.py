@@ -3,6 +3,7 @@
 
 import numpy
 from em import EnergyModule
+from datetime import timedelta
 from config_readers import MainConfig, TechnologyModuleConfigReader
 from base_class import BaseClassConfig
 from annex import daysBetween, getResolutionStartEnd, cached_property, get_list_dates
@@ -38,7 +39,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def buildPlant(self):
         """Creates plant object."""
-        self.plant = PlantEquipment(self.start_date_project,
+        self.plant = PlantEquipment(self.first_day_construction,
                                     self.end_date_project,
                                     energy_module=self.energy_module)  # new class Plant
 
@@ -63,33 +64,49 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         """Returns investment costs of all plant."""
         return self.plant.getInvestmentCost() + self.documentation_price + self.other_investment_costs
 
-    def getMaintenanceCosts(self):
+    def getRepairCosts(self):
         repair_costs = OrderedDict([(day, 0) for day in self.all_project_dates])
         # solar modules
         for g in self.plant.solar_groups:
             for sm in g.solar_modules:
                 for (fail, rep) in sm.failure_intervals:
                     self.randomizeRepairCosts(self.country)
-                    try: repair_costs[rep] += self.module_maintenance_cost * self.module_price
+                    if rep - self.first_day_construction <= timedelta(days=365*self.module_guarantee_length): # in guarantee period 
+                        cost = self.module_repair_costs * self.module_price
+                    else:
+                        cost = (1 + self.module_repair_costs) * self.module_price
+                    try: repair_costs[rep] += cost
                     except KeyError: pass   # failure_date > end_project_date
 
             if g.inverter:
                 for (fail, rep) in g.inverter.failure_intervals:
                     self.randomizeRepairCosts(self.country)
-                    try: repair_costs[rep] += self.inverter_maintenance_cost * self.inverter_price
+                    if rep - self.first_day_construction <= timedelta(days=365*self.inverter_guarantee_length): # in guarantee period 
+                        cost = self.module_repair_costs * self.module_price
+                    else:
+                        cost = (1 + self.module_repair_costs) * self.module_price
+                    try: repair_costs[rep] += cost
                     except KeyError: pass
 
         if self.plant.AC_group:
             if self.plant.AC_group.transformer:
-                self.randomizeRepairCosts(self.country)
                 for (fail, rep) in self.plant.AC_group.transformer.failure_intervals:
-                    try: repair_costs[rep] += self.transformer_maintenance_cost * self.transformer_price
+                    self.randomizeRepairCosts(self.country)
+                    if rep - self.first_day_construction <= timedelta(days=365*self.transformer_guarantee_length): # in guarantee period 
+                        cost = self.module_repair_costs * self.module_price
+                    else:
+                        cost = (1 + self.module_repair_costs) * self.module_price
+                    try: repair_costs[rep] += cost
                     except KeyError: pass
 
             if self.plant.AC_group.grid_connection:
                 for (fail, rep) in self.plant.AC_group.grid_connection.failure_intervals:
                     self.randomizeRepairCosts(self.country)
-                    try: repair_costs[rep] += self.grid_maintenance_cost * self.grid_price
+                    if rep - self.first_day_construction <= timedelta(days=365*self.grid_guarantee_length): # in guarantee period 
+                        cost = self.module_repair_costs * self.module_price
+                    else:
+                        cost = (1 + self.module_repair_costs) * self.module_price
+                    try: repair_costs[rep] += cost
                     except KeyError: pass
 
         return repair_costs

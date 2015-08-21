@@ -175,7 +175,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def calcBaseValues(self):
         """caclulation of initial values"""
         self.investments = self.technology_module.getInvestmentCost() #gets the value of the whole investment from the technology module
-        self.maintenance_costs = self.technology_module.getMaintenanceCosts()
+        self.repair_costs = self.technology_module.getRepairCosts()
         self.debt = self.debt_share * self.investments #calculates the amount of debt based on share of debt in financing
         self.capital = self.investments - self.debt #calculates the amount of capital based on the amount of debt
         self.Depreciation_monthly = self.investments / self.Depreciation_duration  #Calc monthly value for Depreciation
@@ -435,9 +435,9 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         #we increase initial administrativeCosts each year on administrativeCostsGrowth_rate
         return self.administrativeCosts * ((1 + self.administrativeCostsGrowth_rate) ** yearNumber) / getDaysNoInMonth(date)
 
-    def _getMaintenanceCosts(self, date):
-        """Returns maintenance costs at given date."""
-        return self.maintenance_costs[date]
+    def _getRepairCosts(self, date):
+        """Returns repair costs at given date."""
+        return self.repair_costs[date]
 
     def getInsuranceCost(self, date):
         """return insurance costs at give date (1day) because it is fixed value, we calculate it only one time
@@ -449,7 +449,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def getCosts(self, date_start, date_end):
         """sum of costs for all days in RANGE period"""
-        return self.getDevelopmentCosts(date_start, date_end) + self.getOperationalCosts(date_start, date_end) + self.getMaintenanceCosts(date_start, date_end)
+        return self.getDevelopmentCosts(date_start, date_end) + self.getOperationalCosts(date_start, date_end) + self.getRepairCosts(date_start, date_end)
 
     def getDevelopmentCosts(self, date_start, date_end):
         """sum of Development Costs for all days in RANGE period"""
@@ -471,9 +471,9 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         """sum of Administrative Costs for all days in RANGE period"""
         return self.getSomeCostsRange(self._getAdministrativeCosts, date_start, date_end)
 
-    def getMaintenanceCosts(self, date_start, date_end):
-        """sum of Maintenance Costs for all days in RANGE period"""
-        return self.getSomeCostsRange(self._getMaintenanceCosts, date_start, date_end)
+    def getRepairCosts(self, date_start, date_end):
+        """sum of repair costs for all days in RANGE period"""
+        return self.getSomeCostsRange(self._getRepairCosts, date_start, date_end)
 
     def getSomeCostsRange(self, cost_function, date_start, date_end):
         """basic function to calculate range costs"""

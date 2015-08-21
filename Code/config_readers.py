@@ -150,10 +150,14 @@ class TechnologyModuleConfigReader():
         self.grid_price = get_config_value(_config, 'GRID.price', float)
         self.documentation_price = get_config_value(_config, 'ADDITIONAL_PRICE.documentation_price', float)
         self.other_investment_costs = get_config_value(_config, 'ADDITIONAL_PRICE.other_investment_costs', float)
-        self.module_maintenance_cost = get_config_value(_config, 'SOLAR_MODULE.maintenance_cost', 'float_percent')
-        self.inverter_maintenance_cost = get_config_value(_config, 'INVERTER.maintenance_cost', 'float_percent')
-        self.transformer_maintenance_cost = get_config_value(_config, 'TRANSFORMER.maintenance_cost', 'float_percent')
-        self.grid_maintenance_cost = get_config_value(_config, 'GRID.maintenance_cost', 'float_percent')
+        self.module_repair_costs = get_config_value(_config, 'SOLAR_MODULE.repair_costs', 'float_percent')
+        self.inverter_repair_costs = get_config_value(_config, 'INVERTER.repair_costs', 'float_percent')
+        self.transformer_repair_costs = get_config_value(_config, 'TRANSFORMER.repair_costs', 'float_percent')
+        self.grid_repair_costs = get_config_value(_config, 'GRID.repair_costs', 'float_percent')
+        self.module_guarantee_length = get_config_value(_config, 'SOLAR_MODULE.guarantee_length', int)
+        self.inverter_guarantee_length = get_config_value(_config, 'INVERTER.guarantee_length', int)
+        self.transformer_guarantee_length = get_config_value(_config, 'TRANSFORMER.guarantee_length', int)
+        self.grid_guarantee_length = get_config_value(_config, 'GRID.guarantee_length', int)
 
         ####################### MTBF and  MTTR #############
         self.inverter_mtbf = get_config_value(_config, 'INVERTER.mean_time_between_failures', int)
@@ -191,10 +195,10 @@ class TechnologyModuleConfigReader():
 
     def randomizeRepairCosts(self, country, _filename='tm_config.ini'):
         _config = parse_yaml(_filename, country)  #loads config to memory
-        self.module_maintenance_cost = get_config_value(_config, 'SOLAR_MODULE.maintenance_cost', float)
-        self.inverter_maintenance_cost = get_config_value(_config, 'INVERTER.maintenance_cost', float)
-        self.transformer_maintenance_cost = get_config_value(_config, 'TRANSFORMER.maintenance_cost', float)
-        self.grid_maintenance_cost = get_config_value(_config, 'GRID.maintenance_cost', float)
+        self.module_repair_costs = get_config_value(_config, 'SOLAR_MODULE.repair_costs', float)
+        self.inverter_repair_costs = get_config_value(_config, 'INVERTER.repair_costs', float)
+        self.transformer_repair_costs = get_config_value(_config, 'TRANSFORMER.repair_costs', float)
+        self.grid_repair_costs = get_config_value(_config, 'GRID.repair_costs', float)
 
 class EconomicModuleConfigReader():
     """Module for reading Economic configs from file"""
