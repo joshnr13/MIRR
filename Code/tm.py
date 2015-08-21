@@ -61,7 +61,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def getInvestmentCost(self):
         """Returns investment costs of all plant."""
-        return self.plant.getInvestmentCost() + self.documentation_price
+        return self.plant.getInvestmentCost() + self.documentation_price + self.other_investment_costs
 
     def getMaintenanceCosts(self):
         repair_costs = OrderedDict([(day, 0) for day in self.all_project_dates])

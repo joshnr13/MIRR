@@ -149,6 +149,7 @@ class TechnologyModuleConfigReader():
         self.transformer_price = get_config_value(_config, 'TRANSFORMER.price', float)
         self.grid_price = get_config_value(_config, 'GRID.price', float)
         self.documentation_price = get_config_value(_config, 'ADDITIONAL_PRICE.documentation_price', float)
+        self.other_investment_costs = get_config_value(_config, 'ADDITIONAL_PRICE.other_investment_costs', float)
         self.module_maintenance_cost = get_config_value(_config, 'SOLAR_MODULE.maintenance_cost', 'float_percent')
         self.inverter_maintenance_cost = get_config_value(_config, 'INVERTER.maintenance_cost', 'float_percent')
         self.transformer_maintenance_cost = get_config_value(_config, 'TRANSFORMER.maintenance_cost', 'float_percent')
@@ -324,7 +325,7 @@ class RiskModuleConfigReader():
         self.benchmarkSharpeRatio = get_config_value(_config, 'RISK.benchmarkSharpeRatio', float)
         self.benchmarkAdjustedSharpeRatio = get_config_value(_config, 'RISK.benchmarkAdjustedSharpeRatio', float)
         self.spreadCDS = get_config_value(_config, 'RISK.spreadCDS', 'float_percent')
-        self.illiquidityPremium = get_config_value(_config, 'RISK.illiquidityPremium', float)
+        self.illiquidityPremium = get_config_value(_config, 'RISK.illiquidityPremium', 'float_percent')
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
