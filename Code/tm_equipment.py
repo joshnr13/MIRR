@@ -249,7 +249,7 @@ class ACGroup():
 
     def isTransformerWorking(self, day):
         """Returns transformer effiency for AC group if we have one else 0."""
-        if self.transformer is None: return False
+        if self.transformer is None: return True
         return self.transformer.isWorking(day)
 
     def isGridAvailable(self, day):
@@ -293,7 +293,7 @@ class PlantEquipment():
             groups_production = sum([
                 g.getElectricityProductionUsingInsolation(insolation, day)
                     for g in self.solar_groups])   # calc sum of el.production for all solar groups
-            transformer_eff = self.AC_group.transformer.efficiency
+            transformer_eff = self.AC_group.transformer.efficiency if self.AC_group.transformer is not None else 1
             grid_connection_eff = self.AC_group.grid_connection.efficiency
             return groups_production * transformer_eff * grid_connection_eff
         return 0
@@ -305,7 +305,8 @@ class PlantEquipment():
             groups_production = sum(
                 g.getElectricityProduction(avg_production_day_per_kW, day)
                     for g in self.solar_groups)   # calc sum of el.production for all solar groups
-            transformer_eff = self.AC_group.transformer.efficiency
+
+            transformer_eff = self.AC_group.transformer.efficiency if self.AC_group.transformer is not None else 1
             grid_connection_eff = self.AC_group.grid_connection.efficiency
             return groups_production * transformer_eff * grid_connection_eff
         return 0
