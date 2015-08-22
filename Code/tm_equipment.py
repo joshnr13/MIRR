@@ -240,7 +240,12 @@ class ACGroup():
 
     def getInvestmentCost(self):
         """Returns investment cost of AC group."""
-        return self.transformer.getInvestmentCost() + self.grid_connection.getInvestmentCost()
+        cost = 0
+        if self.transformer is not None:
+            cost += self.transformer.getInvestmentCost()
+        if self.grid_connection is not None:
+            cost += self.grid_connection.getInvestmentCost()
+        return cost
 
     def isTransformerWorking(self, day):
         """Returns transformer effiency for AC group if we have one else 0."""
