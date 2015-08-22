@@ -72,43 +72,31 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
             for sm in g.solar_modules:
                 for (fail, rep) in sm.failure_intervals:
                     self.randomizeRepairCosts(self.country)
-                    if rep - self.first_day_construction <= timedelta(days=365*self.module_guarantee_length): # in guarantee period 
-                        cost = self.module_repair_costs * self.module_price
-                    else:
-                        cost = (1 + self.module_repair_costs) * self.module_price
-                    try: repair_costs[rep] += cost
-                    except KeyError: pass   # failure_date > end_project_date
+                    repair_costs[rep] += self.module_repair_costs
+                    if rep - self.first_day_construction > timedelta(days=365*self.module_guarantee_length): # not in guarantee period 
+                         repair_costs[rep] += self.module_price
 
             if g.inverter:
                 for (fail, rep) in g.inverter.failure_intervals:
                     self.randomizeRepairCosts(self.country)
-                    if rep - self.first_day_construction <= timedelta(days=365*self.inverter_guarantee_length): # in guarantee period 
-                        cost = self.module_repair_costs * self.module_price
-                    else:
-                        cost = (1 + self.module_repair_costs) * self.module_price
-                    try: repair_costs[rep] += cost
-                    except KeyError: pass
+                    repair_costs[rep] += self.inverter_repair_costs
+                    if rep - self.first_day_construction > timedelta(days=365*self.inverter_guarantee_length): # not in guarantee period 
+                       repair_costs[rep] += self.inverter_price
 
         if self.plant.AC_group:
             if self.plant.AC_group.transformer:
                 for (fail, rep) in self.plant.AC_group.transformer.failure_intervals:
                     self.randomizeRepairCosts(self.country)
-                    if rep - self.first_day_construction <= timedelta(days=365*self.transformer_guarantee_length): # in guarantee period 
-                        cost = self.module_repair_costs * self.module_price
-                    else:
-                        cost = (1 + self.module_repair_costs) * self.module_price
-                    try: repair_costs[rep] += cost
-                    except KeyError: pass
+                    repair_costs[rep] += self.transformer_repair_costs
+                    if rep - self.first_day_construction > timedelta(days=365*self.transformer_guarantee_length): # not in guarantee period 
+                       repair_costs[rep] += self.transformer_price
 
             if self.plant.AC_group.grid_connection:
                 for (fail, rep) in self.plant.AC_group.grid_connection.failure_intervals:
                     self.randomizeRepairCosts(self.country)
-                    if rep - self.first_day_construction <= timedelta(days=365*self.grid_guarantee_length): # in guarantee period 
-                        cost = self.module_repair_costs * self.module_price
-                    else:
-                        cost = (1 + self.module_repair_costs) * self.module_price
-                    try: repair_costs[rep] += cost
-                    except KeyError: pass
+                    repair_costs[rep] += self.grid_repair_costs
+                    if rep - self.first_day_construction > timedelta(days=365*self.grid_guarantee_length): # not in guarantee period 
+                       repair_costs[rep] += self.grid_price
 
         return repair_costs
 

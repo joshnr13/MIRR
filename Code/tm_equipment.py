@@ -71,11 +71,15 @@ class Equipment:
         """Generates list of [failure, repair) intervals till the end of project."""
         failure_date = self.getFailureDate(self.start_date)
         repair_date = self.getRepairDate(failure_date)
-        self.failure_intervals = [(failure_date, repair_date)]
+        self.failure_intervals = [[failure_date, repair_date]]
         while self.failure_intervals[-1][1] < self.end_date:
             failure_date = self.getFailureDate(self.failure_intervals[-1][1])
             repair_date = self.getRepairDate(failure_date)
-            self.failure_intervals.append((failure_date, repair_date))
+            self.failure_intervals.append([failure_date, repair_date])
+        if self.failure_intervals[-1][0] >= self.end_date:
+            self.failure_intervals.pop()
+        elif self.failure_intervals[-1][1] > self.end_date:
+            self.failure_intervals[-1][1] = self.end_date
 
 class EquipmentSolarModule(Equipment):
     """Class for holding special info about Solar Modules."""
