@@ -99,6 +99,8 @@ def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
 def plotTotalEnergyProducedChart(electricity_total_values, simulation_no, yearly, country):
     """Plots total electricity production in MWh and days of system not working."""
 
+    electricity_total_values = electricity_total_values[:-1]
+
     figures = OrderedDict()
     for dic in electricity_total_values:
         dig_values = dic['digit_values']

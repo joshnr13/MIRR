@@ -479,6 +479,7 @@ class Report(BaseClassConfig):
         self.total_energy_produced = sum(ep.values()) / 1000 # [kWh] -> [MWh]
         self.system_not_working = len([date for date, prod in ep.items() if date > last_day and prod < 1e-9]) # numer of days with no production
         self.electricity_production_2ndyear = sum(prod for date, prod in ep.items() if date.year == last_day.year +  1) / 1000.0 # [kWh] -> [MWh]
+        self.total_power = self.technology_module.plant.getPlantPower()
 
     def calcNPV(self):
         """Calculation of monthly and yearly NPV for owners and project"""
