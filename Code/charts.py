@@ -51,6 +51,8 @@ def plotRevenueCostsChart(simulation_no, iteration_no=1, yearly=False, country=N
 def plotIRRChart(irr_values_lst, simulation_no, yearly, country):
     """Plots irr_values histogram and scatter plot for the @country and @simulation_no."""
 
+    irr_values_lst = irr_values_lst[:-1]  # remove simple payback time
+
     figures = OrderedDict()
     for dic in irr_values_lst:
         dig_values = dic['digit_values']

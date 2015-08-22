@@ -64,7 +64,7 @@ NPV["Dates"] = ""
 NPV["NPV project"] = "pv_project"
 NPV["NPV owners"] = "pv_owners"
 
-IRR_REPORT_FIELDS = ['irr_project_y', 'irr_owners_y', 'irr_project_before_tax_y']  # Name of IRR values for statistics after simulation
+IRR_REPORT_FIELDS = ['irr_project_y', 'irr_owners_y', 'irr_project_before_tax_y', 'simple_payback_time']  # Name of IRR values for statistics after simulation
 NPV_REPORT_FIELD = 'npv_project_y'
 
 TEP_REPORT_FIELDS = ["total_energy_produced", "system_not_working", "electricity_production_2ndyear"]

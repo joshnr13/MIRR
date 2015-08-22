@@ -415,6 +415,14 @@ class Report(BaseClassConfig):
             self.fcf_owners[M] = (- self.getDeltaCurPrev(self.paid_in_capital, M) +
                                   self.getDeltaCurPrev(self.asset_bank_account, M))
 
+    def _calcSimplePaybackTime(self, fcf_values):
+        sum_values = 0
+        for month, value in enumerate(fcf_values):
+            sum_values += value
+            if sum_values > 0:
+                return month / 12.0
+        return -1.0
+
     def irr(self, vals):
         """Function to calculate irr value"""
         return CashFlows(vals, self.iteration_no, self.simulation_no).irr()
@@ -462,6 +470,7 @@ class Report(BaseClassConfig):
         self.fcf_owners_y[PROJECT_START] = "IRR = %s" % self.irr_owners_y #adding IRR value to FCF row
         self.fcf_project_y[PROJECT_START] = "IRR = %s" % self.irr_project_y #adding IRR value to FCF row
         self.fcf_project_before_tax_y[PROJECT_START] = "IRR = %s" % self.irr_project_before_tax_y  #adding IRR value to FCF row
+        self.simple_payback_time = self._calcSimplePaybackTime(fcf_project_values)
 
     def calcTEP(self):
         """Calculates total energy production in the lifetime of the project and days of system not working."""
