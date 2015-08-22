@@ -15,7 +15,7 @@ config = SubsidyModuleConfigReader(_country, startdate)
 config = TechnologyModuleConfigReader(_country)
 # print config.getConfigsValues()
 
-config = EconomicModuleConfigReader(_country, startdate)
+config = EconomicModuleConfigReader(_country)
 # print config.getConfigsValues()
 
 config = EnergyModuleConfigReader(_country)

@@ -27,7 +27,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         @period - list of dates from start to end
         @simulations_no - number of needed simulations
         """
-        EconomicModuleConfigReader.__init__(self, country, start_date_project=period[0])
+        EconomicModuleConfigReader.__init__(self, country)
         self.period = period
         self.N = len(period)  #number of days
         self.simulations_no = simulations_no
@@ -52,7 +52,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         for simulation_no in range(1, self.simulations_no+1):  #loop for simulations numbers starting from 1
             # re-loading EconomicModule Configs, with passing start date of project
             # self.y will have new value each time
-            EconomicModuleConfigReader.__init__(self, self.country, start_date_project=self.start_date_project)
+            EconomicModuleConfigReader.__init__(self, self.country)
             data = self.generateOneSimulation(simulation_no)  #generating each simulation
             self.writeElectricityPriceData(data)  #writing each simulation to DB
             print_progress(simulation_no)  # print progress bar with simulation_no
@@ -162,7 +162,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         @enviroment_module - link to enviroment module
         """
         BaseClassConfig.__init__(self, config_module)  #loading Main config
-        EconomicModuleConfigReader.__init__(self, country, self.start_date_project)  #loading Economic Config
+        EconomicModuleConfigReader.__init__(self, country)  #loading Economic Config
         self.db = Database()  #connection to DB
         self.technology_module = technology_module
         self.subsidy_module = subsidy_module
@@ -442,7 +442,9 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def getInsuranceCost(self, date):
         """return insurance costs at give date (1day) because it is fixed value, we calculate it only one time
         Isurance can be only after starting production electricity and before end of insurance"""
-        if self.isProductionElectricityStarted(date) and date <= self.insuranceLastDayEquipment:
+        start_date_insurance = self.last_day_construction
+        end_date_insurance = start_date_insurance + relativedelta(years=self.insuranceDurationEquipment)
+        if start_date_insurance <= date <= end_date_insurance:
             return self.insuranceFeeEquipment * self.investments / 365  #deviding by 365 days in year
         else:
             return 0

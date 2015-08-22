@@ -350,7 +350,7 @@ class Report(BaseClassConfig):
             pM = PROJECT_START
         return obj[pM]
 
-    def getDeltaCurPrev(self,  obj, date):
+    def getDeltaCurPrev(self, obj, date):
         """Calculates delta between current month value and previous month value"""
         cur = obj[date]
         prev = self.getPrevMonthValue(obj, date)

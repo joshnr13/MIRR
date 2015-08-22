@@ -203,10 +203,8 @@ class TechnologyModuleConfigReader():
 class EconomicModuleConfigReader():
     """Module for reading Economic configs from file"""
 
-    def __init__(self, country, start_date_project, _filename='ecm_config.ini'):
-        """Reads module config file
-        @self.insuranceLastDayEquipment - last day when we need to pay for insurance
-        """
+    def __init__(self, country, _filename='ecm_config.ini'):
+        """Reads module config file."""
 
         _config = parse_yaml(_filename, country)
 
@@ -214,10 +212,7 @@ class EconomicModuleConfigReader():
         self.administrativeCosts = get_config_value(_config, 'COSTS.administrativeCosts')
         self.administrativeCostsGrowth_rate = get_config_value(_config, 'COSTS.administrativeCostsGrowth_rate', 'float_percent')
         self.insuranceFeeEquipment = get_config_value(_config, 'COSTS.insuranceFeeEquipment', 'float_percent')
-        self.insuranceDurationEquipment = get_config_value(_config, 'COSTS.insuranceDurationEquipment', float)
-
-        #calculate last day of Insuarence by adding insuranceDurationEquipment to start project date
-        self.insuranceLastDayEquipment = addXYears(start_date_project, self.insuranceDurationEquipment)
+        self.insuranceDurationEquipment = get_config_value(_config, 'COSTS.insuranceDurationEquipment', int)
 
         self.developmentCostDuringPermitProcurement = get_config_value(_config, 'COSTS.developmentCostDuringPermitProcurement')
         self.developmentCostDuringConstruction = get_config_value(_config, 'COSTS.developmentCostDuringConstruction')
