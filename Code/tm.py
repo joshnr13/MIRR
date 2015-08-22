@@ -39,9 +39,10 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def buildPlant(self):
         """Creates plant object."""
-        self.plant = PlantEquipment(self.first_day_production,
-                                    self.end_date_project,
-                                    energy_module=self.energy_module)  # new class Plant
+        self.plant = PlantEquipment(
+            self.first_day_production, self.end_date_project,
+            energy_module=self.energy_module,
+            additional_investment_costs=self.documentation_price + self.other_investment_costs) # new class Plant
 
     def addSolarModulesAndInverter(self):
         """Adds solar module and inverter in each group."""
@@ -62,7 +63,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def getInvestmentCost(self):
         """Returns investment costs of all plant."""
-        return self.plant.getInvestmentCost() + self.documentation_price + self.other_investment_costs
+        return self.plant.getInvestmentCost()
 
     def getRepairCosts(self):
         repair_costs = OrderedDict([(day, 0) for day in self.all_project_dates])

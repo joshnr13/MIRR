@@ -253,12 +253,13 @@ class ACGroup():
 class PlantEquipment():
     """Class for whole plant equipment."""
 
-    def __init__(self, start_date, end_date, energy_module):
+    def __init__(self, start_date, end_date, energy_module, additional_investment_costs):
         self.solar_groups = []  # list of all solar groups
         self.AC_group = None
         self.energy_module = energy_module
         self.start_date = start_date
         self.end_date = end_date
+        self.additional_investment_costs = additional_investment_costs
 
     def addSolarGroup(self):
         """Adds new solar group and returns link to it."""
@@ -274,7 +275,7 @@ class PlantEquipment():
     def getInvestmentCost(self):
         """Return investment costs of the whole plant."""
         solar_groups_cost = sum(group.getInvestmentCost() for group in self.solar_groups)
-        return solar_groups_cost + self.AC_group.getInvestmentCost()
+        return solar_groups_cost + self.AC_group.getInvestmentCost() + self.additional_investment_costs
 
     def getElectricityProductionPlant1DayUsingInsolation(self, insolation, day):
         """Returns electricity production for whole plant using insolation."""
