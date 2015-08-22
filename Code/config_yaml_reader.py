@@ -152,6 +152,10 @@ def apply_format(value, new_format):
     if new_format is None:
         return value
 
+    if new_format == bool:
+        if str(value).lower() in ["false", "0"]:
+            return False
+
     formats = {}
     formats['date'] = lambda x: datetime.datetime.strptime(x, '%Y/%m/%d').date()
     formats['float_percent'] = lambda x: float(x)/100
