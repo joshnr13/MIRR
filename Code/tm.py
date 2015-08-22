@@ -39,7 +39,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
 
     def buildPlant(self):
         """Creates plant object."""
-        self.plant = PlantEquipment(self.first_day_construction,
+        self.plant = PlantEquipment(self.first_day_production,
                                     self.end_date_project,
                                     energy_module=self.energy_module)  # new class Plant
 
