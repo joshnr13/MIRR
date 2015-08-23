@@ -173,10 +173,14 @@ class TechnologyModuleConfigReader():
         self.module_mtbde = self.module_mtbf - self.module_mttr
 
         ####################### EFFICIENCY ####################
-        self.module_power_efficiency = get_config_value(_config, 'SOLAR_MODULE.power_efficiency', 'float_percent')
-        self.inverter_power_efficiency = get_config_value(_config, 'INVERTER.power_efficiency', 'float_percent')
-        self.transformer_power_efficiency = get_config_value(_config, 'TRANSFORMER.power_efficiency', 'float_percent')
-        self.grid_power_efficiency = get_config_value(_config, 'GRID.power_efficiency', 'float_percent')
+        self.module_power_losses = get_config_value(_config, 'SOLAR_MODULE.power_losses', 'float_percent')
+        self.module_power_efficiency = 1 - self.module_power_losses
+        self.inverter_power_losses = get_config_value(_config, 'INVERTER.power_losses', 'float_percent')
+        self.inverter_power_efficiency = 1 - self.inverter_power_losses
+        self.transformer_power_losses = get_config_value(_config, 'TRANSFORMER.power_losses', 'float_percent')
+        self.transformer_power_efficiency = 1 - self.transformer_power_losses
+        self.grid_power_losses = get_config_value(_config, 'GRID.power_losses', 'float_percent')
+        self.grid_power_efficiency = 1 - self.grid_power_losses
 
         self.configs = getConfigs(self.__dict__)  #load all configs started not with _ to dict
 
@@ -191,7 +195,8 @@ class TechnologyModuleConfigReader():
 
     def randomizeInverterParameters(self, country, _filename='tm_config.ini'):
         _config = parse_yaml(_filename, country)  #loads config to memory
-        self.inverter_power_efficiency = get_config_value(_config, 'INVERTER.power_efficiency', 'float_percent')
+        self.inverter_power_losses = get_config_value(_config, 'INVERTER.power_losses', 'float_percent')
+        self.inverter_power_efficiency = 1 - self.inverter_power_losses
 
     def randomizeRepairCosts(self, country, _filename='tm_config.ini'):
         _config = parse_yaml(_filename, country)  #loads config to memory
