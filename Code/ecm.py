@@ -74,9 +74,9 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     def calcPriceLogDeltaNoJump(self, prev_price_log, theta_log):
         """Calculates delta price (dp) based on @prev_price without a price jump"""
         #delta_Z = np.random.normal(loc=0, scale=0.9)  #random value distribution
-        delta_Z = np.random.normal(loc=0, scale=self.sigma_log)
+        delta_Z = np.random.normal(loc=0, scale= 1)
 
-        delta_price_log = self.lambda_log * (theta_log - prev_price_log) + delta_Z
+        delta_price_log = self.lambda_log * (theta_log - prev_price_log) + delta_Z * self.sigma_log
         return  delta_price_log
 
     def calcPriceWholePeriod(self, start_price):
