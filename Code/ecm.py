@@ -74,9 +74,9 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     def calcPriceLogDeltaNoJump(self, prev_price_log, theta_log):
         """Calculates delta price (dp) based on @prev_price without a price jump"""
         #delta_Z = np.random.normal(loc=0, scale=0.9)  #random value distribution
-        delta_Z = np.random.normal(loc=0, scale=self.sigma_log)
+        delta_Z = np.random.normal(loc=0, scale= 1)
 
-        delta_price_log = self.lambda_log * (theta_log - prev_price_log) + delta_Z
+        delta_price_log = self.lambda_log * (theta_log - prev_price_log) + delta_Z * self.sigma_log
         return  delta_price_log
 
     def calcPriceWholePeriod(self, start_price):
@@ -386,7 +386,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         prices = OrderedDict()
         new_price_start_date = self.subsidy_module.last_day_subsidy + relativedelta(days=1)
         while new_price_start_date <= self.end_date_project:
-            new_price_sign_date = new_price_start_date - relativedelta(months=3) - relativedelta(days=1)
+            new_price_sign_date = new_price_start_date - relativedelta(days=1)
             price_at_sign_date = self.electricity_prices[new_price_sign_date]
             prices[new_price_start_date] = price_at_sign_date
 

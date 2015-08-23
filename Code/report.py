@@ -518,13 +518,12 @@ class Report(BaseClassConfig):
     def calcWACC(self):
         """ WACC = share of debt in financing * cost of debt * (1-tax rate) + cost of capital * share of capital
         share of debt + share of capital = 1"""
-        cost_capital = self.economic_module.cost_capital  #loading cost capital value from Economic module
         share_debt =  self.economic_module.debt_share #loading debt share value from Economic module
         tax_rate = self.economic_module.tax_rate #loading tax_rate value from Economic module
         cost_debt = self.economic_module.debt_rate #loading cost_debt value from Economic module
         share_capital = 1 - share_debt
 
-        self.wacc_y =  share_debt * cost_debt * (1 - tax_rate) + cost_capital * share_capital  #Borut Formula
+        self.wacc_y =  share_debt * cost_debt * (1 - tax_rate)   #Borut Formula
         self.wacc =  (1 + self.wacc_y) ** (1 / 12.0) - 1  #WACC formula
 
     def calcUnallocatedEarnings(self, date):

@@ -138,7 +138,6 @@ class TechnologyModuleConfigReader():
         self.modelling_error = get_config_value(_config, 'SYSTEM.modelling_error', float)
         self.albedo_error = get_config_value(_config, 'SYSTEM.albedo_error', float)
 
-        self.grid_available_probability = get_config_value(_config, 'GRID.grid_available_probability', 'float_percent')
         self.degradation_yearly = get_config_value(_config, 'SOLAR_MODULE.PV_degradation_rate', 'float_percent')
         self.module_power = get_config_value(_config, 'SOLAR_MODULE.power', float)
         self.module_nominal_power = get_config_value(_config, 'SOLAR_MODULE.nominal_power', float)
@@ -219,7 +218,6 @@ class EconomicModuleConfigReader():
 
         ######################### INVESTMENTS #############################################
 
-        self.cost_capital = get_config_value(_config, 'INVESTMENTS.cost_capital', 'float_percent')
         self.initial_paid_in_capital = get_config_value(_config, 'INVESTMENTS.initial_paid_in_capital', float)
 
         ######################### DEBT ########################################

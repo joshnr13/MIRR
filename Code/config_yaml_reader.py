@@ -47,9 +47,6 @@ def get_country_values(name, country, silent):
     if country in data:
         country_data = data[country]
         return update_dict(default_data, country_data)
-    elif not silent:
-        print '-'*80
-        print "No country data in '%s' for %s. Will be used DEFAULT!" % (name, country)
 
     return default_data
 
