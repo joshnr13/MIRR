@@ -1,9 +1,9 @@
 function X = mrjd_sim(ntraj, T, x0, P)
 %MRJD_SIM Simulate trajectories of a MRJD model.
-%   X = MRJD_SIM(NTRAJ,T,X0,P) returns a vector of NTRAJ realizations of 
+%   X = MRJD_SIM(NTRAJ,T,X0,P) returns a vector of NTRAJ realizations of
 %   the Mean Reverting Jump Diffusion (MRJD) process:
-%     dX = (alpha - beta*X)*dt + sigma*dB + N(mu,gamma)*dN(lambda) 
-%	over a time period 0,1,...,T and an initial value X0. 
+%     dX = (alpha - beta*X)*dt + sigma*dB + N(mu,gamma)*dN(lambda)
+%	over a time period 0,1,...,T and an initial value X0.
 %   The timestep dt is set to 1. The Euler scheme is used.
 %   P = [ALPHA,BETA,SIGMA,MU,GAMMA,LAMBDA] is the parameter vector.
 %
@@ -22,17 +22,17 @@ X(:,1) = repmat(x0,ntraj,1);
 % Diffusion (normal) noise
 r = randn(ntraj,T);
 
-% Jump occurences 
+% Jump occurences
 rjump = rand(ntraj,T);
 
 alpha = P(1); beta = P(2); sigma = P(3); mu = P(4); gamma = P(5); lambda = P(6);
 
 for j=1:ntraj,
     for i=1:T,
-        if rjump(j,i)>lambda, 
+        if rjump(j,i)>lambda,
             % No jump
             X(j,i+1) = X(j,i) + alpha - beta*X(j,i) + sigma*r(j,i);
-        else                        
+        else
             % Jump
             X(j,i+1) = X(j,i) + alpha - beta*X(j,i) + mu + sqrt(gamma^2+sigma^2)*r(j,i);
         end
