@@ -61,11 +61,17 @@ class Equipment:
 
     def getFailureDate(self, day_of_repair):
         """Returns next failure date from @day_of_repair."""
-        return day_of_repair + timedelta(days=int(random.expovariate(1.0 / self.mtbde)) + 1)
+        try:
+            return day_of_repair + timedelta(days=int(random.expovariate(1.0 / self.mtbde)) + 1)
+        except OverflowError:  # if the failure is very far away make it
+            return self.end_date + timedelta(days=1)  # fail after end of project
 
     def getRepairDate(self, day_of_failure):
         """Returns repair date from @day_of_failure."""
-        return day_of_failure + timedelta(days=int(random.expovariate(1.0 / self.mttr)) + 1)
+        try:
+            return day_of_failure + timedelta(days=int(random.expovariate(1.0 / self.mttr)) + 1)
+        except OverflowError:
+            return self.end_date + timedelta(days=1)
 
     def generateFailureIntervals(self):
         """Generates list of [failure, repair) intervals till the end of project."""
