@@ -65,39 +65,26 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         """Returns investment costs of all plant."""
         return self.plant.getInvestmentCost()
 
-    def getRepairCosts(self):
+    def getRepairCostsModules(self):
         repair_costs = OrderedDict([(day, 0) for day in self.all_project_dates])
-        # solar modules
         for g in self.plant.solar_groups:
             for sm in g.solar_modules:
                 for (fail, rep) in sm.failure_intervals:
                     self.randomizeRepairCosts(self.country)
                     repair_costs[rep] += self.module_repair_costs
-                    if rep - self.first_day_construction > timedelta(days=365*self.module_guarantee_length): # not in guarantee period 
+                    if rep - self.first_day_construction > timedelta(days=365*self.module_guarantee_length): # not in guarantee period
                          repair_costs[rep] += self.module_price
+        return repair_costs
 
-            if g.inverter:
+    def getRepairCostsInverters(self):
+        repair_costs = OrderedDict([(day, 0) for day in self.all_project_dates])
+        for g in self.plant.solar_groups:
+            if g.inverter is not None:
                 for (fail, rep) in g.inverter.failure_intervals:
                     self.randomizeRepairCosts(self.country)
                     repair_costs[rep] += self.inverter_repair_costs
-                    if rep - self.first_day_construction > timedelta(days=365*self.inverter_guarantee_length): # not in guarantee period 
+                    if rep - self.first_day_construction > timedelta(days=365*self.inverter_guarantee_length): # not in guarantee period
                        repair_costs[rep] += self.inverter_price
-
-        if self.plant.AC_group:
-            if self.plant.AC_group.transformer:
-                for (fail, rep) in self.plant.AC_group.transformer.failure_intervals:
-                    self.randomizeRepairCosts(self.country)
-                    repair_costs[rep] += self.transformer_repair_costs
-                    if rep - self.first_day_construction > timedelta(days=365*self.transformer_guarantee_length): # not in guarantee period 
-                       repair_costs[rep] += self.transformer_price
-
-            if self.plant.AC_group.grid_connection:
-                for (fail, rep) in self.plant.AC_group.grid_connection.failure_intervals:
-                    self.randomizeRepairCosts(self.country)
-                    repair_costs[rep] += self.grid_repair_costs
-                    if rep - self.first_day_construction > timedelta(days=365*self.grid_guarantee_length): # not in guarantee period 
-                       repair_costs[rep] += self.grid_price
-
         return repair_costs
 
     def getAverageDegradationRate(self):

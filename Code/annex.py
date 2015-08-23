@@ -243,13 +243,11 @@ def sameDayLastYear(date):
     temp_date = dt.date(last_year, last_month, 1)
     return  lastDayMonth(temp_date)
 
-
 def lastDayPrevMonth(date, month_count=1):
     """return date - last day of previous month"""
     prev_month_date = date - relativedelta(months=month_count)
     last_day_prev_month = lastDayMonth(prev_month_date)
     return last_day_prev_month
-
 
 def lastDayNextMonth(date, month_count=1):
     """return date - last day of next month"""

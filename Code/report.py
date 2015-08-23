@@ -87,9 +87,11 @@ class Report(BaseClassConfig):
         self.revenue_electricity = self.startProjectOrderedDict(name=PROJECT_START,value="")  #revenue -part electricity
         self.revenue_subsidy = self.startProjectOrderedDict(name=PROJECT_START,value="")  #revenue - part subsidy
         self.cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  #costs
+        self.insurance_cost = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.operational_cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  # operational costs
         self.development_cost = self.startProjectOrderedDict(name=PROJECT_START,value="")  #development costs
-        self.repair_costs = self.startProjectOrderedDict(name=PROJECT_START,value="")
+        self.repair_costs_modules = self.startProjectOrderedDict(name=PROJECT_START,value="")
+        self.repair_costs_inverters = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.ebitda = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.ebit = self.startProjectOrderedDict(name=PROJECT_START,value="")
         self.ebt = self.startProjectOrderedDict(name=PROJECT_START,value="")
@@ -125,9 +127,11 @@ class Report(BaseClassConfig):
         self.revenue_electricity_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.revenue_subsidy_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.cost_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
+        self.insurance_cost_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.operational_cost_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.development_cost_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
-        self.repair_costs_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
+        self.repair_costs_modules_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
+        self.repair_costs_inverters_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.ebitda_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.ebit_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
         self.ebt_y = self.startProjectOrderedDefaultdict(name=PROJECT_START,value="")
@@ -194,8 +198,10 @@ class Report(BaseClassConfig):
         self.interest_paid[M] = self.economic_module.calculateDebtInterests(end_day)
 
         self.development_cost[M] = self.economic_module.getDevelopmentCosts(start_day, end_day)
+        self.insurance_cost[M] = self.economic_module.getInsuranceCosts(start_day, end_day)
         self.operational_cost[M] = self.economic_module.getOperationalCosts(start_day, end_day)
-        self.repair_costs[M] = self.economic_module.getRepairCosts(start_day, end_day)
+        self.repair_costs_modules[M] = self.economic_module.getRepairCostsModules(start_day, end_day)
+        self.repair_costs_inverters[M] = self.economic_module.getRepairCostsInverters(start_day, end_day)
         self.cost[M] = self.economic_module.getCosts(start_day, end_day)
 
         self.ebitda[M] = self.calcEbitda(end_day)
@@ -255,8 +261,10 @@ class Report(BaseClassConfig):
             self.interest_paid_y[Y] += self.interest_paid[M]
             self.cost_y[Y] += self.cost[M]
             self.development_cost_y[Y] += self.development_cost[M]
+            self.insurance_cost_y[Y] += self.insurance_cost[M]
             self.operational_cost_y[Y] += self.operational_cost[M]
-            self.repair_costs_y[Y] += self.repair_costs[M]
+            self.repair_costs_modules_y[Y] += self.repair_costs_modules[M]
+            self.repair_costs_inverters_y[Y] += self.repair_costs_inverters[M]
 
             self.ebitda_y[Y] += self.ebitda[M]
             self.ebit_y[Y] += self.ebit[M]
@@ -741,4 +749,3 @@ if __name__ == '__main__':
         r.calcReportValues()
 
     print time.time() - s
-
