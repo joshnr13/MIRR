@@ -5,7 +5,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import numpy as np
 import random
-from math import exp, log, log1p
+from math import exp, log, log1p, sqrt
 
 from rm import calcStatistics
 from tm import TechnologyModule
@@ -61,7 +61,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     def generateOneSimulation(self, simulation_no):
         """Main method for generating prices and preparing them to posting to database"""
         days_dict = OrderedDict()
-        prices = self.calcPriceWholePeriod(self.S0) # save prices in MW
+        prices = self.calcPriceWholePeriodMRJD(self.S0) # save prices in MW
 
         for date, price in zip(self.period, prices):  #loop for date, electricity price
             date_str = date.strftime("%Y-%m-%d")
@@ -96,6 +96,29 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
             if isLastDayYear(date):  # recalculate y each new year
                 y = self.makeInterannualVariabilityY()
 
+        return result
+
+    def calcPriceWholePeriodMRJD(self, start_price):
+        result = [start_price]
+        rjump = [random.random() for i in range(len(self.period))]
+        rnoise = np.random.normal(size=len(self.period))
+
+        alpha =  0.0040659
+        beta =  0.0010714
+        sigma =  0.0099975
+        mu =  3.8442
+        gamma =  1.0011
+        lambd =  0.0036643
+
+        for i, date in enumerate(self.period):
+            if date.weekday() < 5:
+                if rjump[i] > lambd:  # no jump
+                    result.append(alpha + (1 - beta) * result[-1] + sigma * rnoise[i])
+                else:
+                    result.append(alpha + (1 - beta) * result[-1] + mu +
+                                  sqrt(gamma * gamma + sigma * sigma) * rnoise[i])
+            else:
+                result.append(result[-1])
         return result
 
     def calcJumpOld(self):
