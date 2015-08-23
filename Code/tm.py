@@ -49,6 +49,7 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         self.module_power_efficiency *= (1 + self.modelling_error) # correct module efficiency
         for i in range(self.groups_number):
             eq_group = self.plant.addSolarGroup()
+            self.randomizeInverterParameters(self.country)
             eq_group.addInverter(self.inverter_power_efficiency, self.inverter_price, self.inverter_mtbde, self.inverter_mttr)
             for j in range(self.modules_in_group):
                 self.randomizeSolarModuleParameters(self.country)

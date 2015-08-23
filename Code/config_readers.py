@@ -188,9 +188,10 @@ class TechnologyModuleConfigReader():
         self.degradation_yearly = get_config_value(_config, 'SOLAR_MODULE.PV_degradation_rate', 'float_percent')
         self.module_power = get_config_value(_config, 'SOLAR_MODULE.power', float)
         self.albedo_error = get_config_value(_config, 'SYSTEM.albedo_error', float)
-        self.module_mtbf = get_config_value(_config, 'SOLAR_MODULE.mean_time_between_failures', int)
-        self.module_mttr = get_config_value(_config, 'SOLAR_MODULE.mean_time_to_repair', int)
-        self.module_mtbde = self.module_mtbf - self.module_mttr
+
+    def randomizeInverterParameters(self, country, _filename='tm_config.ini'):
+        _config = parse_yaml(_filename, country)  #loads config to memory
+        self.inverter_power_efficiency = get_config_value(_config, 'INVERTER.power_efficiency', 'float_percent')
 
     def randomizeRepairCosts(self, country, _filename='tm_config.ini'):
         _config = parse_yaml(_filename, country)  #loads config to memory
