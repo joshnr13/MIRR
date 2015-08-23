@@ -386,7 +386,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         prices = OrderedDict()
         new_price_start_date = self.subsidy_module.last_day_subsidy + relativedelta(days=1)
         while new_price_start_date <= self.end_date_project:
-            new_price_sign_date = new_price_start_date - relativedelta(months=3) - relativedelta(days=1)
+            new_price_sign_date = new_price_start_date - relativedelta(days=1)
             price_at_sign_date = self.electricity_prices[new_price_sign_date]
             prices[new_price_start_date] = price_at_sign_date
 
