@@ -30,18 +30,14 @@ function [ mu, sigma, lambda ] = estimateML(S, deltat)
   sigma = sqrt(sigmahat2*2*lambda/(1  -  alpha2));
 end
 
-S = log(csvread('contract_prices_last_year.csv', 1, 1));
-format long
-disp('LS:')
-[mu, sigma, lambda] = estimateLS(S, 1)
-disp('MLE:')
-[mu, sigma, lambda] = estimateML(S, 1)
+fmt = 'contract_prices_%d.csv';
 
-pause
-
-% OUTPUT:
-% mu =  3.4397
-% sigma =  0.0055596
-% lambda =  0.0083759
+for year = 2004:2014
+  S = csvread(sprintf(fmt, year), 1, 1);
+  [mu, sigma, lambda] = estimateLS(S, 1);
+  disp(sprintf('LS-%d-mu: %.6f', year, mu))
+  [mu, sigma, lambda] = estimateML(S, 1);
+  disp(sprintf('MLE-%d-mu: %.6f', year, mu))
+end
 
 % vim: set ft=matlab:
