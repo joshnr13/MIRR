@@ -731,8 +731,8 @@ if __name__ == '__main__':
     em = EnergyModule(mainconfig, country)
     technology_module = TechnologyModule(mainconfig, em, country)
     subsidy_module = SubsidyModule(mainconfig, country)
-    enviroment_module = EnvironmentalModule(mainconfig, country, total_nominal_power=1)
-    ecm = EconomicModule(mainconfig, technology_module, subsidy_module, enviroment_module, country)
+    environment_module = EnvironmentalModule(mainconfig, country, total_nominal_power=1)
+    ecm = EconomicModule(mainconfig, technology_module, subsidy_module, environment_module, country)
 
     r = Report(mainconfig, ecm)
     import time
