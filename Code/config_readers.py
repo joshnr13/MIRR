@@ -219,7 +219,6 @@ class EconomicModuleConfigReader():
 
         ######################### INVESTMENTS #############################################
 
-        self.cost_capital = get_config_value(_config, 'INVESTMENTS.cost_capital', 'float_percent')
         self.initial_paid_in_capital = get_config_value(_config, 'INVESTMENTS.initial_paid_in_capital', float)
 
         ######################### DEBT ########################################
