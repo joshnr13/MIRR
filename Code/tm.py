@@ -49,17 +49,17 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         self.module_power_efficiency *= (1 + self.modelling_error) # correct module efficiency
         for i in range(self.groups_number):
             eq_group = self.plant.addSolarGroup()
-            eq_group.addInverter(self.inverter_power_efficiency, self.inverter_price, self.inverter_mttf, self.inverter_mttr)
+            eq_group.addInverter(self.inverter_power_efficiency, self.inverter_price, self.inverter_mtbde, self.inverter_mttr)
             for j in range(self.modules_in_group):
                 self.randomizeSolarModuleParameters(self.country)
-                eq_group.addSolarModule(self.module_power_efficiency * (1 + self.albedo_error), self.module_price, self.module_mttf, self.module_mttr, self.module_power, self.module_nominal_power, self.degradation_yearly)
+                eq_group.addSolarModule(self.module_power_efficiency * (1 + self.albedo_error), self.module_price, self.module_mtbde, self.module_mttr, self.module_power, self.module_nominal_power, self.degradation_yearly)
 
     def addACTransmission(self):
         """Add transformer and connection grid to plant."""
         actransmission_group = self.plant.addACGroup()  # adds new group for that kind of equipment
-        actransmission_group.addConnectionGrid(self.grid_power_efficiency, self.grid_price, self.grid_mttf, self.grid_mttr)
+        actransmission_group.addConnectionGrid(self.grid_power_efficiency, self.grid_price, self.grid_mtbde, self.grid_mttr)
         if self.transformer_present:
-            actransmission_group.addTransformer(self.transformer_power_efficiency, self.transformer_price, self.transformer_mttf, self.transformer_mttr)  # add transformer
+            actransmission_group.addTransformer(self.transformer_power_efficiency, self.transformer_price, self.transformer_mtbde, self.transformer_mttr)  # add transformer
 
     def getInvestmentCost(self):
         """Returns investment costs of all plant."""

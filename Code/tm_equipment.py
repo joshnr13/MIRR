@@ -20,22 +20,22 @@ class Equipment:
         * name
         * efficiency
         * price
-        * MTTF
+        * mtbde
         * MTTR
     and provides interface description."""
 
-    def __init__(self, eqtype, efficiency, price, mttf, mttr, start_date, end_date):
+    def __init__(self, eqtype, efficiency, price, mtbde, mttr, start_date, end_date):
         """
         @name - name of the equipment, for display purposes
         @efficiency - percentage of efficiency in transmiting or transforming power - expressed for modules in relation to 100% from intial efficiency - in inverters and transfromers and other elements it is effective efficieny of transmission
         @price - investment price in EU
-        @mttf - mean time to failure -- v fails in random time distributed as exp(1/mttf)
+        @mtbde - mean time between down events -- v fails in random time distributed as exp(1/mtbde)
         @mttr - mean time to repair -- repairs in random time distributes as exp(1/mttr) since failure
         """
         self.eqtype = eqtype
         self.efficiency = efficiency
         self.price = price
-        self.mttf = mttf
+        self.mtbde = mtbde
         self.mttr = mttr
         self.start_date = start_date
         self.end_date = end_date
@@ -47,7 +47,7 @@ class Equipment:
                 Type: {eqtype}
                 Price: {price}
                 Effiency: {efficiency}
-                MTTF: {mttf}
+                mtbde: {mtbde}
                 MTTR: {mttr}""".format(**self.__dict__))
 
     def getInvestmentCost(self):
@@ -61,7 +61,7 @@ class Equipment:
 
     def getFailureDate(self, day_of_repair):
         """Returns next failure date from @day_of_repair."""
-        return day_of_repair + timedelta(days=int(random.expovariate(1.0 / self.mttf)) + 1)
+        return day_of_repair + timedelta(days=int(random.expovariate(1.0 / self.mtbde)) + 1)
 
     def getRepairDate(self, day_of_failure):
         """Returns repair date from @day_of_failure."""
@@ -84,12 +84,12 @@ class Equipment:
 class EquipmentSolarModule(Equipment):
     """Class for holding special info about Solar Modules."""
 
-    def __init__(self, efficiency, price, mttf, mttr, start_date, end_date, power, nominal_power, degradation_yearly):
+    def __init__(self, efficiency, price, mtbde, mttr, start_date, end_date, power, nominal_power, degradation_yearly):
         """Additional attributes are:
             @power - module power
             @nominal_power - module nominal power
             @degradation_yearly - yearly degradation_coefficient"""
-        Equipment.__init__(self, EQ.SOLAR_MODULE, efficiency, price, mttf, mttr, start_date, end_date)
+        Equipment.__init__(self, EQ.SOLAR_MODULE, efficiency, price, mtbde, mttr, start_date, end_date)
         self.power = power
         self.nominal_power = nominal_power
         self.degradation_yearly = degradation_yearly
@@ -116,7 +116,7 @@ class EquipmentSolarModule(Equipment):
         return ("""\
                     Price: {price}
                     Effiency: {efficiency}
-                    MTTF: {mttf}
+                    mtbde: {mtbde}
                     MTTR: {mttr}
                     Nominal power: {nominal_power}""".format(**self.__dict__))
 
@@ -148,15 +148,15 @@ class SolarGroup:
         self.start_date = start_date
         self.end_date = end_date
 
-    def addSolarModule(self, efficiency, price, mttf, mttr, power, nominal_power, degradation_yearly):
+    def addSolarModule(self, efficiency, price, mtbde, mttr, power, nominal_power, degradation_yearly):
         """Adds a Solar module."""
-        eq = EquipmentSolarModule(efficiency, price, mttf, mttr, self.start_date, self.end_date, power, nominal_power, degradation_yearly)  # create Equipment class instance
+        eq = EquipmentSolarModule(efficiency, price, mtbde, mttr, self.start_date, self.end_date, power, nominal_power, degradation_yearly)  # create Equipment class instance
         self.solar_modules.append(eq)
 
-    def addInverter(self, efficiency, price, mttf, mttr):
+    def addInverter(self, efficiency, price, mtbde, mttr):
         """Adds an inverter, complains if one exists."""
         assert self.inverter is None, "Cannot add a second inverter."
-        self.inverter = EquipmentInverter(efficiency, price, mttf, mttr, self.start_date, self.end_date)
+        self.inverter = EquipmentInverter(efficiency, price, mtbde, mttr, self.start_date, self.end_date)
 
     def __str__(self):
         """String representation of a solar group."""
@@ -214,15 +214,15 @@ class ACGroup():
         self.start_date = start_date
         self.end_date = end_date
 
-    def addTransformer(self, efficiency, price, mttf, mttr):
+    def addTransformer(self, efficiency, price, mtbde, mttr):
         """Adds transformer. Can be only ONE."""
         assert self.transformer is None, "Cannot add a second transformer."
-        self.transformer = EquipmentTransformer(efficiency, price, mttf, mttr, self.start_date, self.end_date)  # create Equipment class instance
+        self.transformer = EquipmentTransformer(efficiency, price, mtbde, mttr, self.start_date, self.end_date)  # create Equipment class instance
 
-    def addConnectionGrid(self, efficiency, price, mttf, mttr):
+    def addConnectionGrid(self, efficiency, price, mtbde, mttr):
         """Adds connection grid. Can be only ONE."""
         assert self.grid_connection is None, "Cannot add a second connection grid."
-        self.grid_connection = EquipmentConnectionGrid(efficiency, price, mttf, mttr, self.start_date, self.end_date)  # create Equipment class instance
+        self.grid_connection = EquipmentConnectionGrid(efficiency, price, mtbde, mttr, self.start_date, self.end_date)  # create Equipment class instance
 
     def __str__(self):
         s = """\n
