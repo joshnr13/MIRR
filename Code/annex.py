@@ -231,7 +231,7 @@ def lastDayYear(date):
     """return date - last day date in month with input date"""
     return dt.date( date.year, 12, 31)
 
-def nubmerDaysInMonth(date):
+def numberDaysInMonth(date):
     """return  number of days in month to which date belongs"""
     last_day = lastDayMonth(date)
     return last_day.day

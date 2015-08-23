@@ -12,7 +12,7 @@ from tm import TechnologyModule
 from em import EnergyModule
 from sm import SubsidyModule
 from annex import getDaysNoInMonth, yearsBetween1Jan, monthsBetween, lastDayMonth, get_list_dates, cached_property, \
-    setupPrintProgress, isFirstDayMonth, lastDayPrevMonth, nubmerDaysInMonth, OrderedDefaultdict, \
+    setupPrintProgress, isFirstDayMonth, lastDayPrevMonth, numberDaysInMonth, OrderedDefaultdict, \
     lastDayNextMonth, PMT, isLastDayYear, convertDictDates
 from config_readers import MainConfig, EconomicModuleConfigReader
 from base_class import BaseClassConfig
@@ -413,11 +413,11 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def _getDevelopmentCostDuringPermitProcurement(self, date):
         """costs for developing phase of project at given date (1day) - part permit procurement"""
-        return self.developmentCostDuringPermitProcurement / nubmerDaysInMonth(date)
+        return self.developmentCostDuringPermitProcurement / numberDaysInMonth(date)
 
     def _getDevelopmentCostDuringConstruction(self, date):
         """costs for developing phase of project at given date (1day) - part construction"""
-        return self.developmentCostDuringConstruction / nubmerDaysInMonth(date)
+        return self.developmentCostDuringConstruction / numberDaysInMonth(date)
 
     def _getOperationalCosts(self, date):
         """Operational costs at given date (1day)"""
