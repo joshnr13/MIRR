@@ -145,7 +145,7 @@ class Interface():
         """Generates multi simulations of Weather data for each day in project and saves it to database"""
         country = self.getInputCountry(country)
 
-        simulations_no = 100
+        simulations_no = 1000
         period = self.getAllDates()
         simulations = WeatherSimulation(country, period, simulations_no)
         print_separator()
