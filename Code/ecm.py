@@ -61,7 +61,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
     def generateOneSimulation(self, simulation_no):
         """Main method for generating prices and preparing them to posting to database"""
         days_dict = OrderedDict()
-        prices = self.calcPriceWholePeriodMRJD(self.S0) # save prices in MW
+        prices = self.calcPriceWholePeriod(self.S0) # save prices in MW
 
         for date, price in zip(self.period, prices):  #loop for date, electricity price
             date_str = date.strftime("%Y-%m-%d")
@@ -103,13 +103,13 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         rjump = [random.random() for i in range(len(self.period))]
         rnoise = np.random.normal(size=len(self.period))
 
-        alpha =  0.0040659
-        beta =  0.0010714
-        sigma =  0.0099975
-        mu =  3.8442
-        gamma =  1.0011
-        lambd =  0.0036643
-
+        alpha =  0.064952
+        beta =  0.0013691
+        sigma =  0.57711
+        mu =  10.440
+        gamma =  1
+        lambd =  0.0034772
+        
         for i, date in enumerate(self.period):
             if date.weekday() < 5:
                 if rjump[i] > lambd:  # no jump
@@ -171,7 +171,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
     def makeInterannualVariabilityY(self):
         """Interannual variability of y"""
-        return self.y * np.random.normal(self.y_annual_mean, self.y_annual_std)
+        return self.y * (1 + np.random.normal(self.y_annual_mean, self.y_annual_std))
 
 
 class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
