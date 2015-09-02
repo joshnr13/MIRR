@@ -108,25 +108,10 @@ class WeatherSimulation(EnergyModuleConfigReader):
 
     def generateWeatherData(self, date):
         """
-        generates insolation and temperature for given_data
-        - each time new random factor used
-
-        ALGO:
-          Tries up to 100 times to generate temperature in bounds [TMin, TMax]
-          if T not in bounds tries next time,
-          else uses generated value
-
         return 3 values:  insolation, temperature, avg_production_day_per_kW
         """
-        av_temperature = self.getAvMonthTemperature(date)
-        av_insolation = self.getAvMonthInsolation(date)
-
-        for _ in range(100):
-            rnd_factor = self.getRandomFactor()
-            temperature = av_temperature * rnd_factor
-            insolation = av_insolation * rnd_factor
-            if temperature >= self.TMin and temperature <= self.TMax:
-                break
+        temperature = self.getAvMonthTemperature(date)
+        insolation = self.getAvMonthInsolation(date)
 
         return insolation, temperature, self.generateAvgProductionDayPerKw(date)
 
