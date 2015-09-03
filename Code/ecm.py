@@ -60,6 +60,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
     def generateOneSimulation(self, simulation_no):
         """Main method for generating prices and preparing them to posting to database"""
+        self.randomizePriceGenerationParameters(self.country)
         days_dict = OrderedDict()
         prices = self.calcPriceWholePeriod(self.S0) # save prices in MW
 

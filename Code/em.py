@@ -89,6 +89,7 @@ class WeatherSimulation(EnergyModuleConfigReader):
         """generate simulation one by one
         return  dict with [date]=(insolation, temperature)
         """
+        self.randomizeAvgProductionCorrections(self.country)
         days_dict = OrderedDict()
         self.interannual_variability = self.generateInterannualVariability()
         self.dust_uncertainty = self.generateDustUncertanty()
@@ -152,4 +153,3 @@ class WeatherSimulation(EnergyModuleConfigReader):
     def getAvMonthTemperature(self, date):
         """Returns average daily temperature in given date"""
         return self.getAvMonthTemperatureMonth(date.month)
-
