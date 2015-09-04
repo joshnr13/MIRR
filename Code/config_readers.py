@@ -269,7 +269,7 @@ class EconomicModuleConfigReader():
     def randomizePriceGenerationParameters(self, country, _filename='ecm_config.ini'):
          _config = parse_yaml(_filename, country)
          self.y_annual_std = get_config_value(
-            _config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.interannual_variability_of_y_std', float)
+            _config, 'ELECTRICITY_MARKET_PRICE_SIMULATION.y', float)
 
 class EnergyModuleConfigReader():
     """Module for reading Energy configs from file"""
