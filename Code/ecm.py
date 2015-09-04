@@ -50,9 +50,6 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         print_progress = setupPrintProgress('%d')
         self.cleanPreviousData() #before each Simulatation, we should clean previous data
         for simulation_no in range(1, self.simulations_no+1):  #loop for simulations numbers starting from 1
-            # re-loading EconomicModule Configs, with passing start date of project
-            # self.y will have new value each time
-            EconomicModuleConfigReader.__init__(self, self.country)
             data = self.generateOneSimulation(simulation_no)  #generating each simulation
             self.writeElectricityPriceData(data)  #writing each simulation to DB
             print_progress(simulation_no)  # print progress bar with simulation_no
