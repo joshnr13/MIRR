@@ -169,7 +169,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
     def makeInterannualVariabilityY(self):
         """Interannual variability of y"""
-        return self.y * (1 + np.random.normal(self.y_annual_mean, self.y_annual_std))
+        return self.y * (np.random.normal(self.y_annual_mean, self.y_annual_std))
 
 
 class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
