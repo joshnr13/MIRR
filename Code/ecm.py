@@ -59,7 +59,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         """Main method for generating prices and preparing them to posting to database"""
         self.randomizePriceGenerationParameters(self.country)
         days_dict = OrderedDict()
-        prices = self.calcPriceWholePeriod(self.S0) # save prices in MW
+        prices = self.calcPriceWholePeriodLogMRJD(self.S0) # save prices in MW
 
         for date, price in zip(self.period, prices):  #loop for date, electricity price
             date_str = date.strftime("%Y-%m-%d")
@@ -179,11 +179,11 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         for i, date in enumerate(self.period):
             if date.weekday() < 5:
                 if i == date_next_jump:
-                    price = prev_price + self.calcPriceDeltaNoJumpOld(prev_price, log(theta))
+                    price = prev_price + self.calcPriceDeltaNoJumpLogMRJD(prev_price, log(theta))
                     date_next_jump += int(random.expovariate(self.Lambda)) + 1 # add one if interval is 0
                     theta = theta * (1 + y/260)
                 else:
-                    price = prev_price + self.calcPriceDeltaNoJumpOld(prev_price, log(theta))
+                    price = prev_price + self.calcPriceDeltaWithJumpLogMRJD(prev_price, log(theta))
                     theta = theta * (1 + y/260)
 
 
@@ -193,6 +193,21 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
                 y = self.makeInterannualVariabilityY()
 
         return result
+
+    def calcPriceDeltaNoJumpLogMRJD(self, prev_price, theta):
+        """Calculates delta price (dp) based on @prev_price without a price jump"""
+        delta_Z = np.random.normal(loc= 0, scale=0.0128)
+
+        delta_price = 0.0022 * (theta - prev_price) + delta_Z
+        return  delta_price
+
+    def calcPriceDeltaWithJumpLogMRJD(self, prev_price, theta):
+        """Calculated delta price (dp) based on @prev_price with a price jump"""
+
+        J = np.random.normal(loc=-0.033, scale=0.055) #calculate jump
+
+        delta_price = self.calcPriceDeltaNoJumpOld(prev_price, theta)  + J  #add jump to delta price
+        return  delta_price
 
 
 
