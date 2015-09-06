@@ -167,6 +167,35 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
         return result
 
+    def calcPriceWholePeriodLogMRJD(self, start_price):
+        """Calculate price for whole period from start date to end - return  list with prices for all project days"""
+        result = []
+        date_next_jump = int(random.expovariate(self.Lambda)) #calculate the first date of price jump
+        y = self.makeInterannualVariabilityY()
+        theta = self.theta
+
+        prev_price = log(start_price)
+
+        for i, date in enumerate(self.period):
+            if date.weekday() < 5:
+                if i == date_next_jump:
+                    price = prev_price + self.calcPriceDeltaNoJumpOld(prev_price, log(theta))
+                    date_next_jump += int(random.expovariate(self.Lambda)) + 1 # add one if interval is 0
+                    theta = theta * (1 + y/260)
+                else:
+                    price = prev_price + self.calcPriceDeltaNoJumpOld(prev_price, log(theta))
+                    theta = theta * (1 + y/260)
+
+
+            prev_price = price
+            result.append(exp(price))
+            if isLastDayYear(date):  # recalculate y each new year
+                y = self.makeInterannualVariabilityY()
+
+        return result
+
+
+
     def makeInterannualVariabilityY(self):
         """Interannual variability of y"""
         return self.y * (np.random.normal(self.y_annual_mean, self.y_annual_std))
