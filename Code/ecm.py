@@ -179,11 +179,11 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         for i, date in enumerate(self.period):
             if date.weekday() < 5:
                 if i == date_next_jump:
-                    price = prev_price + self.calcPriceDeltaNoJumpLogMRJD(prev_price, log(theta))
+                    price = prev_price + self.calcPriceDeltaWithJumpLogMRJD(prev_price, log(theta))
                     date_next_jump += int(random.expovariate(self.Lambda)) + 1 # add one if interval is 0
                     theta = theta * (1 + y/260)
                 else:
-                    price = prev_price + self.calcPriceDeltaWithJumpLogMRJD(prev_price, log(theta))
+                    price = prev_price + self.calcPriceDeltaNoJumpLogMRJD(prev_price, log(theta))
                     theta = theta * (1 + y/260)
 
 
