@@ -3,6 +3,7 @@
 
 import datetime
 from dateutil.relativedelta import relativedelta
+import dateutil.rrule as rrule
 import numpy as np
 import random
 from math import exp, log, log1p, sqrt
@@ -167,24 +168,27 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
         return result
 
+    def getNextJump(self, start_date):
+        business_days_to_add = int(random.expovariate(self.Lambda)) + 1
+        business_only = rrule.rrule(rrule.DAILY, byweekday=(rrule.MO, rrule.TU, rrule.WE, rrule.TH, rrule.FR),
+                                    dtstart=start_date)
+        return business_only[business_days_to_add].date()
+
     def calcPriceWholePeriodLogMRJD(self, start_price):
         """Calculate price for whole period from start date to end - return  list with prices for all project days"""
         result = []
-        date_next_jump = int(random.expovariate(self.Lambda)) #calculate the first date of price jump
+        date_next_jump = self.getNextJump(self.period[0])
         y = self.makeInterannualVariabilityY()
         theta = self.theta
-
         prev_price = log(start_price)
-
         for i, date in enumerate(self.period):
             if date.weekday() < 5:
-                if i == date_next_jump:
+                if date == date_next_jump:
                     price = prev_price + self.calcPriceDeltaWithJumpLogMRJD(prev_price, log(theta))
-                    date_next_jump += int(random.expovariate(self.Lambda)) + 1 # add one if interval is 0
-                    theta = theta * (1 + y/260)
+                    date_next_jump = self.getNextJump(date_next_jump)
                 else:
                     price = prev_price + self.calcPriceDeltaNoJumpLogMRJD(prev_price, log(theta))
-                    theta = theta * (1 + y/260)
+                theta = theta * (1 + y/260)
 
 
             prev_price = price
@@ -206,7 +210,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
         J = np.random.normal(loc=-0.033, scale=0.055) #calculate jump
 
-        delta_price = self.calcPriceDeltaNoJumpOld(prev_price, theta)  + J  #add jump to delta price
+        delta_price = self.calcPriceDeltaNoJumpLogMRJD(prev_price, theta)  + J  #add jump to delta price
         return  delta_price
 
 
