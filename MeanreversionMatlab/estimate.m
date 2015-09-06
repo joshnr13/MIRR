@@ -30,7 +30,7 @@ function [ mu, sigma, lambda ] = estimateML(S, deltat)
   sigma = sqrt(sigmahat2*2*lambda/(1  -  alpha2));
 end
 
-S = log(csvread('contract_prices.csv', 1, 1));
+S = csvread('log_price_no_jumps.csv', 1, 0);
 format long
 disp('LS:')
 [mu, sigma, lambda] = estimateLS(S, 1)
