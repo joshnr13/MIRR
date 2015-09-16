@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding utf-8 -*-
 import numpy
+import datetime
 from collections import  OrderedDict
 from annex import lastDayMonth, cached_property, lastDayPrevMonth, print_warning
 from annex import isLastDayYear, OrderedDefaultdict
@@ -200,9 +201,12 @@ class Report(BaseClassConfig):
         self.development_cost[M] = self.economic_module.getDevelopmentCosts(start_day, end_day)
         self.insurance_cost[M] = self.economic_module.getInsuranceCosts(start_day, end_day)
         self.operational_cost[M] = self.economic_module.getOperationalCosts(start_day, end_day)
-        self.repair_costs_modules[M] = self.economic_module.getRepairCostsModules(start_day, end_day)
-        self.repair_costs_inverters[M] = self.economic_module.getRepairCostsInverters(start_day, end_day)
-        self.cost[M] = self.economic_module.getCosts(start_day, end_day)
+
+        prev_year_ebitda = self.ebitda_y[datetime.date(end_day.year-1, 12, 31)]
+        self.repair_costs_modules[M] = self.economic_module.getRepairCostsModules(start_day, end_day, prev_year_ebitda)
+        self.repair_costs_inverters[M] = self.economic_module.getRepairCostsInverters(start_day, end_day, prev_year_ebitda)
+        self.cost[M] = (self.insurance_cost[M] + self.development_cost[M] + self.operational_cost[M] +
+                        self.repair_costs_modules[M] + self.repair_costs_inverters[M])
 
         self.ebitda[M] = self.calcEbitda(end_day)
         self.ebit[M] = self.calcEbit(end_day)
