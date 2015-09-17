@@ -525,6 +525,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
             years_till_end = self.end_date_project.year - date.year
             if (self.repair_costs_modules[date] > 5*prev_year_ebitda or
                 self.repair_costs_modules[date] > prev_year_ebitda * 0.9 * years_till_end):
+                return 0
         return self.repair_costs_inverters[date]
 
     def _getInsuranceCosts(self, date):
