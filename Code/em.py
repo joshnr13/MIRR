@@ -6,7 +6,7 @@ from base_class import BaseClassConfig
 from config_readers import EnergyModuleConfigReader
 from constants import TESTMODE
 from collections import OrderedDict
-from annex import cached_property, setupPrintProgress, yearsBetween1Jan
+from annex import cached_property, setupPrintProgress, yearsBetween1Jan, convertDictDates
 from database import  Database
 from numpy.random import normal as gauss
 
@@ -21,11 +21,12 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
     @cached_property
     def weather_data(self):
         """Takes weather data from database lazy, only when they are needed"""
-        result = self.db.getWeatherData(self.weather_data_rnd_simulation, self.country)
-        if not result:
-            raise ValueError("Please generate first Weather data before using it")
-        else:
-            return result
+        simulations_no = 1
+        period = self.all_project_dates
+        weather_simulation = WeatherSimulation(self.country, period, simulations_no)
+        data = weather_simulation.generateOneSimulation(1)['data']  # generated weather data
+        result = convertDictDates(data)
+        return result
 
     @cached_property
     def insolations(self):
