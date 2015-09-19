@@ -108,7 +108,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         mu =  10.440
         gamma =  1
         lambd =  0.0034772
-        
+
         for i, date in enumerate(self.period):
             if date.weekday() < 5:
                 if rjump[i] > lambd:  # no jump
@@ -199,14 +199,14 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         return result
 
     def calcPriceDeltaNoJumpLogMRJD(self, prev_price, theta):
-        """Calculates delta price (dp) based on @prev_price without a price jump"""
+        """Calculates delta price (dp) based on @prev_price without a price jump."""
         delta_Z = np.random.normal(loc= 0, scale=0.0128)
 
         delta_price = 0.001258 * (theta - prev_price) + delta_Z
         return  delta_price
 
     def calcPriceDeltaWithJumpLogMRJD(self, prev_price, theta):
-        """Calculated delta price (dp) based on @prev_price with a price jump"""
+        """Calculated delta price (dp) based on @prev_price with a price jump."""
 
         J = np.random.normal(loc=0, scale=0.0464) #calculate jump
 
@@ -216,12 +216,12 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
 
 
     def makeInterannualVariabilityY(self):
-        """Interannual variability of y"""
+        """Interannual variability of y."""
         return self.y * (np.random.normal(self.y_annual_mean, self.y_annual_std))
 
 
 class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
-    """Module for holding all economic values calculation"""
+    """Module for holding all economic values calculation."""
 
     def __init__(self, config_module, technology_module, subsidy_module, environment_module, country):
         """
@@ -242,7 +242,7 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.calcInvestmentAndFinancing()
 
     def calcBaseValues(self):
-        """caclulation of initial values"""
+        """Calculation of initial values."""
         self.investments = self.technology_module.getInvestmentCost() #gets the value of the whole investment from the technology module
         self.debt = self.debt_share * self.investments #calculates the amount of debt based on share of debt in financing
         self.capital = self.investments - self.debt #calculates the amount of capital based on the amount of debt
@@ -250,13 +250,13 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     @cached_property
     def electricity_production(self):
-        """This is cached attribute, it is calculated only one time per session"""
+        """This is a cached attribute, it is calculated only one time per session."""
         return  self.technology_module.generateElectricityProductionLifeTime()
 
     @cached_property
     def electricity_prices(self):
         """This is cached attribute, it is calculated only one time per session
-        reads random time sequence of electricity market prices from database"""
+        reads random time sequence of electricity market prices from database."""
         simulations_no = 1
         period = self.all_project_dates
         price_simulation = ElectricityMarketPriceSimulation(self.country, period, simulations_no)
@@ -265,20 +265,20 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         return result
 
     def getElectricityProductionLifetime(self):
-        """return  all values dict [date]=electricity production for that date"""
+        """Returns all values dict [date]=electricity production for that date."""
         return  self.electricity_production
 
     def isConstructionStarted(self, date):
-        """return  True if we recieved all permits and started but not finished construction of equipment"""
+        """Returns True if we recieved all permits and started but not finished construction of equipment."""
         return  (date > self.last_day_permit_procurement and date <= self.last_day_construction)
 
     def isProductionElectricityStarted(self, date):
-        """return  True if we recieved all permits, finished construction and can
-        sell electricity"""
+        """Returns True if we recieved all permits, finished construction and can
+        sell electricity."""
         return  (date > self.last_day_construction)
 
     def getRevenue(self, date_start, date_end):
-        """return revenue from selling electricity and subsidy for given period of time"""
+        """Returns revenue from selling electricity and subsidy for given period of time."""
         revenue_electricity = 0
         revenue_subsidy = 0
         cur_date = date_start
@@ -292,11 +292,11 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         return revenue_electricity, revenue_subsidy
 
     def getElectricityProduction(self,  date):
-        """return  production of electricity at given date"""
+        """Returns production of electricity at given date."""
         return  self.electricity_production[date]
 
     def calcDepreciationMonthly(self, date):
-        """Calcultation of amortization in current month"""
+        """Calculation of amortization in current month."""
         cur_month = monthsBetween(self.last_day_construction+datetime.timedelta(days=1), date)  #calculating number of months between last_day_construction and cur date
         if cur_month > 0 and cur_month <= self.Depreciation_duration:
             return self.Depreciation_monthly
@@ -365,22 +365,22 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         self.payInterestsWithPrincipal(principal, date=last_date_interest_payment)
 
     def getPaidInAtDate(self, date):
-        """return  current month new value of paid-in capital"""
+        """Return current month new value of paid-in capital."""
         return  self.paid_in_monthly[date]
 
     def getInvestCaptitalDeptValues(self, date, share):
-        """Calculation of PaidIn and Investments for every month"""
+        """Calculation of PaidIn and Investments for every month."""
         invest_value, paid_from_initial_capital = self.calcPaidInCapitalPart(share)  #Calculation of inverstment value for current part of payment
         debt_value = self.debt * share  #debt values for current investment paid-in
         return invest_value, paid_from_initial_capital, debt_value
 
     def calcInvestmentsAndPaidIn(self, date, invest_value, paid_from_initial_capital, debt_value):
-        #saving paidin and investments for report
+        """Saving paidin and investments for report."""
         self.investments_monthly[date] += invest_value + debt_value  # saving+updating monthly investments
         self.paid_in_monthly[date] += invest_value - paid_from_initial_capital  # saving+updating monthly paid-in
 
     def payOnlyInterests(self, only_percent_pairs, last_date):
-        """Pay only interest payments until @last_date"""
+        """Pay only interest payments until @last_date."""
         current_dept = 0
         for date in self.report_dates.values():
             pay_interest_date = lastDayNextMonth(date)
@@ -535,11 +535,11 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def getRepairCostsModules(self, date_start, date_end, prev_year_ebitda):
         """sum of repair costs for modules for all days in RANGE period"""
-        return self.getSomeCostsRange(self._getRepairCostsModules, date_start, date_end, prev_year_ebitda)
+        return self.getSomeCostsRange(self.technology_module.getRepairCostsModules, date_start, date_end, prev_year_ebitda)
 
     def getRepairCostsInverters(self, date_start, date_end, prev_year_ebitda):
         """Sum of repair costs for inverters for all days in range period."""
-        return self.getSomeCostsRange(self._getRepairCostsInverters, date_start, date_end, prev_year_ebitda)
+        return self.getSomeCostsRange(self.technology_module.getRepairCostsInverters, date_start, date_end, prev_year_ebitda)
 
     def getSomeCostsRange(self, cost_function, date_start, date_end, *args):
         """basic function to calculate range costs"""
