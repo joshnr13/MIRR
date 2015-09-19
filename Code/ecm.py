@@ -60,7 +60,7 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         """Main method for generating prices and preparing them to posting to database"""
         self.randomizePriceGenerationParameters(self.country)
         days_dict = OrderedDict()
-        prices = self.calcPriceWholePeriodLogMRJD(self.S0) # save prices in MW
+        prices = self.calcPriceWholePeriod(self.S0) # save prices in MW
 
         for date, price in zip(self.period, prices):  #loop for date, electricity price
             date_str = date.strftime("%Y-%m-%d")
@@ -202,13 +202,13 @@ class ElectricityMarketPriceSimulation(EconomicModuleConfigReader):
         """Calculates delta price (dp) based on @prev_price without a price jump"""
         delta_Z = np.random.normal(loc= 0, scale=0.0128)
 
-        delta_price = 0.0022 * (theta - prev_price) + delta_Z
+        delta_price = 0.001258 * (theta - prev_price) + delta_Z
         return  delta_price
 
     def calcPriceDeltaWithJumpLogMRJD(self, prev_price, theta):
         """Calculated delta price (dp) based on @prev_price with a price jump"""
 
-        J = np.random.normal(loc=-0.033, scale=0.055) #calculate jump
+        J = np.random.normal(loc=0, scale=0.0464) #calculate jump
 
         delta_price = self.calcPriceDeltaNoJumpLogMRJD(prev_price, theta)  + J  #add jump to delta price
         return  delta_price

@@ -242,7 +242,7 @@ class Interface():
         countries[2] = 'AUSTRIA'
         countries[3] = 'ITALY'
         countries[4] = 'GERMANY'
-        countries[5] = 'SPAIN'
+        countries[5] = 'NETHERLANDS'
         countries[6] = 'CROATIA'
         countries[7] = 'FRANCE'
         countries[8] = 'FRANCE-NICE'
