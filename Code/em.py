@@ -44,15 +44,15 @@ class EnergyModule(BaseClassConfig, EnergyModuleConfigReader):
 
     @cached_property
     def avg_production_day_per_kW(self):
-        """Calculating average daily pruduction per kW for whole project."""
+        """Calculating average daily production per kW for whole project."""
         return OrderedDict((date, self.weather_data[date][2]) for date in self.all_project_dates)
 
     def getAvgProductionDayPerKW(self, date):
-        """return  average daily pruduction per kW at given date"""
+        """return  average daily production per kW at given date"""
         return self.avg_production_day_per_kW[date]
 
     def getAvgProductionDayPerKWLifetime(self):
-        """return all dict with average daily pruduction per kW dates and values"""
+        """return all dict with average daily production per kW dates and values"""
         return self.avg_production_day_per_kW
 
 
