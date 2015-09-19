@@ -244,8 +244,6 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
     def calcBaseValues(self):
         """caclulation of initial values"""
         self.investments = self.technology_module.getInvestmentCost() #gets the value of the whole investment from the technology module
-        self.repair_costs_modules = self.technology_module.getRepairCostsModules()
-        self.repair_costs_inverters = self.technology_module.getRepairCostsInverters()
         self.debt = self.debt_share * self.investments #calculates the amount of debt based on share of debt in financing
         self.capital = self.investments - self.debt #calculates the amount of capital based on the amount of debt
         self.Depreciation_monthly = self.investments / self.Depreciation_duration  #Calc monthly value for Depreciation
@@ -504,29 +502,6 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         yearNumber = yearsBetween1Jan(self.start_date_project, date)  #nuber of current year since start project
         #we increase initial administrativeCosts each year on administrativeCostsGrowth_rate
         return self.administrativeCosts * ((1 + self.administrativeCostsGrowth_rate) ** yearNumber) / getDaysNoInMonth(date)
-
-    def _getRepairCostsModules(self, date, prev_year_ebitda):
-        """Returns repair costs for solar modules at given date."""
-        start_year = self.start_date_project.year
-        if date.year - start_year >= 5:
-            years_till_end = self.end_date_project.year - date.year
-            # dont make repairs if:
-            # repair cost is bigger than 5x ebitda of prev year
-            # repair cost is bigger than ebitda prev year * 0.9 * number of days till end
-            if (self.repair_costs_modules[date] > 5*prev_year_ebitda or
-                self.repair_costs_modules[date] > prev_year_ebitda * 0.9 * years_till_end):
-                return 0
-        return self.repair_costs_modules[date]
-
-    def _getRepairCostsInverters(self, date, prev_year_ebitda):
-        """Returns repair costs for inverters at given date."""
-        start_year = self.start_date_project.year
-        if date.year - start_year >= 5:
-            years_till_end = self.end_date_project.year - date.year
-            if (self.repair_costs_modules[date] > 5*prev_year_ebitda or
-                self.repair_costs_modules[date] > prev_year_ebitda * 0.9 * years_till_end):
-                return 0
-        return self.repair_costs_inverters[date]
 
     def _getInsuranceCosts(self, date):
         """return insurance costs at give date (1day) because it is fixed value, we calculate it only one time
