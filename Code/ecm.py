@@ -505,27 +505,12 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         #we increase initial administrativeCosts each year on administrativeCostsGrowth_rate
         return self.administrativeCosts * ((1 + self.administrativeCostsGrowth_rate) ** yearNumber) / getDaysNoInMonth(date)
 
-    def _getRepairCostsModules(self, date, prev_year_ebitda):
+    def _getRepairCostsModules(self, date):
         """Returns repair costs for solar modules at given date."""
-        start_year = self.start_date_project.year
-        if date.year - start_year >= 5:
-            years_till_end = self.end_date_project.year - date.year
-            # dont make repairs if:
-            # repair cost is bigger than 5x ebitda of prev year
-            # repair cost is bigger than ebitda prev year * 0.9 * number of days till end
-            if (self.repair_costs_modules[date] > 5*prev_year_ebitda or
-                self.repair_costs_modules[date] > prev_year_ebitda * 0.9 * years_till_end):
-                return 0
         return self.repair_costs_modules[date]
 
-    def _getRepairCostsInverters(self, date, prev_year_ebitda):
+    def _getRepairCostsInverters(self, date):
         """Returns repair costs for inverters at given date."""
-        start_year = self.start_date_project.year
-        if date.year - start_year >= 5:
-            years_till_end = self.end_date_project.year - date.year
-            if (self.repair_costs_modules[date] > 5*prev_year_ebitda or
-                self.repair_costs_modules[date] > prev_year_ebitda * 0.9 * years_till_end):
-                return 0
         return self.repair_costs_inverters[date]
 
     def _getInsuranceCosts(self, date):
@@ -558,17 +543,17 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
         """sum of insurance costs for all days in RANGE period"""
         return self.getSomeCostsRange(self._getInsuranceCosts, date_start, date_end)
 
-    def getRepairCostsModules(self, date_start, date_end, prev_year_ebitda):
+    def getRepairCostsModules(self, date_start, date_end):
         """sum of repair costs for modules for all days in RANGE period"""
-        return self.getSomeCostsRange(self._getRepairCostsModules, date_start, date_end, prev_year_ebitda)
+        return self.getSomeCostsRange(self._getRepairCostsModules, date_start, date_end)
 
-    def getRepairCostsInverters(self, date_start, date_end, prev_year_ebitda):
+    def getRepairCostsInverters(self, date_start, date_end):
         """Sum of repair costs for inverters for all days in range period."""
-        return self.getSomeCostsRange(self._getRepairCostsInverters, date_start, date_end, prev_year_ebitda)
+        return self.getSomeCostsRange(self._getRepairCostsInverters, date_start, date_end)
 
-    def getSomeCostsRange(self, cost_function, date_start, date_end, *args):
+    def getSomeCostsRange(self, cost_function, date_start, date_end):
         """basic function to calculate range costs"""
-        return sum([cost_function(date, *args) for date in get_list_dates(date_start, date_end)])
+        return sum([cost_function(date) for date in get_list_dates(date_start, date_end)])
 
     def getTaxRate(self):
         """return taxrate in float"""
