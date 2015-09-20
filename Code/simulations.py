@@ -57,8 +57,8 @@ class Simulation:
         pool.close()
         pool.join()
 
-        # initIteration(progress_counter)
-        # result = map(runIteration, data)
+#          initIteration(progress_counter)
+#          result = map(runIteration, data)
 
         result = zip(*result)  # transpose
         sys.stdout.write('\n')  # go to newline because of progress printer

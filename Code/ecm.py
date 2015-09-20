@@ -560,11 +560,11 @@ class EconomicModule(BaseClassConfig, EconomicModuleConfigReader):
 
     def getRepairCostsModules(self, date_start, date_end, prev_year_ebitda):
         """sum of repair costs for modules for all days in RANGE period"""
-        return self.getSomeCostsRange(self.technology_module.getRepairCostsModules, date_start, date_end, prev_year_ebitda)
+        return self.getSomeCostsRange(self._getRepairCostsModules, date_start, date_end, prev_year_ebitda)
 
     def getRepairCostsInverters(self, date_start, date_end, prev_year_ebitda):
         """Sum of repair costs for inverters for all days in range period."""
-        return self.getSomeCostsRange(self.technology_module.getRepairCostsInverters, date_start, date_end, prev_year_ebitda)
+        return self.getSomeCostsRange(self._getRepairCostsInverters, date_start, date_end, prev_year_ebitda)
 
     def getSomeCostsRange(self, cost_function, date_start, date_end, *args):
         """basic function to calculate range costs"""
