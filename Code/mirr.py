@@ -207,14 +207,19 @@ class Interface():
             wr = csv.writer(f, delimiter=';')
             nested = ['std', 'variance', 'min', 'max', 'skew', 'kurtosis', 'mean',
             'required_rate_of_return', 'median', 'JBTest', 'JBTest_value', 'normaltest']
-            head = ['country', 'iterations_number'] + nested
+            head = ['country', 'iterations_number'] + nested + ['tax_rate'] + ['subsidy_duration']
             wr.writerow(head)
             for x in self.db.simulations.find():
+                simno = x['simulation']
+                result = self.db.getIterationValuesFromDb(simno,
+                        ['ecm_configs.tax_rate', 'sm_configs.subsidy_duration'], '', iteration_no=1)
                 lst = []
                 lst.append(x['country'])
                 lst.append(x['iterations_number'])
                 for n in nested:
                     lst.append(x['irr_stats'][0][n])
+                lst.append(result['tax_rate'][0])
+                lst.append(result['subsidy_duration'][0])
                 wr.writerow(map(str, lst))
 
         xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
