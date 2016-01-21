@@ -4,12 +4,13 @@
 # Project owner Borut Del Fabbro
 
 import sys
+import os
 import traceback
 from collections import OrderedDict
 from random import randint, choice
 
 from annex import getInputDate, getInputInt, memoize, getInputComment, \
-    print_separator
+    print_separator, uniquifyFilename, convert2excel
 from database import Database
 from ecm import ElectricityMarketPriceSimulation
 from em import WeatherSimulation
@@ -17,7 +18,7 @@ from config_readers import MainConfig
 from simulations import runAndSaveSimulation
 from charts import plotRevenueCostsChart, plotCorrelationTornadoChart, plotIRRScatterChart, plotStepChart
 from report_output import ReportOutput
-from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD, REPORT_DEFAULT_NUMBER_ITERATIONS
+from constants import CORRELLATION_IRR_FIELD, CORRELLATION_NPV_FIELD, REPORT_DEFAULT_NUMBER_ITERATIONS, report_directory
 from rm import analyseSimulationResults, plotSaveStochasticValuesSimulation, plotGeneratedWeather, plotGeneratedElectricity, \
     getWeatherDataFromDb, saveWeatherData, exportElectricityPrices
 
@@ -40,6 +41,7 @@ commands['15'] = 'generateElectricityMarketPrice'  #daily electricty market pric
 commands['16'] = 'outputGeneratedElectricityPrices'  #Graph of daily electricty market prices
 commands['17'] = 'outputGeneratedWeatherData'  #Graph of daily aily insolation and temperature
 commands['18'] = 'exportGeneratedElectricityPrices'  #Graph of daily aily insolation and temperature
+commands['19'] = 'exportIrrProjectYStats'
 commands['0'] = 'stop'
 commands['h'] = 'help'
 commands['help'] = 'help'
@@ -196,9 +198,32 @@ class Interface():
         country = self.getInputCountry(country)
         exportElectricityPrices(country, simulation_no=None)
 
-    @memoize
-    def getAllDates(country):
-        return MainConfig(country).getAllDates()
+
+    def exportIrrProjectYStats(self):
+        report_full_name = os.path.join(report_directory, 'statistics.csv')
+        output_filename = uniquifyFilename(report_full_name)  # real filename of report
+        with open(output_filename, 'w') as f:
+            import csv
+            wr = csv.writer(f, delimiter=';')
+            nested = ['std', 'variance', 'min', 'max', 'skew', 'kurtosis', 'mean',
+            'required_rate_of_return', 'median', 'JBTest', 'JBTest_value', 'normaltest']
+            head = ['country', 'iterations_number'] + nested
+            wr.writerow(head)
+            for x in self.db.simulations.find():
+                lst = []
+                lst.append(x['country'])
+                lst.append(x['iterations_number'])
+                for n in nested:
+                    lst.append(x['irr_stats'][0][n])
+                wr.writerow(map(str, lst))
+
+        xls_output_filename = os.path.splitext(output_filename)[0] + ".xlsx"
+        xls_output_filename = uniquifyFilename(xls_output_filename)  # preparing XLS filename before converting from CSV
+        convert2excel(source=output_filename, output=xls_output_filename)  # coverting from CSV to XLS, using prepared report name
+        print "CSV Report outputed to file %s" % xls_output_filename  # printing to screen path to generated report
+        @memoize
+        def getAllDates(country):
+            return MainConfig(country).getAllDates()
 
     ####################################################################################################################
 
