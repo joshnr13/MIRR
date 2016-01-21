@@ -66,26 +66,42 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
         """Returns investment costs of all plant."""
         return self.plant.getInvestmentCost()
 
-    def getRepairCostsModules(self):
-        repair_costs = OrderedDict([(day, 0) for day in self.all_project_dates])
+    def getRepairCostsModules(self, date, prev_year_ebitda):
+        repair_costs = 0
         for g in self.plant.solar_groups:
             for sm in g.solar_modules:
                 for (fail, rep) in sm.failure_intervals:
-                    self.randomizeRepairCosts(self.country)
-                    repair_costs[rep] += self.module_repair_costs
-                    if rep - self.first_day_construction > timedelta(days=365*self.module_guarantee_length): # not in guarantee period
-                         repair_costs[rep] += self.module_price
+                    if rep == date:
+                        self.randomizeRepairCosts(self.country)
+                        years_till_end = self.end_date_project.year - date.year
+                        start_year = self.start_date_project.year
+                        if ((date.year - start_year >= 5) and
+                                (self.inverter_repair_costs > 5 * prev_year_ebitda or
+                                 self.inverter_repair_costs > prev_year_ebitda * 0.9 * years_till_end)):
+                            sm.failure_intervals = [(date, self.end_date_project)]  # break it forever
+                        else:
+                            repair_costs += self.module_repair_costs
+                            if rep - self.first_day_construction > timedelta(days=365*self.module_guarantee_length): # not in guarantee period
+                                 repair_costs += self.module_price
         return repair_costs
 
-    def getRepairCostsInverters(self):
-        repair_costs = OrderedDict([(day, 0) for day in self.all_project_dates])
+    def getRepairCostsInverters(self, date, prev_year_ebitda):
+        repair_costs = 0
         for g in self.plant.solar_groups:
             if g.inverter is not None:
                 for (fail, rep) in g.inverter.failure_intervals:
-                    self.randomizeRepairCosts(self.country)
-                    repair_costs[rep] += self.inverter_repair_costs
-                    if rep - self.first_day_construction > timedelta(days=365*self.inverter_guarantee_length): # not in guarantee period
-                       repair_costs[rep] += self.inverter_price
+                    if rep == date:
+                        self.randomizeRepairCosts(self.country)
+                        years_till_end = self.end_date_project.year - date.year
+                        start_year = self.start_date_project.year
+                        if ((date.year - start_year >= 5) and
+                                (self.inverter_repair_costs > 5 * prev_year_ebitda or
+                                 self.inverter_repair_costs > prev_year_ebitda * 0.9 * years_till_end)):
+                            g.inverter.failure_intervals = [(date, self.end_date_project)]
+                        else:
+                            repair_costs += self.inverter_repair_costs
+                            if rep - self.first_day_construction > timedelta(days=365*self.inverter_guarantee_length): # not in guarantee period
+                               repair_costs += self.inverter_price
         return repair_costs
 
     def getAverageDegradationRate(self):

@@ -52,13 +52,13 @@ class Simulation:
 
         data = [[i+1, self.simulation_no, self.country, random.randint(0, 10000000), iterations_number] for i in range(iterations_number)]
 
-        pool = multiprocessing.Pool(2 * cpu_count, initializer=initIteration, initargs=(progress_counter,))
-        result = pool.map(runIteration, data)  # irr and tep data
-        pool.close()
-        pool.join()
+#          pool = multiprocessing.Pool(2 * cpu_count, initializer=initIteration, initargs=(progress_counter,))
+#          result = pool.map(runIteration, data)  # irr and tep data
+#          pool.close()
+#          pool.join()
 
-#          initIteration(progress_counter)
-#          result = map(runIteration, data)
+        initIteration(progress_counter)
+        result = map(runIteration, data)
 
         result = zip(*result)  # transpose
         sys.stdout.write('\n')  # go to newline because of progress printer
