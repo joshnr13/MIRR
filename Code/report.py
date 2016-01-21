@@ -640,15 +640,13 @@ class Report(BaseClassConfig):
     def calcTax(self, date):
         """
         tax = EBT in the year * taxrate
-        tax = taxrate * max(EBT*50%; EBT - accumulated loss)
         entered only in december
         """
         if not isLastDayYear(date):  #IF @date is NOT LAST DAY of YEAR -> TAX  = 0
             return 0
         else:
-            #IF YEARLY EBT BELOW ZERO -> NO TAX
+            """#IF YEARLY EBT BELOW ZERO -> NO TAX   ----- neeed to be corrected - does not make sense ---
             #IF EBT + ACC EARN < 0 -> NO TAX
-            #ELSE MAX 50% of YEAR EBT or EBT - ACC EARN
             accumulated_earnings = self.calcAccumulatedEarnings(date)
             year_ebt = self.ebt_y[date]
 
@@ -658,7 +656,11 @@ class Report(BaseClassConfig):
                 return 0
             else:
                 tax_rate = self.economic_module.getTaxRate()
-                return tax_rate * max(year_ebt/2.0, year_ebt - accumulated_earnings)
+                return tax_rate * max(year_ebt, year_ebt - accumulated_earnings)"""
+
+        year_ebt = self.ebt_y[date]
+        tax_rate = self.economic_module.getTaxRate()
+        return tax_rate * year_ebt
 
 
     def calcPaidIn(self, date):
