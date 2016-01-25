@@ -235,14 +235,18 @@ class Interface():
 
     def runBatchOfSimulations(self):
         iteration_no = 5000
-        runAndSaveSimulation(country='FRANCE', iterations_no, comment=None);
-        runAndSaveSimulation(country='FRANCE1', iterations_no, comment=None);
-        runAndSaveSimulation(country='FRANCE2', iterations_no, comment=None);
-        runAndSaveSimulation(country='FRANCE3', iterations_no, comment=None);
-        runAndSaveSimulation(country='FRANCE4', iterations_no, comment=None);
-        runAndSaveSimulation(country='FRANCE5', iterations_no, comment=None);
-        runAndSaveSimulation(country='FRANCE6', iterations_no, comment=None);
-        runAndSaveSimulation(country='FRANCE7', iterations_no, comment=None);
+        runAndSaveSimulation('FRANCE', iterations_no, ' ');
+        runAndSaveSimulation('FRANCE1', iterations_no, ' ');
+        runAndSaveSimulation('FRANCE2', iterations_no, ' ');
+        runAndSaveSimulation('FRANCE3', iterations_no, ' ');
+        runAndSaveSimulation('FRANCE4', iterations_no, ' ');
+        runAndSaveSimulation('FRANCE5', iterations_no, ' ');
+        runAndSaveSimulation('FRANCE6', iterations_no, ' ');
+        runAndSaveSimulation('FRANCE7', iterations_no, ' ');
+        runAndSaveSimulation('FRANCE8', iterations_no, ' ');
+        runAndSaveSimulation('FRANCE9', iterations_no, ' ');
+        runAndSaveSimulation('FRANCE10', iterations_no, ' ');
+    
 
 
         
