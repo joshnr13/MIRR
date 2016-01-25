@@ -145,9 +145,10 @@ class Interface():
 
     def generateWeatherData(self, country=None):
         """Generates multi simulations of Weather data for each day in project and saves it to database"""
+        #not used any more
         country = self.getInputCountry(country)
 
-        simulations_no = 1000
+        simulations_no = 50
         period = self.getAllDates()
         simulations = WeatherSimulation(country, period, simulations_no)
         print_separator()
@@ -155,6 +156,7 @@ class Interface():
 
     def generateElectricityMarketPrice(self, country=None):
         """Generates multi simulations of Electricity Price for each day in project and saves it to database"""
+        #not used any more
         country = self.getInputCountry(country)
 
         simulations_no = 50
