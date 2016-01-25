@@ -72,7 +72,7 @@ NPV_REPORT_FIELD = 'npv_project_y'
 
 TEP_REPORT_FIELDS = ["total_energy_produced", "system_not_working", "electricity_production_2ndyear", "total_power"]
 
-REPORT_DEFAULT_NUMBER_ITERATIONS = 100
+REPORT_DEFAULT_NUMBER_ITERATIONS = 1000
 
 CORRELLATION_FIELDS = OrderedDict() # IRR ONE SHOULD HAVE NAME =IRR and be FIRST ONE
 CORRELLATION_FIELDS["permit_procurement_duration"] = "main_configs.real_permit_procurement_duration"
