@@ -42,6 +42,7 @@ commands['16'] = 'outputGeneratedElectricityPrices'  #Graph of daily electricty 
 commands['17'] = 'outputGeneratedWeatherData'  #Graph of daily aily insolation and temperature
 commands['18'] = 'exportGeneratedElectricityPrices'  #Graph of daily aily insolation and temperature
 commands['19'] = 'exportIrrProjectYStats'
+commands['20'] = 'runBatchOfSimulations'
 commands['0'] = 'stop'
 commands['h'] = 'help'
 commands['help'] = 'help'
@@ -231,6 +232,20 @@ class Interface():
         @memoize
         def getAllDates(country):
             return MainConfig(country).getAllDates()
+
+    def runBatchOfSimulations(self):
+        iteration_no = 5000
+        runAndSaveSimulation(country='FRANCE', iterations_no, comment=None);
+        runAndSaveSimulation(country='FRANCE1', iterations_no, comment=None);
+        runAndSaveSimulation(country='FRANCE2', iterations_no, comment=None);
+        runAndSaveSimulation(country='FRANCE3', iterations_no, comment=None);
+        runAndSaveSimulation(country='FRANCE4', iterations_no, comment=None);
+        runAndSaveSimulation(country='FRANCE5', iterations_no, comment=None);
+        runAndSaveSimulation(country='FRANCE6', iterations_no, comment=None);
+        runAndSaveSimulation(country='FRANCE7', iterations_no, comment=None);
+
+
+        
 
     ####################################################################################################################
 
