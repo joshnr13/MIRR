@@ -271,8 +271,8 @@ class Interface():
         #######################################
 
         number_of_simulations = 2
-        countries = [7, 7]
-        numbers_of_iterations = [50, 50]
+        countries = ['FRANCE', 'FRANCE']
+        numbers_of_iterations = [24, 24]
 
         conf_data = [
          {
@@ -280,7 +280,7 @@ class Interface():
          'duration': '0',
          },
          {
-         'taxrate': '0',
+         'taxrate': '20',
          'duration': '60',
          }
          ]
