@@ -45,8 +45,8 @@ class Simulation:
     def runIterations(self, iterations_number):
         """Run @iterations_number iterations in paralel."""
 
-        #cpu_count = multiprocessing.cpu_count()
-        cpu_count = 7
+        cpu_count = 3 * multiprocessing.cpu_count()
+        #cpu_count = 24
         progress_counter = multiprocessing.Value('i', 0)
         sys.stdout.write("\r{0}/{1} -- {2:.2f}% ".format(progress_counter.value, iterations_number, 100 * progress_counter.value / float(iterations_number)))
         sys.stdout.flush()

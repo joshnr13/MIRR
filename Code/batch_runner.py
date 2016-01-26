@@ -13,18 +13,78 @@
 ###########  ENTER DATA    ############
 #######################################
 
-number_of_simulations = 2
-countries = [1, 1]
-numbers_of_iterations = [1, 2]
+number_of_simulations = 21
+countries = [7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,]
+numbers_of_iterations = [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
 
 conf_data = [
     {
-        'taxrate': '25',
+        'taxrate': '0',
+        'duration': '0',
+    },
+    {
+        'taxrate': '0',
+        'duration': '60',
+    },
+    {
+        'taxrate': '0',
+        'duration': '120',
+    },
+        {
+        'taxrate': '0',
+        'duration': '180',
+    },
+    {
+        'taxrate': '0',
         'duration': '240',
     },
     {
-        'taxrate': '23',
+        'taxrate': '0',
+        'duration': '300',
+    },
+    {
+        'taxrate': '0',
+        'duration': '360',
+    },
+    {
+        'taxrate': '10',
+        'duration': '0',
+    },
+    {
+        'taxrate': '10',
+        'duration': '60',
+    },
+    {
+        'taxrate': '10',
         'duration': '120',
+    },
+        {
+        'taxrate': '10',
+        'duration': '180',
+    },
+    {
+        'taxrate': '10',
+        'duration': '240',
+    },
+    {
+        'taxrate': '10',
+        'duration': '300',
+    },
+    {
+        'taxrate': '10',
+        'duration': '360',
+    },
+    {
+        'taxrate': '0',
+        'duration': '60',
+    },
+    {
+        'taxrate': '0',
+        'duration': '60',
+    },
+    {
+        'taxrate': '0',
+        'duration': '60',
     },
 ]
 
