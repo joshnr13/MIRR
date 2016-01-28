@@ -270,9 +270,9 @@ class Interface():
         ###########  ENTER DATA    ############
         #######################################
 
-        number_of_simulations = 35
-        countries = ['FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE']
-        numbers_of_iterations = [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
+        number_of_simulations = 15
+        countries = ['FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE']
+        numbers_of_iterations = [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
         
         conf_data = [
                      {
@@ -280,92 +280,12 @@ class Interface():
                      'duration': '0',
                      },
                      {
-                     'taxrate': '0',
-                     'duration': '60',
-                     }         ,
-                     {
-                     'taxrate': '0',
-                     'duration': '120',
-                     },
-                     {
-                     'taxrate': '0',
-                     'duration': '180',
-                     },
-                     {
-                     'taxrate': '0',
-                     'duration': '240',
-                     },
-                     {
-                     'taxrate': '0',
-                     'duration': '300',
-                     },
-                     {
-                     'taxrate': '0',
-                     'duration': '360',
-                     },
-                     {
                      'taxrate': '10',
                      'duration': '0',
                      },
                      {
-                     'taxrate': '10',
-                     'duration': '60',
-                     },
-                     {
-                     'taxrate': '10',
-                     'duration': '120',
-                     },
-                     {
-                     'taxrate': '10',
-                     'duration': '180',
-                     },
-                     {
-                     'taxrate': '10',
-                     'duration': '240',
-                     },
-                     {
-                     'taxrate': '10',
-                     'duration': '300',
-                     },
-                     {
-                     'taxrate': '10',
-                     'duration': '360',
-                     },
-                     {
                      'taxrate': '20',
                      'duration': '0',
-                     },
-                     {
-                     'taxrate': '20',
-                     'duration': '60',
-                     },
-                     {
-                     'taxrate': '20',
-                     'duration': '120',
-                     },
-                     {
-                     'taxrate': '20',
-                     'duration': '180',
-                     },
-                     {
-                     'taxrate': '20',
-                     'duration': '240',
-                     },
-                     {
-                     'taxrate': '20',
-                     'duration': '300',
-                     },
-                     {
-                     'taxrate': '20',
-                     'duration': '360',
-                     },
-                     {
-                     'taxrate': '30',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '30',
-                     'duration': '60',
                      },
                      {
                      'taxrate': '30',
