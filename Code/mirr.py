@@ -272,7 +272,7 @@ class Interface():
 
         number_of_simulations = 16
         countries = ['FRANCE', 'GERMANY', 'AUSTRIA', 'SLOVENIA', 'NETHERLANDS', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE']
-        numbers_of_iterations = [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
+        numbers_of_iterations = [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
         
         conf_data = [
                      {
