@@ -270,9 +270,9 @@ class Interface():
         ###########  ENTER DATA    ############
         #######################################
 
-        number_of_simulations = 10
-        countries = ['FRANCE', 'FRANCE', 'GERMANY', 'GERMANY', 'AUSTRIA', 'AUSTRIA', 'SLOVENIA', 'SLOVENIA', 'NETHERLANDS', 'NETHERLANDS']
-        numbers_of_iterations = [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
+        number_of_simulations = 16
+        countries = ['FRANCE', 'GERMANY', 'AUSTRIA', 'SLOVENIA', 'NETHERLANDS', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE']
+        numbers_of_iterations = [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
         
         conf_data = [
                      {
@@ -281,39 +281,67 @@ class Interface():
                      },
                      {
                      'taxrate': '30',
-                     'duration': '240',
-                     },
-                     {
-                     'taxrate': '30',
                      'duration': '0',
-                     },
-                     {
-                     'taxrate': '30',
-                     'duration': '240',
                      },
                      {
                      'taxrate': '25',
                      'duration': '0',
                      },
                      {
-                     'taxrate': '24',
-                     'duration': '156',
-                     },
-                     {
                      'taxrate': '17',
-                     'duration': '240',
-                     },
-                     {
-                     'taxrate': '17',
-                     'duration': '240',
+                     'duration': '0',
                      },
                      {
                      'taxrate': '20',
                      'duration': '0',
                      },
                      {
-                     'taxrate': '20',
+                     'taxrate': '30',
+                     'duration': '120',
+                     },
+                     {
+                     'taxrate': '30',
                      'duration': '180',
+                     },
+                     {
+                     'taxrate': '30',
+                     'duration': '240',
+                     },
+                     {
+                     'taxrate': '30',
+                     'duration': '300',
+                     },
+                     {
+                     'taxrate': '30',
+                     'duration': '360',
+                     },
+                     {
+                     'taxrate': '40',
+                     'duration': '0',
+                     },
+                     {
+                     'taxrate': '40',
+                     'duration': '60',
+                     },
+                     {
+                     'taxrate': '40',
+                     'duration': '120',
+                     },
+                     {
+                     'taxrate': '40',
+                     'duration': '180',
+                     },
+                     {
+                     'taxrate': '40',
+                     'duration': '240',
+                     },
+                     {
+                     'taxrate': '40',
+                     'duration': '300',
+                     },
+                     {
+                     'taxrate': '40',
+                     'duration': '360',
                      }
                      ]
 
