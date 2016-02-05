@@ -73,11 +73,9 @@ class TechnologyModule(BaseClassConfig, TechnologyModuleConfigReader):
                 for (fail, rep) in sm.failure_intervals:
                     if rep == date:
                         self.randomizeRepairCosts(self.country)
-                        years_till_end = self.end_date_project.year - date.year
-                        start_year = self.start_date_project.year
                         repair_costs += self.module_repair_costs
-                            if rep - self.first_day_construction > timedelta(days=365*self.module_guarantee_length): # not in guarantee period
-                                 repair_costs += self.module_price
+                        if rep - self.first_day_construction > timedelta(days=365*self.module_guarantee_length): # not in guarantee period
+                            repair_costs += self.module_price
         return repair_costs
 
     def getRepairCostsInverters(self, date, prev_year_ebitda):
