@@ -209,8 +209,8 @@ class Interface():
         with open(output_filename, 'w') as f:
             import csv
             wr = csv.writer(f, delimiter=';')
-            nested = ['std', 'variance', 'min', 'max', 'skew', 'kurtosis', 'mean',
-            'required_rate_of_return', 'median', 'JBTest', 'JBTest_value', 'normaltest']
+            nested = ['mean', 'std', 'kurtosis', 'skew', 'variance', 'required_rate_of_return', 'min', 'max',
+             'median', 'JBTest', 'JBTest_value', 'normaltest']
             head = ['country', 'simulation_number', 'iterations_number'] + nested + ['tax_rate'] + ['subsidy_duration']
             wr.writerow(head)
             for x in self.db.simulations.find():
