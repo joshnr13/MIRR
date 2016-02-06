@@ -43,7 +43,6 @@ commands['17'] = 'outputGeneratedWeatherData'  #Graph of daily aily insolation a
 commands['18'] = 'exportGeneratedElectricityPrices'  #Graph of daily aily insolation and temperature
 commands['19'] = 'exportIrrProjectYStats'
 commands['20'] = 'runBatchOfSimulations'
-commands['21'] = 'runBatchOfSimulations2'
 commands['0'] = 'stop'
 commands['h'] = 'help'
 commands['help'] = 'help'
@@ -237,24 +236,6 @@ class Interface():
         return MainConfig(country).getAllDates()
 
     def runBatchOfSimulations(self):
-        iterations_no = 20
-        runAndSaveSimulation('FRANCE1', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE2', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE3', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE4', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE5', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE6', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE7', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE8', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE9', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE10', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE11', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE12', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE13', iterations_no, ' ');
-        runAndSaveSimulation('FRANCE14', iterations_no, ' ');
-
-
-    def runBatchOfSimulations2(self):
 
 
         # Usage: python batch_runner.py
