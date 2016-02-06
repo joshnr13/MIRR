@@ -270,52 +270,48 @@ class Interface():
         ###########  ENTER DATA    ############
         #######################################
 
-        number_of_simulations = 10
-        countries = [ 'GERMANY', 'AUSTRIA', 'SLOVENIA', 'NETHERLANDS', 'GERMANY', 'AUSTRIA', 'SLOVENIA', 'NETHERLANDS', 'FRANCE', 'FRANCE']
-        numbers_of_iterations = [ 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 10000, 10000]
+        number_of_simulations = 9
+        countries = [ 'GERMANY', 'AUSTRIA', 'SLOVENIA', 'NETHERLANDS', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE']
+        numbers_of_iterations = [ 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
         
         conf_data = [
                      {
                      'taxrate': '30',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '25',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '17',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '20',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '30',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '25',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '17',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '20',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '30',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '30',
                      'duration': '240',
+                     },
+                     {
+                     'taxrate': '25',
+                     'duration': '156',
+                     },
+                     {
+                     'taxrate': '17',
+                     'duration': '240',
+                     },
+                     {
+                     'taxrate': '20',
+                     'duration': '180',
+                     },
+                     {
+                     'taxrate': '0',
+                     'duration': '0',
+                     },
+                     {
+                     'taxrate': '10',
+                     'duration': '0',
+                     },
+                     {
+                     'taxrate': '20',
+                     'duration': '0',
+                     },
+                     {
+                     'taxrate': '30',
+                     'duration': '0',
+                     },
+                     {
+                     'taxrate': '40',
+                     'duration': '0',
                      }
-                     ]
+                    ]
 
         #######################################
         #######################################
