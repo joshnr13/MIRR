@@ -211,7 +211,7 @@ class Interface():
             wr = csv.writer(f, delimiter=';')
             nested = ['std', 'variance', 'min', 'max', 'skew', 'kurtosis', 'mean',
             'required_rate_of_return', 'median', 'JBTest', 'JBTest_value', 'normaltest']
-            head = ['country', 'iterations_number'] + nested + ['tax_rate'] + ['subsidy_duration']
+            head = ['country', 'simulation_number', 'iterations_number'] + nested + ['tax_rate'] + ['subsidy_duration']
             wr.writerow(head)
             for x in self.db.simulations.find():
                 simno = x['simulation']
@@ -219,6 +219,7 @@ class Interface():
                         ['ecm_configs.tax_rate', 'sm_configs.subsidy_duration'], '', iteration_no=1)
                 lst = []
                 lst.append(x['country'])
+                lst.append(simno)
                 lst.append(x['iterations_number'])
                 for n in nested:
                     lst.append(x['irr_stats'][0][n])
@@ -230,9 +231,10 @@ class Interface():
         xls_output_filename = uniquifyFilename(xls_output_filename)  # preparing XLS filename before converting from CSV
         convert2excel(source=output_filename, output=xls_output_filename)  # coverting from CSV to XLS, using prepared report name
         print "CSV Report outputed to file %s" % xls_output_filename  # printing to screen path to generated report
-        @memoize
-        def getAllDates(country):
-            return MainConfig(country).getAllDates()
+
+    @memoize
+    def getAllDates(country):
+        return MainConfig(country).getAllDates()
 
     def runBatchOfSimulations(self):
         iterations_no = 20
@@ -250,7 +252,7 @@ class Interface():
         runAndSaveSimulation('FRANCE12', iterations_no, ' ');
         runAndSaveSimulation('FRANCE13', iterations_no, ' ');
         runAndSaveSimulation('FRANCE14', iterations_no, ' ');
-    
+
 
     def runBatchOfSimulations2(self):
 
@@ -273,7 +275,7 @@ class Interface():
         number_of_simulations = 9
         countries = [ 'GERMANY', 'AUSTRIA', 'SLOVENIA', 'NETHERLANDS', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE']
         numbers_of_iterations = [ 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
-        
+
         conf_data = [
                      {
                      'taxrate': '30',
@@ -348,12 +350,12 @@ class Interface():
             # torej 1, za simulacijo, potem st. drzave, st. iteracij, prazen komentar, in se 0 na koncu, da
             # lepo zakljuci. Se komot spremeni.
             runAndSaveSimulation(countries[it], numbers_of_iterations[it], ' ')
-            
+
             print "Done!"
             print "##################################"
 
 
-        
+
 
     ####################################################################################################################
 
