@@ -42,11 +42,9 @@ def calcStatistics(values):
     return  result
 
 def calculateRequiredRateOfReturn(stdev, skewness, excess_kurtosis, riskFreeRate, spreadCDS, benchmarkAdjustedSharpeRatio, illiquidityPremium):
-    """Return riskFreeRate (config) + spreadCDS (config) + std(irr_values) * benchmarkAdjustedSharpeRatio /
-    [1 + S*S/6 - (K-3)/24 * S * S], where S = skew(irr_values), K - 3 = excess_kurtosis(irr_values)"""
-    ss = skewness * skewness / 6
-    return riskFreeRate + spreadCDS + illiquidityPremium + stdev * benchmarkAdjustedSharpeRatio / (
-        1 + ss * (1 - excess_kurtosis / 4))
+    """Return riskFreeRate (config) + spreadCDS (config) + illiquidity premium + std(irr_values) * AdjustedSharpeRatio"""
+    adjustedSR = benchmarkAdjustedSharpeRatio * (1 + skewness/6 * benchmarkAdjustedSharpeRatio - (excess_kurtosis - 3)/24 * benchmarkAdjustedSharpeRatio * benchmarkAdjustedSharpeRatio)
+    return riskFreeRate + spreadCDS + illiquidityPremium + stdev * adjustedSR
 
 def jbCritValue(significance):
     """Return assimptotically aproximative critical value ofr JB statistics.
