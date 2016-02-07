@@ -276,9 +276,6 @@ class EnergyModuleConfigReader():
     def __init__(self, country, _filename='em_config.ini'):
         _config = parse_yaml(_filename, country)
 
-        self.TMin = get_config_value(_config, 'WEATHER_SIMULATION.TMin', float)
-        self.TMax = get_config_value(_config, 'WEATHER_SIMULATION.TMin', float)
-
         self.data_uncertainty = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.uncertainty_of_data', float)
         self.transposition_model_uncertainty = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.transposition_model_uncertainty', float)
         self.interannual_variability_std = get_config_value(_config, 'IRRADIATION_UNCERTAINTY.interannual_variability_std', float)
