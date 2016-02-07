@@ -244,10 +244,10 @@ class Interface():
         conf_data = [
                      {
                      'taxrate': '28',
-                     'duration': '60',
+                     'duration': '0',
                      },
                      {
-                     'taxrate': '30',
+                     'taxrate': '28',
                      'duration': '240',
                      },
                      {
