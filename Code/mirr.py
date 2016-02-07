@@ -210,7 +210,7 @@ class Interface():
             wr = csv.writer(f, delimiter=';')
             nested = ['mean', 'std', 'kurtosis', 'skew', 'variance', 'required_rate_of_return', 'min', 'max',
              'median', 'JBTest', 'JBTest_value', 'normaltest']
-            head = ['country', 'simulation_number', 'iterations_number'] + nested + ['tax_rate'] + ['subsidy_duration']
+            head = ['simulation_number', 'country', 'iterations_number'] + nested + ['tax_rate'] + ['subsidy_duration']
             wr.writerow(head)
             for x in self.db.simulations.find():
                 simno = x['simulation']
