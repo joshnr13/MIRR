@@ -276,12 +276,6 @@ class EnergyModuleConfigReader():
     def __init__(self, country, _filename='em_config.ini'):
         _config = parse_yaml(_filename, country)
 
-        #mean value for distribution of random factor for generating temperature
-        self.mean = get_config_value(_config, 'NORMAL_DISTRIBUTION.mean', float)
-
-        #stdev value for distribution of random factor for generating temperature
-        self.stdev = self.mean * get_config_value(_config, 'NORMAL_DISTRIBUTION.stdev_percent', 'float_percent')
-
         self.TMin = get_config_value(_config, 'WEATHER_SIMULATION.TMin', float)
         self.TMax = get_config_value(_config, 'WEATHER_SIMULATION.TMin', float)
 

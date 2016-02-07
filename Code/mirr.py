@@ -237,11 +237,19 @@ class Interface():
 
     def runBatchOfSimulations(self):
 
-        number_of_simulations = 5
-        countries = [ 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE']
-        numbers_of_iterations = [ 10000, 10000, 5000, 5000, 5000]
+        number_of_simulations = 7
+        countries = [ 'GREECE', 'GREECE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE']
+        numbers_of_iterations = [ 5000, 5000, 10000, 5000, 5000, 5000, 5000]
 
         conf_data = [
+                     {
+                     'taxrate': '28',
+                     'duration': '60',
+                     },
+                     {
+                     'taxrate': '30',
+                     'duration': '240',
+                     },
                      {
                      'taxrate': '30',
                      'duration': '60',
@@ -348,6 +356,7 @@ class Interface():
         countries[6] = 'CROATIA'
         countries[7] = 'FRANCE'
         countries[8] = 'FRANCE-NICE'
+        countries[9] = 'GREECE'
 
         if country in countries:
             return countries[country]
