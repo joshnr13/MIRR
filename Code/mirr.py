@@ -264,7 +264,6 @@ class Interface():
         #######################################
         #######################################
 
-        # These must pass
         assert len(countries) == number_of_simulations
         assert len(numbers_of_iterations) == number_of_simulations
         assert len(conf_data) == number_of_simulations
@@ -291,9 +290,6 @@ class Interface():
             print "  iterations:", numbers_of_iterations[it]
             print "  conf_data:", conf_data[it]
 
-            # zaporedje ukazov za mirr.py
-            # torej 1, za simulacijo, potem st. drzave, st. iteracij, prazen komentar, in se 0 na koncu, da
-            # lepo zakljuci. Se komot spremeni.
             runAndSaveSimulation(countries[it], numbers_of_iterations[it], ' ')
 
             print "Done!"
