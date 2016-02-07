@@ -237,22 +237,6 @@ class Interface():
 
     def runBatchOfSimulations(self):
 
-
-        # Usage: python batch_runner.py
-
-        # 1  -->  SLOVENIA
-        # 2  -->  AUSTRIA
-        # 3  -->  ITALY
-        # 4  -->  GERMANY
-        # 5  -->  NETHERLANDS
-        # 6  -->  CROATIA
-        # 7  -->  FRANCE
-        # 8  -->  FRANCE-NICE
-
-        #######################################
-        ###########  ENTER DATA    ############
-        #######################################
-
         number_of_simulations = 4
         countries = [ 'GERMANY', 'SLOVENIA', 'GERMANY', 'SLOVENIA']
         numbers_of_iterations = [ 5000, 5000, 5000, 5000]
