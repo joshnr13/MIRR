@@ -253,9 +253,9 @@ class Interface():
         ###########  ENTER DATA    ############
         #######################################
 
-        number_of_simulations = 9
-        countries = [ 'GERMANY', 'AUSTRIA', 'SLOVENIA', 'NETHERLANDS', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE', 'FRANCE']
-        numbers_of_iterations = [ 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
+        number_of_simulations = 4
+        countries = [ 'GERMANY', 'SLOVENIA', 'GERMANY', 'SLOVENIA']
+        numbers_of_iterations = [ 5000, 5000, 5000, 5000]
 
         conf_data = [
                      {
@@ -263,38 +263,18 @@ class Interface():
                      'duration': '240',
                      },
                      {
-                     'taxrate': '25',
-                     'duration': '156',
-                     },
-                     {
                      'taxrate': '17',
-                     'duration': '240',
-                     },
-                     {
-                     'taxrate': '20',
                      'duration': '180',
-                     },
-                     {
-                     'taxrate': '0',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '10',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '20',
-                     'duration': '0',
                      },
                      {
                      'taxrate': '30',
                      'duration': '0',
                      },
                      {
-                     'taxrate': '40',
+                     'taxrate': '17',
                      'duration': '0',
                      }
-                    ]
+                     ]
 
         #######################################
         #######################################
