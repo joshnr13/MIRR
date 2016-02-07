@@ -217,8 +217,8 @@ class Interface():
                 result = self.db.getIterationValuesFromDb(simno,
                         ['ecm_configs.tax_rate', 'sm_configs.subsidy_duration'], '', iteration_no=1)
                 lst = []
-                lst.append(x['country'])
                 lst.append(simno)
+                lst.append(x['country'])
                 lst.append(x['iterations_number'])
                 for n in nested:
                     lst.append(x['irr_stats'][0][n])
