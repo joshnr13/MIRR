@@ -237,30 +237,18 @@ class Interface():
 
     def runBatchOfSimulations(self):
 
-        number_of_simulations = 5
-        countries = [ 'AUSTRIA', 'AUSTRIA', 'SLOVENIA', 'SLOVENIA', 'FRANCE']
-        numbers_of_iterations = [ 5000, 5000, 5000, 5000, 5000]
+        number_of_simulations = 2
+        countries = [ 'FRANCE', 'FRANCE']
+        numbers_of_iterations = [ 10000, 10000]
 
         conf_data = [
                      {
-                     'taxrate': '25',
-                     'duration': '0',
+                     'taxrate': '30',
+                     'duration': '240',
                      },
                      {
-                     'taxrate': '25',
-                     'duration': '156',
-                     },
-                     {
-                     'taxrate': '17',
-                     'duration': '0',
-                     },
-                     {
-                     'taxrate': '17',
-                     'duration': '180',
-                     },
-                     {
-                     'taxrate': '20',
-                     'duration': '0',
+                     'taxrate': '30',
+                     'duration': '120',
                      }
                      ]
 
