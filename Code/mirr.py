@@ -257,7 +257,7 @@ class Interface():
                      {
                      'taxrate': '17',
                      'duration': '180',
-                     }
+                     },
                      {
                      'taxrate': '20',
                      'duration': '0',
