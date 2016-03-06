@@ -242,15 +242,17 @@ class Interface():
         numbers_of_iterations = [ 10000, 10000]
 
         conf_data = [
-                     {
-                     'taxrate': '30',
-                     'duration': '180',
-                     },
-                     {
-                     'taxrate': '30',
-                     'duration': '300',
-                     }
-                     ]
+            {
+                'taxrate': '30',
+                'duration': '180',
+                'mwhfit': '60',
+            },
+            {
+                'taxrate': '30',
+                'duration': '300',
+                'mwhfit': 70,
+            }
+        ]
 
         #######################################
         #######################################
@@ -282,7 +284,8 @@ class Interface():
             print "  iterations:", numbers_of_iterations[it]
             print "  conf_data:", conf_data[it]
 
-            runAndSaveSimulation(countries[it], numbers_of_iterations[it], ' ')
+            comment = "Simulation nr. {} in this batch. Parameters: ".format(it, conf_data[it])
+            runAndSaveSimulation(countries[it], numbers_of_iterations[it], comment)
 
             print "Done!"
             print "##################################"
