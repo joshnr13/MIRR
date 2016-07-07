@@ -210,10 +210,10 @@ def plotCorrelationTornadoChart(field_dic, simulation_id, yearly=False, country=
     else:
         print ("Corellations using sim N. %s with %s values" % (simulation_id, number_values_used))
 
-    for i, (field_short_name, main_field_db_name) in enumerate(CORRELLATION_FIELDS.items()):
-        short_db_name = main_field_db_name.split('.')[-1]
+    for i, (field_short_name, field_db_name) in enumerate(CORRELLATION_FIELDS.items()):
+        short_db_name = field_db_name.split('.')[-1]
         value = rounded_values_dict[short_db_name]
-        print "Correllation between %s and %s = %s" % (short_db_name, field_short_name, value)
+        print "Correllation between %s and %s = %s" % (main_field_db_name, field_short_name, value)
         if numpy.isnan(value):
             value = 0
         values.append(value)
