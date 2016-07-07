@@ -243,7 +243,8 @@ class Iteration:
         line["equipment_description"] = self.tm.equipmentDescription()
         line["average_degradation_rate"] = self.tm.getAverageDegradationRate()
         line["average_power_ratio"] = self.tm.getAveragePowerRatio()
-
+        line["total_power"] = self.tm.total_power
+        line["total_investment_cost"] = self.tm.getInvestmentCost()
         line["insolations_daily"] = self.em.getInsolationsLifetime().values()
         line["electricity_production_daily"] = self.ecm.electricity_production.values()
 
