@@ -93,6 +93,7 @@ CORRELLATION_FIELDS["average_degradation_rate"] = "average_degradation_rate"
 CORRELLATION_FIELDS["average_power_ratio"] = "average_power_ratio"
 CORRELLATION_FIELDS["total_power"] = "total_power"
 CORRELLATION_FIELDS["total_investment_cost"] = "total_investment_cost"
+CORRELLATION_FIELDS["pvequipment_disposal"] = "pvequipment_disposal"
 
 CORRELLATION_IRR_FIELD = {"IRR": IRR_REPORT_FIELDS[0]}
 CORRELLATION_NPV_FIELD = {"NPV": NPV_REPORT_FIELD}
